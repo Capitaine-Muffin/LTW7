@@ -7,3 +7,7 @@ __pycache__/
 *.w3x
 extrait/
 *.png
+
+node_modules/
+package-lock.json
+package.json

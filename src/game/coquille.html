@@ -1,0 +1,94 @@
+<title>LTW 7 Warnet — prototype</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@600;800&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+:root{--fond:#141220;--panneau:#1d1a2b;--bord:#2e2940;--encre:#ece9f4;--doux:#a49cba;
+  --or:#f0c451;--vert:#6fc46a;--rouge:#e05a5a;--bois:#b98a54}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--fond);color:var(--encre);font-family:"Source Sans 3",system-ui,sans-serif;
+  display:flex;flex-direction:column;overflow:hidden;user-select:none;touch-action:manipulation}
+h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
+#haut{display:flex;align-items:center;gap:9px;padding:6px 9px;background:var(--panneau);
+  border-bottom:1px solid var(--bord)}
+#reglages{display:none;gap:6px;padding:0 9px 7px;background:var(--panneau);
+  border-bottom:1px solid var(--bord);align-items:center}
+#reglages[data-ouvert="1"]{display:flex}
+.stat{display:flex;flex-direction:column;line-height:1.05;min-width:0}
+.stat b{font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat span{font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--doux)}
+.stat.or b{color:var(--or)} .stat.vies b{color:var(--rouge)} .stat.bois b{color:var(--bois)}
+.stat.rev b{color:var(--vert)}
+#jauge{flex:1;min-width:70px;height:5px;background:#000;border-radius:3px;overflow:hidden}
+#jaugeRevenu{height:100%;background:var(--vert);width:0}
+#haut button{background:var(--bord);color:var(--encre);border:0;border-radius:7px;
+  padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer}
+#lignes{display:flex;gap:5px;overflow-x:auto;padding:6px 8px;background:#191627;
+  border-bottom:1px solid var(--bord)}
+.ong{flex:0 0 auto;background:transparent;border:1px solid var(--bord);border-radius:8px;
+  padding:5px 9px;color:var(--doux);display:flex;flex-direction:column;line-height:1.15;cursor:pointer}
+.ong b{font-size:12px;color:var(--encre)} .ong span{font-size:10px}
+.ong.actif{border-color:var(--or);background:rgba(240,196,81,.12)}
+.ong.mort{opacity:.35;text-decoration:line-through}
+#zone{flex:1;position:relative;min-height:0}
+#scene{width:100%;height:100%;display:block}
+#lecture{position:absolute;top:8px;left:50%;transform:translateX(-50%);
+  background:rgba(20,18,32,.9);border:1px solid var(--or);color:var(--or);
+  padding:5px 12px;border-radius:20px;font-size:11.5px;font-weight:700;font-family:Oxanium}
+#bas{background:var(--panneau);border-top:1px solid var(--bord)}
+#panneau{min-height:82px;padding:8px 8px 4px}
+.rangee{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.art{flex:0 0 auto;background:var(--bord);border:1px solid #3b3552;border-radius:9px;
+  padding:7px 10px;color:var(--encre);display:flex;flex-direction:column;align-items:flex-start;
+  line-height:1.2;cursor:pointer;min-width:74px}
+.art b{font-size:12.5px} .art span{font-size:10.5px;color:var(--doux)}
+.art i{font-size:10px;color:var(--vert);font-style:normal;font-variant-numeric:tabular-nums}
+.art.off{opacity:.4} .art.pris{border-color:var(--or);background:rgba(240,196,81,.16)}
+.art.acquis{border-color:var(--vert);color:var(--vert)} .art.vente{border-color:#6b3a3a}
+.tete{font-family:Oxanium;font-weight:800;font-size:14px;padding:0 2px 6px;display:flex;
+  flex-direction:column} .tete span{font-family:"Source Sans 3";font-weight:400;font-size:11px;color:var(--doux)}
+.aide{margin:5px 2px 0;font-size:11px;color:var(--doux);line-height:1.35}
+.vide{margin:14px 2px;font-size:12.5px;color:var(--doux)}
+#barre{display:flex;gap:6px;padding:6px 8px 10px}
+#barre button{flex:1;background:var(--bord);color:var(--encre);border:1px solid #3b3552;
+  border-radius:9px;padding:11px 4px;font-size:13px;font-weight:700;cursor:pointer}
+#barre button[aria-pressed="true"]{background:var(--or);color:#1a1408;border-color:var(--or)}
+select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border-radius:7px;
+  padding:6px;font-size:12px;font-family:Oxanium;font-weight:600}
+#fin{position:fixed;inset:0;background:rgba(10,9,16,.88);display:flex;align-items:center;
+  justify-content:center;z-index:9;padding:24px;text-align:center}
+/* hidden pose display:none, mais display:flex le supplante : il faut le dire. */
+#fin[hidden],#lecture[hidden]{display:none}
+#fin h2{font-size:30px;margin:0 0 8px} #fin p{color:var(--doux);font-size:14px;margin:0 0 16px}
+#fin button{background:var(--or);color:#1a1408;border:0;border-radius:9px;padding:11px 22px;
+  font-size:15px;font-weight:800;cursor:pointer}
+</style>
+
+<div id="haut">
+  <div class="stat or"><b id="or">0</b><span>or</span></div>
+  <div class="stat rev"><b id="revenu">+0</b><span>revenu</span></div>
+  <div class="stat vies"><b id="vies">0</b><span>vies</span></div>
+  <div class="stat bois"><b id="bois">0</b><span>bois</span></div>
+  <div class="stat"><b id="minuteur">0 s</b><span>versement</span></div>
+  <div id="jauge"><div id="jaugeRevenu"></div></div>
+  <button id="vitesse">×1</button>
+  <button id="ouvrirReglages" title="Réglages">⚙</button>
+</div>
+<div id="reglages">
+  <select id="nbJoueurs" title="Nombre de joueurs">
+    <option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option>
+  </select>
+  <select id="profil" title="Profil"><option value="BLITZ">Blitz</option><option value="CLASSIQUE">Classique</option></select>
+  <select id="camp" title="Camp"><option value="0">Humain</option><option value="1">Orc</option>
+    <option value="2">Mort-vivant</option><option value="3">Elfe</option></select>
+  <button id="rejouerHaut">Nouvelle partie</button>
+</div>
+<div id="lignes"></div>
+<div id="zone"><canvas id="scene"></canvas><div id="lecture" hidden>Lecture seule</div></div>
+<div id="bas"><div id="panneau"></div>
+  <div id="barre">
+    <button data-menu="monstres">Monstres</button>
+    <button data-menu="batiments" aria-pressed="true">Bâtiments</button>
+    <button data-menu="techno">Technologies</button>
+  </div></div>
+<div id="fin" hidden></div>
+<script>
