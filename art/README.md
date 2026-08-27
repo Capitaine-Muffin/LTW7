@@ -1,5 +1,9 @@
 # Les sprites
 
+Deux fichiers : `sprites.js` (les bâtiments, 48 × 48) et `monstres.js` (les
+créatures, 24 × 24, deux images de marche chacune).
+
+
 `sprites.js` dessine les 32 bâtiments (8 × 4 camps) en **48 × 48**. Aucun fichier
 image : tout est tracé pixel par pixel à l'exécution.
 
@@ -69,3 +73,35 @@ l'outil principal, pas un accessoire.
 - **Test avant de peaufiner** : rendre en silhouette noire. Un bâtiment qui n'est
   plus identifiable en noir ne le sera pas davantage en couleur sur une case de
   40 pixels.
+
+
+---
+
+# Les monstres (`monstres.js`)
+
+24 × 24, **deux images** par créature — la seconde décale les pattes, les bras
+ou l'ondulation du voile. C'est une seule ligne de différence et ça suffit à
+faire vivre le plateau.
+
+Même méthode que les bâtiments : chaque partie dessinée à part, détourée en
+noir, puis collée (`MCOUCHE`). Le corps passe par `MCORPS`, qui pose trois
+bandes de valeur — lumière à gauche, masse au centre, ombre à droite.
+
+| Créature | Ce qu'elle doit dire au premier coup d'œil |
+|---|---|
+| **Mouton** | dérisoire. Toison énorme, museau noir minuscule, deux pattes fines. C'est l'achat purement économique : il ne doit faire peur à personne. |
+| **Loup** | rapide. Quadrupède bas sur pattes, museau effilé, oreilles triangulaires, regard cyan. |
+| **Acolyte** | occulte. Capuche, aucune jambe visible, mains qui rougeoient. |
+| **Fantassin** | militaire. Casque à fente, bouclier rond, épée levée, tabard bleu. Le seul qui ressemble à un soldat. |
+| **Golem** | lourd. Masse trapue, bras rattachés aux épaules, fissures orange. |
+| **Ombre** | volante. Silhouette effilochée qui ondule, capuche, pas de sol. |
+| **Troll** | brutal. Voûté, défenses, gourdin. |
+| **Banshee** | volante et chère. Voile déchiré, bras ouverts, turquoise lumineux. |
+
+**Les volants sont dessinés plus haut que leur case, avec une ombre portée
+détachée au sol** — c'est ce qui dit « il ignore ton labyrinthe » sans une seule
+ligne de texte.
+
+```sh
+node tools/apercu-monstres.mjs planche.png   # les 8, deux images chacune
+```

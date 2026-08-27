@@ -3,7 +3,7 @@
    elle garde l'ordre de chargement explicite. */
 import {readFileSync, writeFileSync} from 'fs';
 const morceaux = [
-  'art/sprites.js',
+  'art/sprites.js', 'art/monstres.js',
   'src/engine/rng.js', 'src/engine/config.js', 'src/engine/grille.js', 'src/engine/moteur.js',
   'src/game/jeu.js'
 ];

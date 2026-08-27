@@ -11,16 +11,23 @@ const SPRITE = {                    // quelle planche de sprite pour quelle tour
   cloaque:'prisme', damne:'prisme', fosse:'prisme', mort:'prisme',
   oiseau:'prisme', lanterne:'prisme', champignon:'prisme', teleporteur:'prisme'
 };
-const TEINTE = {                    // couleur de monstre, par famille
-  mouton:'#cfd3dd', loup:'#7d95b8', acolyte:'#8d7bb5', fantassin:'#c8a15a',
-  golem:'#7a6a52', ombre:'#6b5a8f', troll:'#5f8a4a', banshee:'#7fd0c8'
-};
+/* Chaque monstre a deux images ; on alterne pour la marche. */
 
 let etat, camp, cache = {}, enMain = null, selection = null, ligneVue = 0,
     menu = null, acceleration = 1, dernier = 0, accum = 0;
 
 /* ---- pre-rendu des sprites ---------------------------------------------- */
 function preparerSprites(){
+  for (const cle of Object.keys(MONSTRES_ART)) for (const im of [0, 1]){
+    const g = dessinerMonstre(cle, im);
+    const cv = document.createElement('canvas');
+    cv.width = NM; cv.height = NM;
+    const c = cv.getContext('2d');
+    for (let y = 0; y < NM; y++) for (let x = 0; x < NM; x++){
+      const v = g[y][x]; if (!v) continue; c.fillStyle = v; c.fillRect(x, y, 1, 1);
+    }
+    cache['m:' + cle + ':' + im] = cv;
+  }
   for (const b of BATS) for (const f of CAMPS){
     const g = dessiner(b.k, f, false);
     const cv = document.createElement('canvas');
@@ -91,21 +98,22 @@ function dessinerJeu(){
     }
   }
 
-  for (const m of l.monstres){
+  const taille = Math.round(T * 0.95);
+  for (const m of [...l.monstres].sort((a, z) => a.y - z.y)){
     const x = ox + m.x * T / cfg.MILLI, y = oy + m.y * T / cfg.MILLI;
-    const r = Math.max(3, T * .22);
     const def = cfg.MONSTRES[m.type];
-    c.fillStyle = '#0d0b10';
-    c.beginPath(); c.ellipse(x, y + r * .7, r * .9, r * .35, 0, 0, 7); c.fill();
-    c.fillStyle = TEINTE[m.type] || '#ccc';
-    c.fillRect(Math.round(x - r), Math.round(y - r) + (def.vol ? -r : 0), Math.round(r * 2), Math.round(r * 2));
-    c.fillStyle = '#0d0b10';
-    c.fillRect(Math.round(x - r), Math.round(y - r) + (def.vol ? -r : 0), Math.round(r * 2), 1);
-    c.fillRect(Math.round(x - r * .4), Math.round(y - r * .3) + (def.vol ? -r : 0), 2, 2);
-    c.fillRect(Math.round(x + r * .2), Math.round(y - r * .3) + (def.vol ? -r : 0), 2, 2);
+    /* Les volants planent : on les remonte et on les fait osciller. */
+    const vol = def.vol ? -taille * 0.30 + Math.sin((etat.pas + m.id * 7) / 6) * taille * 0.06 : 0;
+    const im = cache['m:' + m.type + ':' + (((etat.pas / 3) | 0) % 2)];
+    if (def.vol){                                   // ombre portee au sol, detachee
+      c.fillStyle = 'rgba(0,0,0,.28)';
+      c.beginPath(); c.ellipse(x, y + taille * .16, taille * .26, taille * .10, 0, 0, 7); c.fill();
+    }
+    if (im) c.drawImage(im, Math.round(x - taille / 2), Math.round(y - taille * .62 + vol), taille, taille);
     if (m.pv < m.pvMax){
-      c.fillStyle = '#000'; c.fillRect(x - r, y - r - 5, r * 2, 2);
-      c.fillStyle = '#e05a5a'; c.fillRect(x - r, y - r - 5, r * 2 * m.pv / m.pvMax, 2);
+      const w = taille * .6;
+      c.fillStyle = '#000';    c.fillRect(x - w / 2, y - taille * .70 + vol, w, 3);
+      c.fillStyle = '#e05a5a'; c.fillRect(x - w / 2, y - taille * .70 + vol, w * m.pv / m.pvMax, 3);
     }
   }
 
