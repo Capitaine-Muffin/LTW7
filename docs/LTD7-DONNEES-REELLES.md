@@ -147,6 +147,39 @@ L'échelle est exponentielle : de 5 à 80 000 or, ×16 000. Une partie va très 
 
 ---
 
+## 5 bis. Emprise au sol et échelle — combien de cases fait une tour ?
+
+Question posée, et la map y répond sans ambiguïté.
+
+**Une tour occupe une case entière, pas quatre.** Les bâtiments de la map
+héritent du pathing par défaut des tours Warcraft, `4x4SimpleSolid.tga` — soit
+4 × 4 cellules de pathing de 32 unités, c'est-à-dire **128 × 128 unités, une
+tuile de terrain complète**. Les quatre bâtiments de menu de la map le
+surchargent explicitement avec la même valeur, ce qui confirme la lecture.
+
+**Un monstre, lui, n'a quasiment pas d'emprise** : `ucol = 1.0` pour toutes les
+créatures envoyables. C'est un point. Les creeps se traversent entre eux et se
+faufilent dans le moindre interstice — d'où le maze en serpentin plutôt qu'en
+bouchon.
+
+| | Emprise au sol | Échelle du modèle |
+|---|---|---|
+| **Tours** | 1 case pleine (128 × 128) | **1,3 à 2,0** — Épine 1,5 · Sang 1,8 · Lame 2,0 · BOOM 2,0 |
+| **Creeps** | collision 1.0 = un point | **0,5 à 1,5** — Loup de givre 0,5 · Centaure 1,0 · Élémentaire d'eau 1,5 |
+
+> **La conclusion pour le rendu :** ce n'est pas la grille qu'il faut changer,
+> c'est le rapport de taille à l'écran. Dans l'original **une tour est environ
+> trois fois plus grosse qu'un creep**, et son modèle déborde de sa case. Un
+> creep dessiné presque aussi gros qu'une tour est une erreur de rendu, pas une
+> erreur de grille.
+
+Et passer les tours à 2 × 2 serait **moins** fidèle, pas plus : ça diviserait par
+quatre la finesse du labyrinthe (9 × 13 = 117 cases deviendraient 4 × 6
+emplacements), ce qui viderait le mazing de sa substance — précisément la couche
+de skill que le Contrôleur existe pour protéger.
+
+---
+
 ## 6. Les tours
 
 55 bâtiments. Quelques repères de l'échelle basse, celle des premières minutes :

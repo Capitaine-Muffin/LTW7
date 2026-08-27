@@ -102,6 +102,18 @@ bandes de valeur — lumière à gauche, masse au centre, ombre à droite.
 détachée au sol** — c'est ce qui dit « il ignore ton labyrinthe » sans une seule
 ligne de texte.
 
+## L'échelle, et pourquoi elle compte
+
+Dans la map d'origine une tour occupe **une case entière** et un creep a une
+collision de 1.0, c'est-à-dire un point ; les modèles de tours y sont mis à
+l'échelle 1,3 à 2,0 et les creeps à 0,5 à 1,5. **Le rapport visuel est d'environ
+trois pour un.**
+
+D'où le rendu : les bâtiments sont dessinés à **1,5 × la case** (ils débordent,
+comme dans l'original) et chaque monstre porte son propre facteur `ech` dans
+`config.js` — 0,42 pour le mouton, 0,80 pour le troll. Un creep dessiné presque
+aussi gros qu'une tour est une erreur de rendu, pas une erreur de grille.
+
 ```sh
 node tools/apercu-monstres.mjs planche.png   # les 8, deux images chacune
 ```

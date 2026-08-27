@@ -78,7 +78,7 @@ function dessinerJeu(){
     c.fillStyle = 'rgba(230,70,60,.22)'; c.fillRect(ox, oy, T * cfg.LARGEUR, T * cfg.HAUTEUR);
   }
 
-  const tailleSprite = Math.round(T * 1.35);
+  const tailleSprite = Math.round(T * 1.5);   // la tour deborde sa case, comme dans l'original
   for (const b of [...l.batiments].sort((a, z) => a.y - z.y)){
     const img = cache[(SPRITE[b.type] || 'fleche') + ':' + camp.k];
     const px = ox + b.x * T + (T - tailleSprite) / 2;
@@ -98,22 +98,22 @@ function dessinerJeu(){
     }
   }
 
-  const taille = Math.round(T * 0.95);
   for (const m of [...l.monstres].sort((a, z) => a.y - z.y)){
     const x = ox + m.x * T / cfg.MILLI, y = oy + m.y * T / cfg.MILLI;
     const def = cfg.MONSTRES[m.type];
+    const taille = Math.round(T * (def.ech || 0.55));
     /* Les volants planent : on les remonte et on les fait osciller. */
     const vol = def.vol ? -taille * 0.30 + Math.sin((etat.pas + m.id * 7) / 6) * taille * 0.06 : 0;
     const im = cache['m:' + m.type + ':' + (((etat.pas / 3) | 0) % 2)];
     if (def.vol){                                   // ombre portee au sol, detachee
       c.fillStyle = 'rgba(0,0,0,.28)';
-      c.beginPath(); c.ellipse(x, y + taille * .16, taille * .26, taille * .10, 0, 0, 7); c.fill();
+      c.beginPath(); c.ellipse(x, y + taille * .22, taille * .30, taille * .12, 0, 0, 7); c.fill();
     }
     if (im) c.drawImage(im, Math.round(x - taille / 2), Math.round(y - taille * .62 + vol), taille, taille);
-    if (m.pv < m.pvMax){
-      const w = taille * .6;
-      c.fillStyle = '#000';    c.fillRect(x - w / 2, y - taille * .70 + vol, w, 3);
-      c.fillStyle = '#e05a5a'; c.fillRect(x - w / 2, y - taille * .70 + vol, w * m.pv / m.pvMax, 3);
+    if (m.pv < m.pvMax){                            // barre lisible meme sur un mouton
+      const w = Math.max(10, taille * .7);
+      c.fillStyle = '#000';    c.fillRect(x - w / 2, y - taille * .72 + vol, w, 3);
+      c.fillStyle = '#e05a5a'; c.fillRect(x - w / 2, y - taille * .72 + vol, w * m.pv / m.pvMax, 3);
     }
   }
 
