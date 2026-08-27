@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+
+# Les maps Warcraft III sont l’oeuvre de leurs auteurs : on garde les
+# chiffres releves (docs/LTD7-DONNEES-REELLES.md), pas les fichiers.
+*.w3m
+*.w3x
+extrait/
+*.png

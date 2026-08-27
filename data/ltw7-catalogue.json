@@ -1,0 +1,743 @@
+{
+ "source": "line_tower_wars_7_v1.12.w3m",
+ "constantes": {
+  "vies": 25,
+  "revenu_depart": 25,
+  "tick_revenu_s": 10,
+  "lignes": 7,
+  "bois_depart": 3,
+  "bois_par_kill": 1,
+  "unites_max_par_ligne": 12
+ },
+ "boutique_monstres": [
+  {
+   "base": "uske",
+   "nom": "SKELETON NOOB WARRIOR^^ (E)",
+   "or": 22,
+   "pv": 88,
+   "degats": 24,
+   "portee": null,
+   "vitesse": null,
+   "valeur": 4,
+   "touche": "E",
+   "revenu": 4
+  },
+  {
+   "base": "ogru",
+   "nom": "GRUNT (S)",
+   "or": 100,
+   "pv": 400,
+   "degats": 23,
+   "portee": null,
+   "vitesse": null,
+   "valeur": 14,
+   "touche": "S",
+   "revenu": 14
+  },
+  {
+   "base": "ushd",
+   "nom": "SHADOW - AIR - (D)",
+   "or": 200,
+   "pv": 600,
+   "degats": null,
+   "portee": null,
+   "vitesse": null,
+   "valeur": 22,
+   "touche": "D",
+   "revenu": 22
+  },
+  {
+   "base": "hfoo",
+   "nom": "Demolition Machine",
+   "or": 500,
+   "pv": 1000,
+   "degats": 8,
+   "portee": 100,
+   "vitesse": null,
+   "valeur": null,
+   "revenu": 50
+  },
+  {
+   "base": "otau",
+   "nom": "TAUREN (W)",
+   "or": 2000,
+   "pv": 8000,
+   "degats": 46,
+   "portee": null,
+   "vitesse": null,
+   "valeur": 200,
+   "touche": "W",
+   "revenu": 200
+  },
+  {
+   "base": "uban",
+   "nom": "BANSHEE - AIR - (A)",
+   "or": 20000,
+   "pv": 60000,
+   "degats": null,
+   "portee": null,
+   "vitesse": null,
+   "valeur": 1700,
+   "touche": "A",
+   "revenu": 1700
+  },
+  {
+   "base": "ufro",
+   "nom": "FROST WYRM - AIR - (Z)",
+   "or": 60000,
+   "pv": 120000,
+   "degats": null,
+   "portee": null,
+   "vitesse": null,
+   "valeur": 4000,
+   "touche": "Z",
+   "revenu": 4000
+  },
+  {
+   "base": "osw3",
+   "nom": "SHADOW WOLF (L)",
+   "or": 100000,
+   "pv": 200000,
+   "degats": null,
+   "portee": null,
+   "vitesse": null,
+   "valeur": 6000,
+   "touche": "L",
+   "revenu": 6000
+  },
+  {
+   "base": "ngir",
+   "nom": "GOBLIN SHREDDER - ATTAK (O)",
+   "or": 100000,
+   "pv": 100000,
+   "degats": 75,
+   "portee": null,
+   "vitesse": null,
+   "valeur": 5000,
+   "touche": "O",
+   "revenu": 5000
+  }
+ ],
+ "creeps": [
+  {
+   "base": "hpea",
+   "nom": "Builder",
+   "or": null,
+   "pv": null,
+   "degats": 1000,
+   "portee": 2000,
+   "vitesse": 400,
+   "valeur": 0,
+   "effet": "A builder can build. | ( it' s true ! )"
+  },
+  {
+   "base": "hhdl",
+   "nom": "Fire Towers",
+   "or": 0,
+   "pv": null,
+   "degats": null,
+   "portee": null,
+   "vitesse": 0,
+   "valeur": 0,
+   "effet": "Burn the creeps (Or just blow them up)"
+  },
+  {
+   "base": "nshe",
+   "nom": "SHEEP - FOOD FOR TOWERS :D (Q)",
+   "or": 5,
+   "pv": 5,
+   "degats": 1,
+   "portee": 50,
+   "vitesse": 270,
+   "valeur": 1,
+   "touche": "Q",
+   "effet": "income  +1"
+  },
+  {
+   "base": "nwwf",
+   "nom": "FROST WOLF (W)",
+   "or": 10,
+   "pv": 40,
+   "degats": null,
+   "portee": null,
+   "vitesse": 300,
+   "valeur": 2,
+   "touche": "W",
+   "revenu": 2
+  },
+  {
+   "base": "uaco",
+   "nom": "ACOLYTE (R)",
+   "or": 50,
+   "pv": 200,
+   "degats": 24,
+   "portee": null,
+   "vitesse": 270,
+   "valeur": 8,
+   "touche": "R",
+   "revenu": 8
+  },
+  {
+   "base": "hfoo",
+   "nom": "FOOTMAN (A)",
+   "or": 75,
+   "pv": 250,
+   "degats": null,
+   "portee": null,
+   "vitesse": 370,
+   "valeur": 12,
+   "touche": "A",
+   "revenu": 12
+  },
+  {
+   "base": "ngrk",
+   "nom": "MUD GOLEM (F)",
+   "or": 350,
+   "pv": 1400,
+   "degats": 49,
+   "portee": null,
+   "vitesse": 300,
+   "valeur": 37,
+   "touche": "F",
+   "revenu": 37
+  },
+  {
+   "base": "nftb",
+   "nom": "YOUR MOM (TROLL):D -ATTAK (F)",
+   "or": 5000,
+   "pv": 5000,
+   "degats": 47,
+   "portee": null,
+   "vitesse": 350,
+   "valeur": 450,
+   "touche": "F",
+   "revenu": 450
+  },
+  {
+   "base": "hmtt",
+   "nom": "STEAM TANK - ATTACK- (S)",
+   "or": 30000,
+   "pv": 100000,
+   "degats": null,
+   "portee": null,
+   "vitesse": 270,
+   "valeur": 2500,
+   "touche": "S",
+   "revenu": 2500
+  },
+  {
+   "base": "ninf",
+   "nom": "INFERNAL BOSS (D)",
+   "or": 40000,
+   "pv": 350000,
+   "degats": 480,
+   "portee": null,
+   "vitesse": 270,
+   "valeur": 3000,
+   "touche": "D",
+   "revenu": 3000
+  },
+  {
+   "base": "nrvs",
+   "nom": "FROST REVENANT (F)",
+   "or": 50000,
+   "pv": 110000,
+   "degats": 46,
+   "portee": null,
+   "vitesse": 350,
+   "valeur": 3300,
+   "touche": "F",
+   "revenu": 4000
+  },
+  {
+   "base": "hwt3",
+   "nom": "WATER ELEMENTAL (X)",
+   "or": 80000,
+   "pv": 150000,
+   "degats": null,
+   "portee": null,
+   "vitesse": 270,
+   "valeur": 4300,
+   "touche": "X",
+   "revenu": 5000
+  },
+  {
+   "base": "nbal",
+   "nom": "LAMER GERMAN - CAN ATTAK (C)",
+   "or": 100000,
+   "pv": 150000,
+   "degats": 100,
+   "portee": 300,
+   "vitesse": 250,
+   "valeur": 3,
+   "touche": "C",
+   "revenu": 3
+  }
+ ],
+ "tours": [
+  {
+   "base": "nkot",
+   "nom": "Anti cheating system",
+   "or": null,
+   "pv": 500000,
+   "degats": 998,
+   "portee": null,
+   "vitesse": 522,
+   "valeur": null
+  },
+  {
+   "base": "hhou",
+   "nom": "Ice Cream Merchant",
+   "or": 0,
+   "pv": 300,
+   "degats": 69,
+   "portee": 700,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 75 | Range: 700 | 60 shoots / minute | Slow the creeps"
+  },
+  {
+   "base": "hhou",
+   "nom": "Short Circuit",
+   "or": 0,
+   "pv": null,
+   "degats": 96,
+   "portee": 300,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 100 | Range: 300 | 60 shoots / minute"
+  },
+  {
+   "base": "hhou",
+   "nom": "Barbecue",
+   "or": 0,
+   "pv": null,
+   "degats": 96,
+   "portee": 300,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 100 | Range: 300 | 30 shoots / minute | Little splash"
+  },
+  {
+   "base": "hhou",
+   "nom": "Never Been Cleaned WC",
+   "or": 0,
+   "pv": 300,
+   "degats": 55,
+   "portee": 700,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 60  ( +40 poison oer 4 sec. ) | Range: 700 | 60 shoots / minute | Slow creeps"
+  },
+  {
+   "base": "hhou",
+   "nom": "Little Bird",
+   "or": 0,
+   "pv": null,
+   "degats": 239,
+   "portee": 500,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 250 | Range: 500 | 24 shoots / minute"
+  },
+  {
+   "base": "hhou",
+   "nom": "Useless Tower",
+   "or": 10,
+   "pv": 100,
+   "degats": 8,
+   "portee": 500,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 10 | Range: 500 | 60 shoots / minute"
+  },
+  {
+   "base": "hhou",
+   "nom": "Sharp Tower",
+   "or": 10,
+   "pv": 250,
+   "degats": 18,
+   "portee": 150,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 20 | Range: 150 | 60 shoots / minute"
+  },
+  {
+   "base": "hhou",
+   "nom": "Pitiful Tower",
+   "or": 30,
+   "pv": 150,
+   "degats": 14,
+   "portee": 600,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 17 | Range: 600 | 100 shoots / minute"
+  },
+  {
+   "base": "hhou",
+   "nom": "Bloody Tower",
+   "or": 30,
+   "pv": 350,
+   "degats": 32,
+   "portee": 150,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 35 | Range: 150 | 100 shoots / minute"
+  },
+  {
+   "base": "hctw",
+   "nom": "Canon Tower",
+   "or": 120,
+   "pv": 200,
+   "degats": 75,
+   "portee": 600,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 80 | Range: 600 | 30 shots / minute | Little splash"
+  },
+  {
+   "base": "hhou",
+   "nom": "Lame Tower",
+   "or": 120,
+   "pv": null,
+   "degats": 46,
+   "portee": 150,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 50 | Range: 150 | 200 shoots / minute"
+  },
+  {
+   "base": "hhou",
+   "nom": "Crusher",
+   "or": 120,
+   "pv": null,
+   "degats": 154,
+   "portee": 150,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 160 | Range: 150 | 12 shoots / minute | Medium splash"
+  },
+  {
+   "base": "hhou",
+   "nom": "Basic Tower",
+   "or": 120,
+   "pv": 200,
+   "degats": 22,
+   "portee": 700,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 25 | Range: 700 | 200 shoots / minute"
+  },
+  {
+   "base": "hwtw",
+   "nom": "Elemental Tower",
+   "or": 200,
+   "pv": 250,
+   "degats": 69,
+   "portee": 700,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 75 | Range: 700 | 60 shoots / minute"
+  },
+  {
+   "base": "hhou",
+   "nom": "BOOM Tower",
+   "or": 300,
+   "pv": 5000,
+   "degats": 900,
+   "portee": 150,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 1000 | Range: 150 | DESTROYED AFTER FIRST SHOOT !!! | Gigantic splash | Only a ground unit can cause the explosion"
+  },
+  {
+   "base": "hhou",
+   "nom": "The Death",
+   "or": 300,
+   "pv": 5000,
+   "degats": null,
+   "portee": 700,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: the death | Range: 700 | DESTROYED AFTER FIRST SHOOT !!!"
+  },
+  {
+   "base": "hhou",
+   "nom": "Blessed Water",
+   "or": 800,
+   "pv": 1000,
+   "degats": 289,
+   "portee": 700,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 300 | Range: 700 | 60 shoots / minute | DON'T slow the creeps"
+  },
+  {
+   "base": "hhou",
+   "nom": "Electric Canon",
+   "or": 800,
+   "pv": 1000,
+   "degats": 139,
+   "portee": 500,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 150 | Range: 500 | 120 shoots / minute | Stun creeps"
+  },
+  {
+   "base": "hhou",
+   "nom": "Magma Well",
+   "or": 800,
+   "pv": 1000,
+   "degats": 239,
+   "portee": 500,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 250 | Range: 500 | 90 shoots / minute | Little splash  &  can stun creeps"
+  },
+  {
+   "base": "hhou",
+   "nom": "Damned Tower",
+   "or": 800,
+   "pv": 1000,
+   "degats": 239,
+   "portee": 700,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 250 | Range: 700 | 60 shoots / minute | Cast weakness  &  DON'T slow the creeps"
+  },
+  {
+   "base": "hhou",
+   "nom": "Holy Lantern",
+   "or": 800,
+   "pv": 1000,
+   "degats": 289,
+   "portee": 600,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 300 | Range: 600 | 60 shoots / minute | Cast fireflies"
+  },
+  {
+   "base": "ngst",
+   "nom": "GOLEM (X)",
+   "or": 1000,
+   "pv": 10000,
+   "degats": null,
+   "portee": null,
+   "vitesse": 320,
+   "valeur": null,
+   "touche": "X",
+   "revenu": 100
+  },
+  {
+   "base": "ncnk",
+   "nom": "CENTAUR (Q)",
+   "or": 1000,
+   "pv": 4000,
+   "degats": 0,
+   "portee": null,
+   "vitesse": 350,
+   "valeur": null,
+   "touche": "Q",
+   "revenu": 100
+  },
+  {
+   "base": "hhou",
+   "nom": "Ultimate Water Tower",
+   "or": 3000,
+   "pv": 2000,
+   "degats": 589,
+   "portee": 700,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 600 | Range: 700 | 60 shoots / minute | Little splash  &  DON'T slow the creeps"
+  },
+  {
+   "base": "hhou",
+   "nom": "Condenser",
+   "or": 3000,
+   "pv": 1500,
+   "degats": null,
+   "portee": 500,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 20% of the target's current life | Range: 500 | 12 shoots / minute"
+  },
+  {
+   "base": "hhou",
+   "nom": "Ultimate Ice Tower",
+   "or": 4000,
+   "pv": 2500,
+   "degats": 189,
+   "portee": 700,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 200 | Range: 700 | 60 shoots / minute | Large splash  &  Slow the creeps"
+  },
+  {
+   "base": "hhou",
+   "nom": "Lightning Generator",
+   "or": 4000,
+   "pv": 2500,
+   "degats": 239,
+   "portee": 700,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 250 | Range: 700 | 300 shoots / minute"
+  },
+  {
+   "base": "hhou",
+   "nom": "Meteor Attractor",
+   "or": 4000,
+   "pv": 3000,
+   "degats": 989,
+   "portee": 1000,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 1000 | Range: 1000 | 20 shoots / minute | Huge splash"
+  },
+  {
+   "base": "hhou",
+   "nom": "Septic Tank",
+   "or": 4000,
+   "pv": 3000,
+   "degats": 339,
+   "portee": 700,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 350  ( +1% life per second over 30 seconds.) | Range: 700 | 30 shoots / minute | Little splash  &  DON'T slow the creeps"
+  },
+  {
+   "base": "hhou",
+   "nom": "Teleport Tower",
+   "or": 4000,
+   "pv": 2500,
+   "degats": null,
+   "portee": 700,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "No damage | Range: 700 | 2 shoots / minute | Teleports target to the top of your line"
+  },
+  {
+   "base": "hhou",
+   "nom": "Enchanted Mushroom",
+   "or": 4000,
+   "pv": 1800,
+   "degats": 450,
+   "portee": 700,
+   "vitesse": null,
+   "valeur": null,
+   "effet": "Damage: 500 | Range: 700 | 30 shoots / minute | Large splash"
+  },
+  {
+   "base": "nwen",
+   "nom": "WENDIGON - FAST UNIT (R)",
+   "or": 10000,
+   "pv": 40000,
+   "degats": 46,
+   "portee": null,
+   "vitesse": 350,
+   "valeur": null,
+   "touche": "R",
+   "revenu": 900
+  }
+ ],
+ "arbre": {
+  "monnaie": "bois",
+  "bois_depart": 3,
+  "bois_par_kill": 1,
+  "cout_racine": 1,
+  "cout_feuille": 1,
+  "chaine_or": [
+   {
+    "de": "Useless Tower",
+    "or": 10,
+    "vers": [
+     "Pitiful Tower"
+    ]
+   },
+   {
+    "de": "Pitiful Tower",
+    "or": 30,
+    "vers": [
+     "Canon Tower",
+     "Basic Tower"
+    ]
+   },
+   {
+    "de": "Sharp Tower",
+    "or": 10,
+    "vers": [
+     "Bloody Tower"
+    ]
+   },
+   {
+    "de": "Bloody Tower",
+    "or": 30,
+    "vers": [
+     "Crusher",
+     "Lame Tower"
+    ]
+   },
+   {
+    "de": "Elemental Tower",
+    "or": 200,
+    "vers": [
+     "<les 5 elementaires>"
+    ]
+   }
+  ],
+  "branches": [
+   {
+    "racine": "Fire Towers",
+    "elementaire": "Barbecue",
+    "pivot": "Magma Well",
+    "pivot_or": 800,
+    "feuilles": [
+     "BOOM Tower",
+     "Meteor Attractor"
+    ]
+   },
+   {
+    "racine": "Cold Towers",
+    "elementaire": "Ice Cream Merchant",
+    "pivot": "Blessed Water",
+    "pivot_or": 800,
+    "feuilles": [
+     "Ultimate Water Tower",
+     "Ultimate Ice Tower"
+    ]
+   },
+   {
+    "racine": "Static Towers",
+    "elementaire": "Short Circuit",
+    "pivot": "Electric Canon",
+    "pivot_or": 800,
+    "feuilles": [
+     "Lightning Generator",
+     "Condenser"
+    ]
+   },
+   {
+    "racine": "Dark Towers",
+    "elementaire": "Never Been Cleaned WC",
+    "pivot": "Damned Tower",
+    "pivot_or": 800,
+    "feuilles": [
+     "The Death",
+     "Septic Tank"
+    ]
+   },
+   {
+    "racine": "Light Towers",
+    "elementaire": "Little Bird",
+    "pivot": "Holy Lantern",
+    "pivot_or": 800,
+    "feuilles": [
+     "Enchanted Mushroom",
+     "Teleport Tower"
+    ]
+   }
+  ],
+  "note": "Les 5 tours elementaires coutent 0 or : c'est le 'premier upgrade gratuit' des guides."
+ }
+}
