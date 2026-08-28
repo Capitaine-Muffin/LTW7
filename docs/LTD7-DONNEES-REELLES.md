@@ -235,6 +235,69 @@ dégâts pleins, `ua1h` à dégâts moyens, `ua1q` à petits dégâts.
 
 ---
 
+## 5 septies. Le déplacement des monstres — ce que la map ordonne vraiment
+
+Question posée : « est-ce que c'était aussi simple ? »
+
+**L'ordre donné à chaque monstre**, dans `Trig_spawn_Actions` :
+
+```jass
+call SetUnitPositionLoc( unite, GetRandomLocInRect(udg_StartRegion[ligneSuivante]) )
+call IssuePointOrderLocBJ( unite, "move",   GetRandomLocInRect(udg_EndRegion[ligneSuivante]) )
+call IssuePointOrderLocBJ( unite, "attack", GetRandomLocInRect(udg_EndRegion[ligneSuivante]) )
+```
+
+Deux ordres, le second remplaçant le premier : c'est un **attack-move vers un
+point tiré au hasard** dans le rectangle de sortie. Tout le reste — contourner
+les tours, se faufiler, se répartir — est le pathfinding de Warcraft III. Il n'y
+a aucune logique de déplacement écrite dans la map.
+
+**Pourquoi l'attack-move est inoffensif** : `uaen` (Attaques activées) vaut **0**
+sur quatorze créatures — Fantassin, Loup, Squelette, Acolyte, Grognard, Golem,
+Centaure, Taurren, Banshee, Spectre, Infernal, Wyrm, Élémentaire, Loup d'ombre.
+Elles n'ont **aucune attaque**. L'ordre « attack » ne peut donc rien déclencher :
+elles marchent.
+
+**Les seules qui frappent**, et uniquement des bâtiments (`ua1g` =
+`debris,structure`) :
+
+| Unité | Cibles | Dégâts | Portée |
+|---|---|---:|---:|
+| Machine de démolition | `debris,structure` | 8 (+dés) | 100 |
+| Troll berserk | `debris,structure` | 47 | — |
+| Char à vapeur | (Steam Tank : bâtiments seulement) | — | — |
+| Broyeur gobelin | `debris,structure` | 75 | — |
+| Seigneur bandit | `debris,structure` | 100 | 300 |
+| *Anti Wall Machine* | *(hérite)* | *998* | — |
+
+Le Mouton a `ua1g = structure` et 1 dégât : une plaisanterie de l'auteur.
+
+> ✅ **Notre modèle est juste sur ce point** : les creeps ne peuvent rien
+> attaquer, et nos cinq `siege` sont exactement ces cinq-là.
+
+**La seule vraie divergence : l'entrée et la sortie sont des BANDES, pas des
+cases.** D'après `war3map.w3r` :
+
+| Rectangle | Largeur | Profondeur |
+|---|---:|---:|
+| `End 1..7` | **9,5 cases** | 1,5 |
+| `Start 1..7` | **8,0 cases** | — |
+| `Spawn` | 105,5 cases | — |
+
+La largeur de ligne de la map est donc de ~9,5 cases — **notre grille de 9 est
+la bonne**. Mais un monstre apparaît à un point tiré au hasard sur les 8 cases
+de la bande de départ et se dirige vers un point tiré au hasard sur les 9,5
+cases de la bande de sortie. Chez nous, tous partent de la case (4,0) et visent
+la case (4,12), en suivant un chemin unique calculé une fois par ligne.
+
+Conséquence de gameplay, pas seulement d'affichage : avec une sortie sur toute
+la largeur, un labyrinthe doit rallonger le trajet vers **n'importe quelle**
+case du bas ; avec une sortie ponctuelle, il suffit de rallonger le trajet vers
+**une seule**. Passer aux bandes rendrait le mazing plus difficile et
+raccourcirait les trajets — donc rééquilibrerait tout ce qui a été mesuré.
+
+---
+
 ## 5 ter. Le catalogue n'est pas un menu, c'est une chronologie
 
 **La trouvaille la plus importante après l'Anti Wall Machine**, et elle était
