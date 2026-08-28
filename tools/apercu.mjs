@@ -40,8 +40,8 @@ const hex = c => [parseInt(c.slice(1,3),16), parseInt(c.slice(3,5),16), parseInt
 // --- charge la bibliotheque de sprites (globals, pas de modules) ------------
 const src = readFileSync(process.argv[2] || 'art/sprites.js', 'utf8');
 const ctx = {};
-new Function('g', src + '\nObject.assign(g,{N,CAMPS,BATS,TOURS_ART,dessiner});')(ctx);
-const {N, CAMPS, BATS, TOURS_ART, dessiner} = ctx;
+new Function('g', src + '\nObject.assign(g,{N,CAMPS,BATS,TOURS_ART,BOUTIQUES,dessiner});')(ctx);
+const {N, CAMPS, BATS, TOURS_ART, BOUTIQUES, dessiner} = ctx;
 
 const ECH   = +(process.env.ECH || 6);
 const MARGE = 6;
@@ -50,8 +50,11 @@ const fond  = process.env.FOND ? hex(process.env.FOND) : [35,32,48];
 const filtreB = process.env.BAT, filtreC = process.env.CAMP;
 /* Une ligne par TOUR (rang et teinte compris), pas par famille : c'est la
    seule facon de verifier qu'aucune paire ne se ressemble. */
-const bats  = Object.keys(TOURS_ART).map(type => ({type, ...TOURS_ART[type]}))
-                    .filter(b => !filtreB || b.type === filtreB || b.k === filtreB);
+const tout = Object.keys(TOURS_ART).map(type => ({type, ...TOURS_ART[type]}))
+  .concat(Object.entries(BOUTIQUES).map(([type, k]) => ({type, k, r: 0})));
+const bats  = process.env.BOUTIQUES
+  ? Object.entries(BOUTIQUES).map(([type, k]) => ({type, k, r: 0}))
+  : tout.filter(b => !filtreB || b.type === filtreB || b.k === filtreB);
 const camps = CAMPS.filter(c => !filtreC || c.k === filtreC);
 
 const cw = N * ECH + MARGE * 2, ch = N * ECH + MARGE * 2;

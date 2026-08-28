@@ -297,6 +297,10 @@ const TOURS_ART = {
   barricade:   {k:'barricade', r:0}
 };
 
+/* Les trois vendeurs, hors arbre des tours : ils ne se posent pas, ils portent
+   les menus. */
+const BOUTIQUES = {monstres:'enclos', batiments:'echoppe', techno:'sanctuaire'};
+
 /* La branche ne change pas la pierre — seulement ce qui brille. Un Brasier
    humain reste humain, il rougeoie simplement au lieu de bleuir. */
 const TEINTES = {
@@ -407,6 +411,73 @@ function dessiner(kind,S,pulse,rang,teinte,variante){
     couche(g,p.d,t=>baliste(t,cx,10,p));
     couche(g,p.d,t=>{R(t,cx-3,33,7,8,p.b2);R(t,cx-3,33,7,1,p.b3);
       R(t,cx-2,34,5,7,p.b1);});
+  }
+  /* ---- les trois boutiques -----------------------------------------------
+     La map pose quatre vendeurs sur le terrain de chaque joueur : Basic
+     Monsters, Advanced Monsters, Advanced Towers, Uber Towers. Notre grille de
+     neuf sur treize est entierement constructible, on ne peut donc pas leur
+     donner de cases sans voler du labyrinthe. Ils vivent sur les trois boutons
+     du bas — c'est l'identite de la map, portee par nos commandes. */
+  else if(kind==='echoppe'){                       // Advanced Towers : le tailleur
+    sol(g,p,cx,20);
+    couche(g,p.d,t=>socle(t,p,6,42,36,4));
+    couche(g,p.d,t=>{planches(t,8,28,32,14,p);
+      R(t,8,28,32,1,p.b3); R(t,8,41,32,1,p.b1);});
+    couche(g,p.d,t=>{                              // auvent raye
+      for(let i=0;i<36;i+=6){R(t,6+i,20,3,7,p.r2); R(t,9+i,20,3,7,p.a5);}
+      R(t,5,18,38,3,p.b2); R(t,5,18,38,1,p.b3);
+      for(let i=6;i<42;i+=5)P(t,i,27,p.d);});
+    couche(g,p.d,t=>{                              // une tour miniature sur l'etal
+      R(t,20,31,8,9,p.a2); R(t,20,31,8,1,p.a4); R(t,22,34,4,3,p.d);
+      A.toit(t,24,26,10,p);});
+    couche(g,p.d,t=>{                              // marteau pose
+      R(t,10,36,2,6,p.b2); R(t,8,34,6,3,p.m2); R(t,8,34,6,1,p.m4);});
+  }
+  else if(kind==='enclos'){                        // Basic + Advanced Monsters
+    sol(g,p,cx,20);
+    couche(g,p.d,t=>socle(t,p,6,42,36,4));
+    couche(g,p.d,t=>{R(t,7,16,34,26,p.m1);          // fosse sombre
+      R(t,9,18,30,22,p.d);});
+    /* Les barreaux d'abord, la bete PAR-DESSUS : chaque couche est detouree
+       puis collee, donc ce qui est dessine en dernier passe devant. Dans
+       l'autre sens, le contour des barreaux effacait le regard. */
+    couche(g,p.d,t=>{                              // barreaux : cinq, espaces
+      for(let i=0;i<5;i++){const x=9+i*7;
+        R(t,x,14,3,28,p.b2); R(t,x,14,1,28,p.b3); P(t,x+1,14,p.b4);}
+      R(t,5,12,38,4,p.b1); R(t,5,12,38,1,p.b3);
+      R(t,5,40,38,3,p.b1); R(t,5,40,38,1,p.b3);});
+    couche(g,p.d,t=>{                              // le regard, colle aux barreaux
+      R(t,13,26,8,6,p.g2); R(t,27,26,8,6,p.g2);
+      R(t,15,27,4,4,p.d); R(t,30,27,4,4,p.d);
+      for(let i=15;i<34;i+=4){R(t,i,33,3,4,p.g2); R(t,i,33,3,1,p.g);}});
+    couche(g,p.d,t=>{                              // une griffe qui serre un barreau
+      for(const x of [7,11,15])R(t,x,15,3,5,p.a5);
+      R(t,6,19,13,4,p.a3); R(t,6,19,13,1,p.a5);});
+    couche(g,p.d,t=>{                              // cadenas
+      R(t,21,37,7,6,p.m2); R(t,21,37,7,1,p.m4); R(t,23,39,3,3,p.d);
+      R(t,22,34,5,4,p.m4); R(t,23,35,3,3,p.d);});
+  }
+  else if(kind==='sanctuaire'){                    // Uber Towers : les deblocages en bois
+    sol(g,p,cx,17);
+    couche(g,p.d,t=>socle(t,p,10,42,28,4));
+    couche(g,p.d,t=>{                              // buches empilees
+      for(let j=0;j<2;j++)for(let i=0;i<4;i++){
+        const x=9+i*8+(j?4:0), y=34+j*4;
+        R(t,x,y,7,4,p.b2); R(t,x,y,7,1,p.b3); R(t,x+2,y+1,3,2,p.b1);}});
+    couche(g,p.d,t=>{                              // tronc vivant
+      colonne(t,20,10,9,25,p);
+      for(let j=12;j<32;j+=6){R(t,19,j,11,1,p.b1); P(t,18,j,p.b3);}});
+    couche(g,p.d,t=>{                              // trois runes, une par bois
+      for(let j=0;j<3;j++){const y=14+j*7;
+        R(t,22,y,5,4,p.t2); R(t,23,y+1,3,2,p.g);
+        P(t,22,y,p.t); P(t,26,y+3,p.t);}});
+    couche(g,p.d,t=>{                              // frondaison : ronde et verte
+      const F1='#2c5326', F2='#3f7a37', F3='#5aa04a';
+      for(let j=0;j<11;j++){
+        const w=Math.round(15*Math.sqrt(Math.max(0,1-((j-5)/5.6)**2)));
+        for(let i=-w;i<=w;i++){const q=(i+w)/(2*w+.001);
+          P(t,cx+i,1+j, q<0.24?F3 : q<0.62?F2 : F1);}}
+      P(t,cx-7,3,p.g2); P(t,cx+6,7,p.g); P(t,cx+1,2,p.g2);});
   }
   else if(kind==='prisme'){
     sol(g,p,cx,17);

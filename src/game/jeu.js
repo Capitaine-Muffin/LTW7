@@ -78,6 +78,35 @@ function preparerSprites(){
       cache[type + ':' + f.k] = cv;
     }
   }
+  /* Les trois vendeurs de la map, pour les boutons du bas. */
+  for (const menu in BOUTIQUES) for (const f of CAMPS){
+    const g = dessiner(BOUTIQUES[menu], f, false, 0, null, 0);
+    const cv = document.createElement('canvas');
+    cv.width = N; cv.height = N;
+    const c = cv.getContext('2d');
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++){
+      const v = g[y][x]; if (!v) continue;
+      c.fillStyle = v; c.fillRect(x, y, 1, 1);
+    }
+    cache['boutique:' + menu + ':' + f.k] = cv;
+  }
+}
+
+/* Colle le dessin du vendeur dans chaque bouton du bas. La map pose quatre
+   vendeurs sur le terrain de chaque joueur ; notre grille est entierement
+   constructible, on ne peut pas leur donner de cases sans voler du
+   labyrinthe — ils vivent donc sur les commandes. */
+function habillerBarre(){
+  for (const b of document.querySelectorAll('#barre [data-menu]')){
+    const img = cache['boutique:' + b.dataset.menu + ':' + camp.k];
+    if (!img) continue;
+    let cv = b.querySelector('canvas');
+    if (!cv){ cv = document.createElement('canvas'); b.prepend(cv); }
+    cv.width = N; cv.height = N;
+    const c = cv.getContext('2d');
+    c.imageSmoothingEnabled = false;
+    c.clearRect(0, 0, N, N); c.drawImage(img, 0, 0);
+  }
 }
 
 /* ---- dessin -------------------------------------------------------------- */
@@ -696,6 +725,7 @@ function demarrer(memeGraine){
   ecrireReglages();
   camp = CAMPS[+document.getElementById('camp').value] || CAMPS[0];
   terrain = null; sentier = null;
+  habillerBarre();
   etat = creerPartie({graine, profil, joueurs, difficulte});
   ligneVue = etat.moi; selection = null; enMain = null; menu = 'batiments'; acceleration = 1;
   tirs.length = 0; transi = null; dernierVu = 0; lignesFil = []; filSignature = '';
@@ -749,7 +779,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (ouvert) majTableau();
   };
   document.getElementById('camp').onchange = e => {
-    camp = CAMPS[+e.target.value]; terrain = null; sentier = null; };
+    camp = CAMPS[+e.target.value]; terrain = null; sentier = null; habillerBarre(); };
   demarrer(false);                            // une partie tourne sous le voile
   ouvrirAccueil(false);
   requestAnimationFrame(boucle);

@@ -123,7 +123,13 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
 .vide{margin:14px 2px;font-size:14px;color:var(--doux)}
 #barre{display:flex;gap:6px;padding:6px 8px calc(10px + env(safe-area-inset-bottom))}
 #barre button{flex:1;background:var(--bord);color:var(--encre);border:1px solid #3b3552;
-  border-radius:9px;padding:13px 4px;font-size:15px;font-weight:700;cursor:pointer}
+  border-radius:9px;padding:6px 4px 8px;font-size:14px;font-weight:700;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.1}
+/* Le vendeur dessine sur le bouton : c'est l'identite de la map, portee par
+   nos commandes plutot que par des cases volees au labyrinthe. */
+#barre button canvas{width:38px;height:38px;image-rendering:pixelated;
+  margin-bottom:-3px}
+#barre button[aria-pressed="true"] canvas{filter:drop-shadow(0 0 3px rgba(0,0,0,.5))}
 #barre button[aria-pressed="true"]{background:var(--or);color:#1a1408;border-color:var(--or)}
 select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border-radius:7px;
   padding:8px;font-size:14px;font-family:Oxanium;font-weight:600}
