@@ -57,42 +57,60 @@ const TOURS = {
 
 /* Monstres envoyables. Le ratio revenu/or decroit strictement : c'est le
    levier de reglage numero un du jeu. */
-/* `ech` = taille a l'ecran, en fraction de case. Dans la map d'origine une
-   tour occupe UNE case entiere (pathing 4x4SimpleSolid = 128 x 128 unites)
-   et un creep a une collision de 1.0, c'est-a-dire un point. Les modeles de
-   tours y sont mis a l'echelle 1,3 a 2,0 et les creeps a 0,5 a 1,5 : le
-   rapport visuel est d'environ trois pour un. C'est ce rapport qu'on
-   reproduit ici. */
+/* `ech`   = taille a l'ecran, en fraction de case (voir LTD7-DONNEES-REELLES §5 bis).
+   `dispo` = seconde a laquelle le monstre devient achetable.
+   `stock` = [maximum simultane, secondes pour en regagner un].
+
+   Le catalogue de LTW 7 n'est pas un menu : c'est une CHRONOLOGIE. Le Mouton
+   est la des la 5e seconde, le Fantassin a 80 s, le Char a 420 s, et le
+   Seigneur bandit seulement a 800 s — avec un stock de 3. C'est ce qui empeche
+   de noyer l'adversaire sous le meilleur ratio et ce qui donne sa forme a la
+   partie. Les valeurs viennent des champs usst / usma / usrg de la map. */
 const MONSTRES = {
-  mouton:  {nom:'Mouton',   or:5,   revenu:1,  pv:5,     v:vitesse(270), ech:0.42},
-  loup:    {nom:'Loup',     or:10,  revenu:2,  pv:40,    v:vitesse(300), ech:0.50},
-  acolyte: {nom:'Acolyte',  or:50,  revenu:8,  pv:200,   v:vitesse(270), ech:0.52},
-  fantassin:{nom:'Fantassin',or:75, revenu:12, pv:250,   v:vitesse(370), ech:0.54},
-  golem:   {nom:'Golem',    or:350, revenu:37, pv:1400,  v:vitesse(300), ech:0.72},
-  ombre:   {nom:'Ombre',    or:200, revenu:22, pv:600,   v:vitesse(300), vol:true, ech:0.58},
+  mouton:  {nom:'Mouton',   or:5,   revenu:1,  pv:5,     v:vitesse(270), ech:0.42, dispo:5,   stock:[20, 2]},
+  loup:    {nom:'Loup',     or:10,  revenu:2,  pv:40,    v:vitesse(300), ech:0.50, dispo:10,  stock:[15, 3]},
+  acolyte: {nom:'Acolyte',  or:50,  revenu:8,  pv:200,   v:vitesse(270), ech:0.52, dispo:60,  stock:[10, 5]},
+  fantassin:{nom:'Fantassin',or:75, revenu:12, pv:250,   v:vitesse(370), ech:0.54, dispo:80,  stock:[10, 5]},
+  ombre:   {nom:'Ombre',    or:200, revenu:22, pv:600,   v:vitesse(300), vol:true, ech:0.58, dispo:120, stock:[20, 7]},
+  golem:   {nom:'Golem',    or:350, revenu:37, pv:1400,  v:vitesse(300), ech:0.72, dispo:140, stock:[10, 5]},
   troll:   {nom:'Troll berserk', or:5000, revenu:450, pv:5000, v:vitesse(350), ech:0.80,
-            siege:{deg:47, portee:portee(150), cadence:cadence(60)}},
-  banshee: {nom:'Banshee',  or:20000,revenu:1700,pv:60000,v:vitesse(300), vol:true, ech:0.76},
+            dispo:330, stock:[15, 5], siege:{deg:47, portee:portee(150), cadence:cadence(60)}},
+  banshee: {nom:'Banshee',  or:20000,revenu:1700,pv:60000,v:vitesse(300), vol:true, ech:0.76,
+            dispo:390, stock:[20, 5]},
 
   /* --- Les briseurs ---------------------------------------------------------
      Ils ne cherchent pas a passer : ils viennent casser les tours. Ils ne
      volent donc aucune vie tant qu'il reste quelque chose a demolir. C'est
      l'autre facon de gagner une ligne — on ne perce pas la defense, on la
-     supprime. Les quatre existent dans la map d'origine, reperables a leur
-     nom qui contient « ATTAK ». */
-  demolisseur:{nom:'Démolisseur', or:500,   revenu:50,   pv:1000,   v:vitesse(270), ech:0.62,
+     supprime. Reperables dans la map a leur nom qui contient « ATTAK ». */
+  demolisseur:{nom:'Démolisseur', or:500, revenu:50, pv:1000, v:vitesse(270), ech:0.62,
+               dispo:160, stock:[15, 7],
                siege:{deg:60,  portee:portee(120), cadence:cadence(45)}},
-  char:      {nom:'Char à vapeur', or:30000, revenu:2500, pv:100000, v:vitesse(270), ech:0.88,
-               siege:{deg:400, portee:portee(200), cadence:cadence(40)}},
-  broyeur:   {nom:'Broyeur gobelin', or:100000, revenu:5000, pv:100000, v:vitesse(300), ech:0.84,
-               siege:{deg:750, portee:portee(140), cadence:cadence(70)}}
+  char:    {nom:'Char à vapeur', or:30000, revenu:2500, pv:100000, v:vitesse(270), ech:0.88,
+            dispo:420, stock:[15, 5],
+            siege:{deg:400, portee:portee(200), cadence:cadence(40)}},
+  broyeur: {nom:'Broyeur gobelin', or:100000, revenu:5000, pv:100000, v:vitesse(300), ech:0.84,
+            dispo:600, stock:[10, 10],
+            siege:{deg:750, portee:portee(140), cadence:cadence(70)}},
+
+  /* --- Le sacrifice ---------------------------------------------------------
+     150 000 PV, une frappe de zone a distance, et +3 de revenu pour 100 000 or.
+     Ce n'est pas une blague de l'auteur : c'est un choix. On ne l'envoie pas
+     pour s'enrichir, on l'envoie pour effacer une ligne — et on renonce a toute
+     l'economie que la meme somme aurait rapportee. Disponible seulement a
+     800 secondes, avec un stock de trois : le plus rare du jeu. */
+  seigneur:{nom:'Seigneur bandit', or:100000, revenu:3, pv:150000, v:vitesse(250), ech:0.92,
+            dispo:800, stock:[3, 15], sacrifice:true,
+            siege:{deg:900, portee:portee(300), cadence:cadence(30), zone:portee(180)}}
 };
 
+/* `temps` comprime la chronologie de deblocage sans en changer la forme :
+   c'est le meme principe que pour la courbe de couts. Classique = la map. */
 const PROFILS = {
-  ECLAIR:    {nom:'Éclair',    vies:8,  or:150, revenu:30, tickRevenu:25,  bois:3},
-  BLITZ:     {nom:'Blitz',     vies:12, or:120, revenu:25, tickRevenu:40,  bois:3},
-  SOUTENU:   {nom:'Soutenu',   vies:18, or:120, revenu:25, tickRevenu:65,  bois:3},
-  CLASSIQUE: {nom:'Classique', vies:25, or:120, revenu:25, tickRevenu:100, bois:3}
+  ECLAIR:    {nom:'Éclair',    vies:8,  or:150, revenu:30, tickRevenu:25,  bois:3, temps:0.20},
+  BLITZ:     {nom:'Blitz',     vies:12, or:120, revenu:25, tickRevenu:40,  bois:3, temps:0.32},
+  SOUTENU:   {nom:'Soutenu',   vies:18, or:120, revenu:25, tickRevenu:65,  bois:3, temps:0.55},
+  CLASSIQUE: {nom:'Classique', vies:25, or:120, revenu:25, tickRevenu:100, bois:3, temps:1.00}
 };
 
 /* La difficulte change ce que les bots FONT, pas leurs statistiques : ils

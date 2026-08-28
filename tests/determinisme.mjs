@@ -73,9 +73,33 @@ dire(M.poserBatiment(e, l0, 'guet', 4, 12) === false, 'on ne construit pas sur l
 dire(l0.or === orAvant, 'une pose refusee ne coute rien');
 M.poserBatiment(e, l0, 'guet', 3, 4);
 dire(l0.or === orAvant - 10, 'une pose acceptee debite le prix');
-const rev = l0.revenu; M.envoyer(e, l0, 'mouton');
+dire(M.envoyer(e, l0, 'mouton') === false, 'un monstre non encore debloque est refuse');
+for (let i = 0; i < 30; i++) M.avancer(e);          // on passe la 5e seconde
+const rev = l0.revenu;
+dire(M.envoyer(e, l0, 'mouton') === true, 'une fois debloque, il part');
 dire(l0.revenu === rev + 1, 'un envoi augmente le revenu definitivement');
-dire(e.lignes[1].monstres.length === 1, 'le monstre part chez le voisin, pas chez soi');
+dire(e.lignes[1].monstres.length >= 1, 'le monstre part chez le voisin, pas chez soi');
+
+console.log('\nchronologie et stocks');
+const st = M.creerPartie({graine: 2, joueurs: 3, profil: 'CLASSIQUE'});
+const j0 = st.lignes[0]; j0.or = 10000000;
+dire(st.cfg.MONSTRES.seigneur.dispo === 800, 'le Seigneur bandit est bien fixe a 800 s');
+dire(st.cfg.MONSTRES.seigneur.stock[0] === 3, 'son stock maximum est de 3');
+dire(M.envoyer(st, j0, 'seigneur') === false, 'on ne peut pas l\'envoyer au debut de la partie');
+for (let i = 0; i < 60; i++) M.avancer(st);
+const stockAvant = j0.stock.mouton;
+for (let n = 0; n < 5; n++) M.envoyer(st, j0, 'mouton');
+dire(j0.stock.mouton < stockAvant,
+  `le stock se vide quand on envoie (${stockAvant} -> ${j0.stock.mouton})`);
+const bas = j0.stock.mouton;
+for (let i = 0; i < 60; i++) M.avancer(st);
+dire(j0.stock.mouton > bas, `et il se recharge avec le temps (${bas} -> ${j0.stock.mouton})`);
+/* Le plafond de stock est ce qui empeche de noyer l'adversaire sous le
+   meilleur ratio : on ne peut pas envoyer vingt Moutons d'affilee. */
+let envoisAffiles = 0;
+while (M.envoyer(st, j0, 'mouton')) envoisAffiles++;
+dire(envoisAffiles <= st.cfg.MONSTRES.mouton.stock[0],
+  `le plafond de stock borne les envois d'affilee (${envoisAffiles} au maximum)`);
 
 console.log('\nscellement et Controleur');
 const s = M.creerPartie({graine: 9, joueurs: 3});
@@ -93,9 +117,11 @@ cible.or = 100000;
 for (const [x, y] of [[3,4],[5,4],[3,6],[5,6]]) M.poserBatiment(br, cible, 'guet', x, y);
 /* La ligne visee est tenue par un bot qui continue de batir : on suit donc
    des tours PRECISES, pas un total. */
-const suivies = cible.batiments.map(b => b.id), viesAvant = cible.vies;
+const viesAvant = cible.vies;
 br.lignes[0].or = 100000;
-M.envoyer(br, br.lignes[0], 'demolisseur');
+/* Le Demolisseur n'est disponible qu'a 160 s : on avance jusque-la. */
+while (!M.envoyer(br, br.lignes[0], 'demolisseur')) M.avancer(br);
+const suivies = cible.batiments.map(b => b.id);
 for (let i = 0; i < 900; i++) M.avancer(br);
 const restantes = suivies.filter(id => cible.batiments.some(b => b.id === id)).length;
 dire(restantes < suivies.length,
@@ -106,7 +132,8 @@ dire(cible.vies === viesAvant,
 console.log('\nun briseur sort quand il n\'y a plus rien a casser');
 const br2 = M.creerPartie({graine: 6, joueurs: 3});
 br2.lignes[0].or = 100000;
-M.envoyer(br2, br2.lignes[0], 'demolisseur');       // ligne 1 vide de tours
+br2.lignes[1].estJoueur = true;                     // on neutralise le bot : ligne vide
+while (!M.envoyer(br2, br2.lignes[0], 'demolisseur')) M.avancer(br2);
 let sorti = false;
 for (let i = 0; i < 900 && !sorti; i++){ M.avancer(br2);
   sorti = br2.journal.some(j => j.type === 'vol' && j.de === 1); }

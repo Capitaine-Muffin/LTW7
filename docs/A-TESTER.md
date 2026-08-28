@@ -58,6 +58,31 @@ Dans la boutique ils portent la marque **brise**. Seuls les bots **Impitoyable**
 en achètent, un envoi sur trois — c'est ce qui rend leur gameplay différent des
 autres niveaux, et pas seulement plus rapide.
 
+## La chronologie de déblocage
+
+Les monstres **ne sont pas tous disponibles au départ**. Chacun s'ouvre à une
+heure précise, reprise de la map : le Mouton à 5 s, le Fantassin à 80 s, le Char
+à 420 s, le Seigneur bandit à 800 s. Dans la boutique, ceux qui ne sont pas
+encore là affichent leur compte à rebours.
+
+Et chacun a un **stock** (`x/y` dans la boutique) qui se vide quand on envoie et
+se recharge tout seul. C'est ce qui empêche de noyer l'adversaire sous le
+meilleur ratio.
+
+Le profil **comprime cette chronologie sans en changer la forme** : Classique la
+reprend telle quelle, Blitz à 32 %, Éclair à 20 %.
+
+## Le Seigneur bandit — le sacrifice
+
+100 000 or, 150 000 PV, frappe de **zone à distance**, et **+3 de revenu**.
+Ce n'est pas une erreur : c'est le prix. On ne l'envoie pas pour s'enrichir, on
+l'envoie pour **effacer une ligne** — au même prix, le Broyeur donne +5 000.
+C'est le seul achat purement offensif du jeu, disponible seulement à 800 s
+(compressé selon le profil) et limité à trois exemplaires.
+
+**À tester en priorité en Classique** : est-ce que la partie va assez loin pour
+qu'il apparaisse, et est-ce que le sacrifice se ressent comme un vrai choix ?
+
 ## La méthode la plus utile
 
 **Fixe la graine et change un seul réglage.** Le bouton `↻ même` rejoue la même

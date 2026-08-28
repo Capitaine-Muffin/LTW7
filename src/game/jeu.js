@@ -199,13 +199,27 @@ function panneau(){
         <b>${t.nom}</b><span>${t.or} or</span></button>`; }).join('') +
       `</div><p class="aide">Un appui pour prendre, un appui sur la grille pour poser. L'or n'est débité qu'à la pose.</p>`;
   } else if (menu === 'monstres'){
-    d.innerHTML = `<div class="rangee">` + Object.keys(cfg.MONSTRES).map(k => { const m = cfg.MONSTRES[k];
-      const marque = m.siege ? '<u>brise</u>' : (m.vol ? '<u class="air">vole</u>' : '');
-      return `<button class="art ${l.or < m.or ? 'off' : ''} ${m.siege ? 'siege' : ''}" data-envoyer="${k}">
+    d.innerHTML = `<div class="rangee">` + Object.keys(cfg.MONSTRES).map(k => {
+      const m = cfg.MONSTRES[k];
+      const ouvertureA = Math.round(m.dispo * 10 * etat.prof.temps);
+      const verrouille = etat.pas < ouvertureA;
+      const reste = Math.ceil((ouvertureA - etat.pas) / 10);
+      const stock = l.stock[k] || 0;
+      const marque = m.sacrifice ? '<u class="sacr">sacrifice</u>'
+                   : m.siege ? '<u>brise</u>'
+                   : m.vol ? '<u class="air">vole</u>' : '';
+      if (verrouille)
+        return `<button class="art verrou" disabled>
+          <b>${m.nom}</b><span>🔒 dans ${reste} s</span><i>${m.or.toLocaleString('fr')} or</i></button>`;
+      const inactif = l.or < m.or || stock === 0;
+      return `<button class="art ${inactif ? 'off' : ''} ${m.siege ? 'siege' : ''}" data-envoyer="${k}">
         <b>${m.nom}</b><span>${m.or.toLocaleString('fr')} or → +${m.revenu.toLocaleString('fr')}</span>
-        <i>${(m.revenu / m.or).toFixed(3)} ${marque}</i></button>`; }).join('') +
-      `</div><p class="aide">Le chiffre est le revenu par pièce d'or : les petits rapportent le plus mais ne percent pas.
-       <b>brise</b> = il ignore la sortie et démolit les tours. <b>vole</b> = il ignore le labyrinthe.</p>`;
+        <i>${(m.revenu / m.or).toFixed(3)} <em>${stock}/${m.stock[0]}</em> ${marque}</i></button>`;
+      }).join('') +
+      `</div><p class="aide">Le chiffre vert est le revenu par pièce d'or : les petits rapportent le plus
+       mais ne percent pas. <em>x/y</em> = stock restant, il se recharge tout seul.
+       <b>brise</b> démolit les tours au lieu de passer · <b>vole</b> ignore le labyrinthe ·
+       <b>sacrifice</b> ne rapporte presque rien mais efface une ligne.</p>`;
   } else if (menu === 'techno'){
     d.innerHTML = `<div class="rangee">` + Object.keys(cfg.BRANCHES).map(k => { const b = cfg.BRANCHES[k];
       const pris = l.branches[k];

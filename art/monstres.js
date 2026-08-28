@@ -210,6 +210,32 @@ const MONSTRES_ART = {
         MP(t, 4 + Math.cos(a) * 3, 11 + Math.sin(a) * 3, p.metal);
       } });
   },
+  /* --- Seigneur bandit : le sacrifice. Massif, cornu, lame demesuree --- */
+  seigneur(g, f, p){
+    MOMBRE(g, 12, 11, p);
+    MCOUCHE(g, p.d, t => { MR(t, 5, 16, 5, 5, p.c1); MR(t, 14, 16, 5, 5, p.c1);
+      MR(t, 5, 20, 5, 1, p.d); MR(t, 14, 20, 5, 1, p.d);
+      MR(t, 5, 16, 5, 1, p.c2); MR(t, 14, 16, 5, 1, p.c2); });
+    MCOUCHE(g, p.d, t => { MCORPS(t, 4, 7, 16, 10, p);                          // torse
+      MR(t, 5, 7, 14, 1, p.c3);
+      MR(t, 8, 9, 8, 5, p.metal); MR(t, 8, 9, 8, 1, p.metalC);                  // plastron
+      MR(t, 10, 11, 4, 2, p.lueur); MP(t, 11, 11, p.lueurC);
+      MR(t, 4, 14, 16, 1, p.c1); });
+    MCOUCHE(g, p.d, t => {                                                       // epaulieres
+      MR(t, 1, 6 + (f?0:1), 5, 5, p.metal); MR(t, 1, 6 + (f?0:1), 5, 1, p.metalC);
+      MR(t, 18, 6 + (f?1:0), 5, 5, p.metal); MR(t, 18, 6 + (f?1:0), 5, 1, p.metalC);
+      MP(t, 2, 5 + (f?0:1), p.os); MP(t, 21, 5 + (f?1:0), p.os); });
+    MCOUCHE(g, p.d, t => { MR(t, 8, 1, 8, 6, p.c2); MR(t, 9, 0, 6, 1, p.c3);    // casque
+      MR(t, 9, 3, 6, 3, p.d);
+      MR(t, 10, 4, 2, 2, p.lueur); MR(t, 13, 4, 2, 2, p.lueur);
+      MP(t, 10, 4, p.lueurC); MP(t, 14, 4, p.lueurC);
+      for (const [dx, dy] of [[7,0],[6,-1],[6,-2],[16,0],[17,-1],[17,-2]]) MP(t, dx, dy + 1, p.os); });
+    MCOUCHE(g, p.d, t => {                                                       // lame demesuree
+      const dy = f ? 0 : 1;
+      MR(t, 21, 2 + dy, 3, 13, p.metalC); MR(t, 22, 2 + dy, 1, 13, p.metal);
+      MR(t, 21, 1 + dy, 3, 1, p.metalC); MP(t, 22, 0 + dy, p.metalC);
+      MR(t, 20, 14 + dy, 5, 2, p.os); MR(t, 22, 15 + dy, 1, 3, p.c1); });
+  },
   /* --- Banshee : volante, voile en lambeaux, bras ouverts --- */
   banshee(g, f, p){
     MCOUCHE(g, p.d, t => {
@@ -245,6 +271,9 @@ const PAL_MONSTRES = {
                metal:'#7d8694', metalC:'#c0c8d4', lueur:'#ff9c3a', sol:'#1d262e'},
   broyeur:   {d:'#12130c', c1:'#3f4a26', c2:'#5c6b33', c3:'#7d8f46',
                metal:'#6b6f78', metalC:'#c8ccd6', lueur:'#ffcf3a', sol:'#232616'},
+  seigneur:{d:'#140a12', c1:'#3d1f30', c2:'#5c2f44', c3:'#7d4258',
+            metal:'#5c5560', metalC:'#a89fb0', os:'#e2d8c0',
+            lueur:'#ff4a5a', lueurC:'#ffb0b8', sol:'#2a1420'},
   banshee: {d:'#0a1416', c1:'#1f4a4e', c2:'#2f6f72', c3:'#4a9a9a', lueur:'#7ffff0', lueurC:'#d4fffa', sol:'#16282a'}
 };
 

@@ -52,6 +52,12 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
 .art u{text-decoration:none;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;
   background:rgba(224,90,90,.22);color:#ef8f8f;border-radius:4px;padding:1px 4px}
 .art u.air{background:rgba(127,208,200,.2);color:#8fdcd4}
+.art u.sacr{background:rgba(200,120,255,.2);color:#c79cf0}
+.art em{font-style:normal;color:var(--doux);font-size:9.5px;
+  background:rgba(255,255,255,.08);border-radius:4px;padding:1px 4px}
+.art.verrou{opacity:.45;border-style:dashed;cursor:default}
+.art.verrou span{color:var(--or)}
+.aide em{font-style:normal;color:var(--encre)}
 .art.siege{border-color:#7d4444}
 .aide b{color:var(--encre)}
 .art.off{opacity:.4} .art.pris{border-color:var(--or);background:rgba(240,196,81,.16)}
@@ -59,7 +65,7 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
 .tete{font-family:Oxanium;font-weight:800;font-size:14px;padding:0 2px 6px;display:flex;
   flex-direction:column} .tete span{font-family:"Source Sans 3";font-weight:400;font-size:11px;color:var(--doux)}
 .aide{margin:5px 2px 0;font-size:11px;color:var(--doux);line-height:1.35;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .vide{margin:14px 2px;font-size:12.5px;color:var(--doux)}
 #barre{display:flex;gap:6px;padding:6px 8px 10px}
 #barre button{flex:1;background:var(--bord);color:var(--encre);border:1px solid #3b3552;
@@ -665,6 +671,32 @@ const MONSTRES_ART = {
         MP(t, 4 + Math.cos(a) * 3, 11 + Math.sin(a) * 3, p.metal);
       } });
   },
+  /* --- Seigneur bandit : le sacrifice. Massif, cornu, lame demesuree --- */
+  seigneur(g, f, p){
+    MOMBRE(g, 12, 11, p);
+    MCOUCHE(g, p.d, t => { MR(t, 5, 16, 5, 5, p.c1); MR(t, 14, 16, 5, 5, p.c1);
+      MR(t, 5, 20, 5, 1, p.d); MR(t, 14, 20, 5, 1, p.d);
+      MR(t, 5, 16, 5, 1, p.c2); MR(t, 14, 16, 5, 1, p.c2); });
+    MCOUCHE(g, p.d, t => { MCORPS(t, 4, 7, 16, 10, p);                          // torse
+      MR(t, 5, 7, 14, 1, p.c3);
+      MR(t, 8, 9, 8, 5, p.metal); MR(t, 8, 9, 8, 1, p.metalC);                  // plastron
+      MR(t, 10, 11, 4, 2, p.lueur); MP(t, 11, 11, p.lueurC);
+      MR(t, 4, 14, 16, 1, p.c1); });
+    MCOUCHE(g, p.d, t => {                                                       // epaulieres
+      MR(t, 1, 6 + (f?0:1), 5, 5, p.metal); MR(t, 1, 6 + (f?0:1), 5, 1, p.metalC);
+      MR(t, 18, 6 + (f?1:0), 5, 5, p.metal); MR(t, 18, 6 + (f?1:0), 5, 1, p.metalC);
+      MP(t, 2, 5 + (f?0:1), p.os); MP(t, 21, 5 + (f?1:0), p.os); });
+    MCOUCHE(g, p.d, t => { MR(t, 8, 1, 8, 6, p.c2); MR(t, 9, 0, 6, 1, p.c3);    // casque
+      MR(t, 9, 3, 6, 3, p.d);
+      MR(t, 10, 4, 2, 2, p.lueur); MR(t, 13, 4, 2, 2, p.lueur);
+      MP(t, 10, 4, p.lueurC); MP(t, 14, 4, p.lueurC);
+      for (const [dx, dy] of [[7,0],[6,-1],[6,-2],[16,0],[17,-1],[17,-2]]) MP(t, dx, dy + 1, p.os); });
+    MCOUCHE(g, p.d, t => {                                                       // lame demesuree
+      const dy = f ? 0 : 1;
+      MR(t, 21, 2 + dy, 3, 13, p.metalC); MR(t, 22, 2 + dy, 1, 13, p.metal);
+      MR(t, 21, 1 + dy, 3, 1, p.metalC); MP(t, 22, 0 + dy, p.metalC);
+      MR(t, 20, 14 + dy, 5, 2, p.os); MR(t, 22, 15 + dy, 1, 3, p.c1); });
+  },
   /* --- Banshee : volante, voile en lambeaux, bras ouverts --- */
   banshee(g, f, p){
     MCOUCHE(g, p.d, t => {
@@ -700,6 +732,9 @@ const PAL_MONSTRES = {
                metal:'#7d8694', metalC:'#c0c8d4', lueur:'#ff9c3a', sol:'#1d262e'},
   broyeur:   {d:'#12130c', c1:'#3f4a26', c2:'#5c6b33', c3:'#7d8f46',
                metal:'#6b6f78', metalC:'#c8ccd6', lueur:'#ffcf3a', sol:'#232616'},
+  seigneur:{d:'#140a12', c1:'#3d1f30', c2:'#5c2f44', c3:'#7d4258',
+            metal:'#5c5560', metalC:'#a89fb0', os:'#e2d8c0',
+            lueur:'#ff4a5a', lueurC:'#ffb0b8', sol:'#2a1420'},
   banshee: {d:'#0a1416', c1:'#1f4a4e', c2:'#2f6f72', c3:'#4a9a9a', lueur:'#7ffff0', lueurC:'#d4fffa', sol:'#16282a'}
 };
 
@@ -785,42 +820,60 @@ const TOURS = {
 
 /* Monstres envoyables. Le ratio revenu/or decroit strictement : c'est le
    levier de reglage numero un du jeu. */
-/* `ech` = taille a l'ecran, en fraction de case. Dans la map d'origine une
-   tour occupe UNE case entiere (pathing 4x4SimpleSolid = 128 x 128 unites)
-   et un creep a une collision de 1.0, c'est-a-dire un point. Les modeles de
-   tours y sont mis a l'echelle 1,3 a 2,0 et les creeps a 0,5 a 1,5 : le
-   rapport visuel est d'environ trois pour un. C'est ce rapport qu'on
-   reproduit ici. */
+/* `ech`   = taille a l'ecran, en fraction de case (voir LTD7-DONNEES-REELLES §5 bis).
+   `dispo` = seconde a laquelle le monstre devient achetable.
+   `stock` = [maximum simultane, secondes pour en regagner un].
+
+   Le catalogue de LTW 7 n'est pas un menu : c'est une CHRONOLOGIE. Le Mouton
+   est la des la 5e seconde, le Fantassin a 80 s, le Char a 420 s, et le
+   Seigneur bandit seulement a 800 s — avec un stock de 3. C'est ce qui empeche
+   de noyer l'adversaire sous le meilleur ratio et ce qui donne sa forme a la
+   partie. Les valeurs viennent des champs usst / usma / usrg de la map. */
 const MONSTRES = {
-  mouton:  {nom:'Mouton',   or:5,   revenu:1,  pv:5,     v:vitesse(270), ech:0.42},
-  loup:    {nom:'Loup',     or:10,  revenu:2,  pv:40,    v:vitesse(300), ech:0.50},
-  acolyte: {nom:'Acolyte',  or:50,  revenu:8,  pv:200,   v:vitesse(270), ech:0.52},
-  fantassin:{nom:'Fantassin',or:75, revenu:12, pv:250,   v:vitesse(370), ech:0.54},
-  golem:   {nom:'Golem',    or:350, revenu:37, pv:1400,  v:vitesse(300), ech:0.72},
-  ombre:   {nom:'Ombre',    or:200, revenu:22, pv:600,   v:vitesse(300), vol:true, ech:0.58},
+  mouton:  {nom:'Mouton',   or:5,   revenu:1,  pv:5,     v:vitesse(270), ech:0.42, dispo:5,   stock:[20, 2]},
+  loup:    {nom:'Loup',     or:10,  revenu:2,  pv:40,    v:vitesse(300), ech:0.50, dispo:10,  stock:[15, 3]},
+  acolyte: {nom:'Acolyte',  or:50,  revenu:8,  pv:200,   v:vitesse(270), ech:0.52, dispo:60,  stock:[10, 5]},
+  fantassin:{nom:'Fantassin',or:75, revenu:12, pv:250,   v:vitesse(370), ech:0.54, dispo:80,  stock:[10, 5]},
+  ombre:   {nom:'Ombre',    or:200, revenu:22, pv:600,   v:vitesse(300), vol:true, ech:0.58, dispo:120, stock:[20, 7]},
+  golem:   {nom:'Golem',    or:350, revenu:37, pv:1400,  v:vitesse(300), ech:0.72, dispo:140, stock:[10, 5]},
   troll:   {nom:'Troll berserk', or:5000, revenu:450, pv:5000, v:vitesse(350), ech:0.80,
-            siege:{deg:47, portee:portee(150), cadence:cadence(60)}},
-  banshee: {nom:'Banshee',  or:20000,revenu:1700,pv:60000,v:vitesse(300), vol:true, ech:0.76},
+            dispo:330, stock:[15, 5], siege:{deg:47, portee:portee(150), cadence:cadence(60)}},
+  banshee: {nom:'Banshee',  or:20000,revenu:1700,pv:60000,v:vitesse(300), vol:true, ech:0.76,
+            dispo:390, stock:[20, 5]},
 
   /* --- Les briseurs ---------------------------------------------------------
      Ils ne cherchent pas a passer : ils viennent casser les tours. Ils ne
      volent donc aucune vie tant qu'il reste quelque chose a demolir. C'est
      l'autre facon de gagner une ligne — on ne perce pas la defense, on la
-     supprime. Les quatre existent dans la map d'origine, reperables a leur
-     nom qui contient « ATTAK ». */
-  demolisseur:{nom:'Démolisseur', or:500,   revenu:50,   pv:1000,   v:vitesse(270), ech:0.62,
+     supprime. Reperables dans la map a leur nom qui contient « ATTAK ». */
+  demolisseur:{nom:'Démolisseur', or:500, revenu:50, pv:1000, v:vitesse(270), ech:0.62,
+               dispo:160, stock:[15, 7],
                siege:{deg:60,  portee:portee(120), cadence:cadence(45)}},
-  char:      {nom:'Char à vapeur', or:30000, revenu:2500, pv:100000, v:vitesse(270), ech:0.88,
-               siege:{deg:400, portee:portee(200), cadence:cadence(40)}},
-  broyeur:   {nom:'Broyeur gobelin', or:100000, revenu:5000, pv:100000, v:vitesse(300), ech:0.84,
-               siege:{deg:750, portee:portee(140), cadence:cadence(70)}}
+  char:    {nom:'Char à vapeur', or:30000, revenu:2500, pv:100000, v:vitesse(270), ech:0.88,
+            dispo:420, stock:[15, 5],
+            siege:{deg:400, portee:portee(200), cadence:cadence(40)}},
+  broyeur: {nom:'Broyeur gobelin', or:100000, revenu:5000, pv:100000, v:vitesse(300), ech:0.84,
+            dispo:600, stock:[10, 10],
+            siege:{deg:750, portee:portee(140), cadence:cadence(70)}},
+
+  /* --- Le sacrifice ---------------------------------------------------------
+     150 000 PV, une frappe de zone a distance, et +3 de revenu pour 100 000 or.
+     Ce n'est pas une blague de l'auteur : c'est un choix. On ne l'envoie pas
+     pour s'enrichir, on l'envoie pour effacer une ligne — et on renonce a toute
+     l'economie que la meme somme aurait rapportee. Disponible seulement a
+     800 secondes, avec un stock de trois : le plus rare du jeu. */
+  seigneur:{nom:'Seigneur bandit', or:100000, revenu:3, pv:150000, v:vitesse(250), ech:0.92,
+            dispo:800, stock:[3, 15], sacrifice:true,
+            siege:{deg:900, portee:portee(300), cadence:cadence(30), zone:portee(180)}}
 };
 
+/* `temps` comprime la chronologie de deblocage sans en changer la forme :
+   c'est le meme principe que pour la courbe de couts. Classique = la map. */
 const PROFILS = {
-  ECLAIR:    {nom:'Éclair',    vies:8,  or:150, revenu:30, tickRevenu:25,  bois:3},
-  BLITZ:     {nom:'Blitz',     vies:12, or:120, revenu:25, tickRevenu:40,  bois:3},
-  SOUTENU:   {nom:'Soutenu',   vies:18, or:120, revenu:25, tickRevenu:65,  bois:3},
-  CLASSIQUE: {nom:'Classique', vies:25, or:120, revenu:25, tickRevenu:100, bois:3}
+  ECLAIR:    {nom:'Éclair',    vies:8,  or:150, revenu:30, tickRevenu:25,  bois:3, temps:0.20},
+  BLITZ:     {nom:'Blitz',     vies:12, or:120, revenu:25, tickRevenu:40,  bois:3, temps:0.32},
+  SOUTENU:   {nom:'Soutenu',   vies:18, or:120, revenu:25, tickRevenu:65,  bois:3, temps:0.55},
+  CLASSIQUE: {nom:'Classique', vies:25, or:120, revenu:25, tickRevenu:100, bois:3, temps:1.00}
 };
 
 /* La difficulte change ce que les bots FONT, pas leurs statistiques : ils
@@ -929,6 +982,7 @@ function creerLigne(cfg, prof, i, estJoueur){
     or: prof.or, revenu: prof.revenu, vies: prof.vies, bois: prof.bois,
     branches: {}, batiments: [], monstres: [],
     depenseTours: 0, depenseEnvois: 0,   // sert au partage or/envois des bots
+    stock: {}, prochainStock: {},        // chronologie de deblocage (voir config)
     occupe: new Int32Array(cfg.LARGEUR * cfg.HAUTEUR).fill(-1),
     chemin: null, scellee: false, mort: false,
     prochainBot: 60 + i * 17          // decale les bots pour qu'ils ne jouent pas a l'unisson
@@ -945,7 +999,14 @@ function creerPartie({graine = 12345, profil = 'BLITZ', joueurs = 4,
     lignes: [], moi: 0, fini: false, vainqueur: null, journal: [],
     controleur: null, prochainControleur: cfg.controleur.periode
   };
-  for (let i = 0; i < joueurs; i++) etat.lignes.push(creerLigne(cfg, prof, i, i === 0));
+  for (let i = 0; i < joueurs; i++){
+    const l = creerLigne(cfg, prof, i, i === 0);
+    for (const k in cfg.MONSTRES){
+      l.stock[k] = cfg.MONSTRES[k].stock[0];      // le stock est plein au deblocage
+      l.prochainStock[k] = 0;
+    }
+    etat.lignes.push(l);
+  }
   etat.lignes.forEach(l => recalculerChemin(etat, l));
   return etat;
 }
@@ -999,13 +1060,25 @@ function retirerBatiment(etat, l, b){
   l.batiments.splice(l.batiments.indexOf(b), 1);
   recalculerChemin(etat, l);
 }
+/* A quel pas de simulation un monstre devient-il achetable ? */
+function pasDeDisponibilite(etat, def){
+  return Math.round(def.dispo * 10 * etat.prof.temps);
+}
+function disponible(etat, l, type){
+  const def = etat.cfg.MONSTRES[type];
+  return etat.pas >= pasDeDisponibilite(etat, def) && (l.stock[type] || 0) > 0;
+}
 function envoyer(etat, l, type){
   const def = etat.cfg.MONSTRES[type];
   if (!def || l.or < def.or) return false;
+  if (!disponible(etat, l, type)) return false;
   const cible = etat.lignes[voisin(etat, l.i)];
   if (cible === l) return false;
   if (cible.monstres.length >= etat.cfg.maxVivants) return false;
   l.or -= def.or; l.depenseEnvois += def.or;
+  l.stock[type] -= 1;
+  if (l.prochainStock[type] <= etat.pas)
+    l.prochainStock[type] = etat.pas + Math.max(1, Math.round(def.stock[1] * 10 * etat.prof.temps));
   l.revenu += def.revenu;                       // definitif : c'est tout le jeu
   faireApparaitre(etat, cible, type, l.i);
   return true;
@@ -1031,6 +1104,19 @@ function avancer(etat){
   etat.pas++;
   if (etat.pas % etat.prof.tickRevenu === 0)
     for (const l of etat.lignes) if (!l.mort) l.or += l.revenu;
+
+  /* Rechargement des stocks. */
+  for (const l of etat.lignes){
+    if (l.mort) continue;
+    for (const k in cfg.MONSTRES){
+      const def = cfg.MONSTRES[k];
+      if (l.stock[k] >= def.stock[0]) continue;
+      if (etat.pas >= l.prochainStock[k]){
+        l.stock[k] += 1;
+        l.prochainStock[k] = etat.pas + Math.max(1, Math.round(def.stock[1] * 10 * etat.prof.temps));
+      }
+    }
+  }
 
   for (const l of etat.lignes) if (!l.mort){ deplacerMonstres(etat, l); tirer(etat, l); }
   bots(etat);
@@ -1093,8 +1179,16 @@ function deplacerMonstres(etat, l){
           m.frappe = (m.frappe || 0) - 1;
           if (m.frappe <= 0){
             m.frappe = def.siege.cadence;
-            cible.pv -= def.siege.deg;
-            if (cible.pv <= 0){ retirerBatiment(etat, l, cible); m.cible = null; }
+            const touches = def.siege.zone
+              ? l.batiments.filter(b => {
+                  const ax = b.x * cfg.MILLI + cfg.MILLI / 2, ay = b.y * cfg.MILLI + cfg.MILLI / 2;
+                  const ex = ax - bx, ey = ay - by;
+                  return ex * ex + ey * ey <= def.siege.zone * def.siege.zone;
+                })
+              : [cible];
+            for (const b of touches) b.pv -= def.siege.deg;
+            for (const b of [...touches]) if (b.pv <= 0) retirerBatiment(etat, l, b);
+            if (cible.pv <= 0) m.cible = null;
           }
         }
         continue;
@@ -1251,13 +1345,15 @@ function bots(etat){
          defense pour que les envois suivants passent tout seuls. */
       const siege = d.siege && l.envoisFaits % 3 === 0;
       if (siege){
-        const briseurs = cles.filter(k => cfg.MONSTRES[k].siege && cfg.MONSTRES[k].or <= budget)
+        const briseurs = cles.filter(k => cfg.MONSTRES[k].siege && cfg.MONSTRES[k].or <= budget
+            && !cfg.MONSTRES[k].sacrifice && disponible(etat, l, k))
           .sort((a, b) => cfg.MONSTRES[b].or - cfg.MONSTRES[a].or);
         if (briseurs.length && envoyer(etat, l, briseurs[0])) budget -= cfg.MONSTRES[briseurs[0]].or;
       }
 
       for (let n = 0; n < 6; n++){
-        const abordable = k => cfg.MONSTRES[k].or <= budget && cfg.MONSTRES[k].or <= l.or;
+        const abordable = k => cfg.MONSTRES[k].or <= budget && cfg.MONSTRES[k].or <= l.or
+          && disponible(etat, l, k);
         let cle;
         if (!d.maze){                                   // debutant : au hasard
           const dispo = cles.filter(abordable);
@@ -1767,13 +1863,27 @@ function panneau(){
         <b>${t.nom}</b><span>${t.or} or</span></button>`; }).join('') +
       `</div><p class="aide">Un appui pour prendre, un appui sur la grille pour poser. L'or n'est débité qu'à la pose.</p>`;
   } else if (menu === 'monstres'){
-    d.innerHTML = `<div class="rangee">` + Object.keys(cfg.MONSTRES).map(k => { const m = cfg.MONSTRES[k];
-      const marque = m.siege ? '<u>brise</u>' : (m.vol ? '<u class="air">vole</u>' : '');
-      return `<button class="art ${l.or < m.or ? 'off' : ''} ${m.siege ? 'siege' : ''}" data-envoyer="${k}">
+    d.innerHTML = `<div class="rangee">` + Object.keys(cfg.MONSTRES).map(k => {
+      const m = cfg.MONSTRES[k];
+      const ouvertureA = Math.round(m.dispo * 10 * etat.prof.temps);
+      const verrouille = etat.pas < ouvertureA;
+      const reste = Math.ceil((ouvertureA - etat.pas) / 10);
+      const stock = l.stock[k] || 0;
+      const marque = m.sacrifice ? '<u class="sacr">sacrifice</u>'
+                   : m.siege ? '<u>brise</u>'
+                   : m.vol ? '<u class="air">vole</u>' : '';
+      if (verrouille)
+        return `<button class="art verrou" disabled>
+          <b>${m.nom}</b><span>🔒 dans ${reste} s</span><i>${m.or.toLocaleString('fr')} or</i></button>`;
+      const inactif = l.or < m.or || stock === 0;
+      return `<button class="art ${inactif ? 'off' : ''} ${m.siege ? 'siege' : ''}" data-envoyer="${k}">
         <b>${m.nom}</b><span>${m.or.toLocaleString('fr')} or → +${m.revenu.toLocaleString('fr')}</span>
-        <i>${(m.revenu / m.or).toFixed(3)} ${marque}</i></button>`; }).join('') +
-      `</div><p class="aide">Le chiffre est le revenu par pièce d'or : les petits rapportent le plus mais ne percent pas.
-       <b>brise</b> = il ignore la sortie et démolit les tours. <b>vole</b> = il ignore le labyrinthe.</p>`;
+        <i>${(m.revenu / m.or).toFixed(3)} <em>${stock}/${m.stock[0]}</em> ${marque}</i></button>`;
+      }).join('') +
+      `</div><p class="aide">Le chiffre vert est le revenu par pièce d'or : les petits rapportent le plus
+       mais ne percent pas. <em>x/y</em> = stock restant, il se recharge tout seul.
+       <b>brise</b> démolit les tours au lieu de passer · <b>vole</b> ignore le labyrinthe ·
+       <b>sacrifice</b> ne rapporte presque rien mais efface une ligne.</p>`;
   } else if (menu === 'techno'){
     d.innerHTML = `<div class="rangee">` + Object.keys(cfg.BRANCHES).map(k => { const b = cfg.BRANCHES[k];
       const pris = l.branches[k];

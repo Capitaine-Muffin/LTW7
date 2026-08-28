@@ -180,6 +180,69 @@ de skill que le Contrôleur existe pour protéger.
 
 ---
 
+## 5 ter. Le catalogue n'est pas un menu, c'est une chronologie
+
+**La trouvaille la plus importante après l'Anti Wall Machine**, et elle était
+cachée dans trois champs que j'avais ignorés : `usst`, `usma`, `usrg` — délai
+d'ouverture, stock maximum, intervalle de recharge.
+
+**Chaque monstre a une heure d'apparition.** On ne choisit pas dans une liste :
+la liste s'ouvre au fil de la partie.
+
+| Monstre | Disponible à | Stock max | Recharge |
+|---|---:|---:|---:|
+| Sheep | **5 s** | 20 | 2 s |
+| Frost Wolf | 10 s | 15 | 3 s |
+| Acolyte | 60 s | 10 | 5 s |
+| Footman | 80 s | 10 | 5 s |
+| Shadow (air) | 120 s | 20 | 7 s |
+| Mud Golem | 140 s | 10 | 5 s |
+| Demolition Machine | 160 s | 15 | 7 s |
+| Troll | 330 s | 15 | 5 s |
+| Banshee (air) | 390 s | 20 | 5 s |
+| Steam Tank | 420 s | 15 | 5 s |
+| Infernal Boss | 450 s | 10 | 7 s |
+| Frost Wyrm (air) | 480 s | 10 | 10 s |
+| Water Elemental | 510 s | 10 | 10 s |
+| Goblin Shredder | 600 s | 10 | 10 s |
+| Shadow Wolf | 700 s | 10 | 10 s |
+| **Bandit Lord** | **800 s** | **3** | 15 s |
+
+Ce que ça règle, et que je n'expliquais pas :
+
+1. **Pourquoi on ne noie pas l'adversaire sous le meilleur ratio.** Le Sheep
+   rapporte 0,200 par pièce d'or, mais son stock plafonne à 20 et se recharge
+   toutes les 2 secondes. On ne peut pas en envoyer cent.
+2. **Pourquoi une partie dure 30 à 60 minutes.** Ce n'est pas la courbe de coûts
+   qui l'impose, c'est **la chronologie**. Le dernier monstre s'ouvre à 800 s :
+   avant, il n'existe pas.
+3. **Pourquoi la partie a une forme.** Chaque palier d'ouverture est un
+   changement de phase — imposé par la map, pas par l'économie.
+
+## 5 quater. Le Bandit Lord : un sacrifice, pas une blague
+
+Je l'avais écarté comme une plaisanterie de l'auteur (100 000 or pour +3 de
+revenu). C'était une erreur de lecture. Sa fiche :
+
+| | |
+|---|---|
+| Points de vie | **150 000** — le deuxième plus élevé du jeu |
+| Dégâts | 100 + 2d20, **à distance (300)** |
+| Cibles | `debris,structure` — c'est un briseur |
+| Armure | 8, régénération **1000/s** |
+| Déplacement | `fort` — il passe partout |
+| Capacités | dont `ANpi` (*Impale*), une attaque de **zone** |
+| Disponible à | **800 s**, le plus tard du jeu |
+| Stock | **3**, un toutes les 15 s |
+
+Le +3 de revenu n'est pas un bug : **c'est le prix**. On ne l'envoie pas pour
+s'enrichir, on l'envoie pour effacer une ligne — et on renonce à toute
+l'économie que les 100 000 or auraient rapportée ailleurs (le Shadow Wolf, au
+même prix, donne +6 000). C'est le seul achat du jeu qui soit **purement
+offensif**, et il arrive au moment où les parties se décident.
+
+---
+
 ## 6. Les tours
 
 55 bâtiments. Quelques repères de l'échelle basse, celle des premières minutes :

@@ -12,6 +12,7 @@ function creerLigne(cfg, prof, i, estJoueur){
     or: prof.or, revenu: prof.revenu, vies: prof.vies, bois: prof.bois,
     branches: {}, batiments: [], monstres: [],
     depenseTours: 0, depenseEnvois: 0,   // sert au partage or/envois des bots
+    stock: {}, prochainStock: {},        // chronologie de deblocage (voir config)
     occupe: new Int32Array(cfg.LARGEUR * cfg.HAUTEUR).fill(-1),
     chemin: null, scellee: false, mort: false,
     prochainBot: 60 + i * 17          // decale les bots pour qu'ils ne jouent pas a l'unisson
@@ -28,7 +29,14 @@ function creerPartie({graine = 12345, profil = 'BLITZ', joueurs = 4,
     lignes: [], moi: 0, fini: false, vainqueur: null, journal: [],
     controleur: null, prochainControleur: cfg.controleur.periode
   };
-  for (let i = 0; i < joueurs; i++) etat.lignes.push(creerLigne(cfg, prof, i, i === 0));
+  for (let i = 0; i < joueurs; i++){
+    const l = creerLigne(cfg, prof, i, i === 0);
+    for (const k in cfg.MONSTRES){
+      l.stock[k] = cfg.MONSTRES[k].stock[0];      // le stock est plein au deblocage
+      l.prochainStock[k] = 0;
+    }
+    etat.lignes.push(l);
+  }
   etat.lignes.forEach(l => recalculerChemin(etat, l));
   return etat;
 }
@@ -82,13 +90,25 @@ function retirerBatiment(etat, l, b){
   l.batiments.splice(l.batiments.indexOf(b), 1);
   recalculerChemin(etat, l);
 }
+/* A quel pas de simulation un monstre devient-il achetable ? */
+function pasDeDisponibilite(etat, def){
+  return Math.round(def.dispo * 10 * etat.prof.temps);
+}
+function disponible(etat, l, type){
+  const def = etat.cfg.MONSTRES[type];
+  return etat.pas >= pasDeDisponibilite(etat, def) && (l.stock[type] || 0) > 0;
+}
 function envoyer(etat, l, type){
   const def = etat.cfg.MONSTRES[type];
   if (!def || l.or < def.or) return false;
+  if (!disponible(etat, l, type)) return false;
   const cible = etat.lignes[voisin(etat, l.i)];
   if (cible === l) return false;
   if (cible.monstres.length >= etat.cfg.maxVivants) return false;
   l.or -= def.or; l.depenseEnvois += def.or;
+  l.stock[type] -= 1;
+  if (l.prochainStock[type] <= etat.pas)
+    l.prochainStock[type] = etat.pas + Math.max(1, Math.round(def.stock[1] * 10 * etat.prof.temps));
   l.revenu += def.revenu;                       // definitif : c'est tout le jeu
   faireApparaitre(etat, cible, type, l.i);
   return true;
@@ -114,6 +134,19 @@ function avancer(etat){
   etat.pas++;
   if (etat.pas % etat.prof.tickRevenu === 0)
     for (const l of etat.lignes) if (!l.mort) l.or += l.revenu;
+
+  /* Rechargement des stocks. */
+  for (const l of etat.lignes){
+    if (l.mort) continue;
+    for (const k in cfg.MONSTRES){
+      const def = cfg.MONSTRES[k];
+      if (l.stock[k] >= def.stock[0]) continue;
+      if (etat.pas >= l.prochainStock[k]){
+        l.stock[k] += 1;
+        l.prochainStock[k] = etat.pas + Math.max(1, Math.round(def.stock[1] * 10 * etat.prof.temps));
+      }
+    }
+  }
 
   for (const l of etat.lignes) if (!l.mort){ deplacerMonstres(etat, l); tirer(etat, l); }
   bots(etat);
@@ -176,8 +209,16 @@ function deplacerMonstres(etat, l){
           m.frappe = (m.frappe || 0) - 1;
           if (m.frappe <= 0){
             m.frappe = def.siege.cadence;
-            cible.pv -= def.siege.deg;
-            if (cible.pv <= 0){ retirerBatiment(etat, l, cible); m.cible = null; }
+            const touches = def.siege.zone
+              ? l.batiments.filter(b => {
+                  const ax = b.x * cfg.MILLI + cfg.MILLI / 2, ay = b.y * cfg.MILLI + cfg.MILLI / 2;
+                  const ex = ax - bx, ey = ay - by;
+                  return ex * ex + ey * ey <= def.siege.zone * def.siege.zone;
+                })
+              : [cible];
+            for (const b of touches) b.pv -= def.siege.deg;
+            for (const b of [...touches]) if (b.pv <= 0) retirerBatiment(etat, l, b);
+            if (cible.pv <= 0) m.cible = null;
           }
         }
         continue;
@@ -334,13 +375,15 @@ function bots(etat){
          defense pour que les envois suivants passent tout seuls. */
       const siege = d.siege && l.envoisFaits % 3 === 0;
       if (siege){
-        const briseurs = cles.filter(k => cfg.MONSTRES[k].siege && cfg.MONSTRES[k].or <= budget)
+        const briseurs = cles.filter(k => cfg.MONSTRES[k].siege && cfg.MONSTRES[k].or <= budget
+            && !cfg.MONSTRES[k].sacrifice && disponible(etat, l, k))
           .sort((a, b) => cfg.MONSTRES[b].or - cfg.MONSTRES[a].or);
         if (briseurs.length && envoyer(etat, l, briseurs[0])) budget -= cfg.MONSTRES[briseurs[0]].or;
       }
 
       for (let n = 0; n < 6; n++){
-        const abordable = k => cfg.MONSTRES[k].or <= budget && cfg.MONSTRES[k].or <= l.or;
+        const abordable = k => cfg.MONSTRES[k].or <= budget && cfg.MONSTRES[k].or <= l.or
+          && disponible(etat, l, k);
         let cle;
         if (!d.maze){                                   // debutant : au hasard
           const dispo = cles.filter(abordable);
