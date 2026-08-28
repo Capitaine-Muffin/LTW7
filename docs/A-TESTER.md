@@ -4,6 +4,18 @@ Le prototype expose ses réglages derrière le **⚙**. L'écran de fin récapit
 configuration exacte de la partie — **c'est ce récapitulatif qu'il faut me
 recopier**, sinon « c'est trop dur » n'est pas exploitable.
 
+## Les commandes
+
+| Geste | Effet |
+|---|---|
+| **Appui** sur un achat, puis **appui** sur la grille | poser une tour (l'or part à la pose) |
+| **Appui** sur une tour posée | la sélectionner : améliorations et revente |
+| **Glissement latéral** sur le plateau | passer à la ligne voisine, dans un sens ou dans l'autre |
+| Onglets du haut | même chose, en accès direct |
+
+Le glissement ne pose jamais rien : la pose part au relâchement du doigt, et
+seulement si le doigt n'a pas bougé.
+
 ## Les réglages
 
 | Réglage | Valeurs | Ce que ça change |

@@ -28,7 +28,11 @@ function creerPartie({graine = 12345, profil = 'BLITZ', joueurs = 4,
   const etat = {
     cfg, prof, diff, pas: 0, rng: creerRng(graine), graine, profil, difficulte,
     lignes: [], moi: 0, fini: false, vainqueur: null, journal: [],
-    controleur: null, prochainControleur: cfg.controleur.periode
+    controleur: null, prochainControleur: cfg.controleur.periode,
+    /* Trace des tirs du pas courant. Le moteur ne dessine rien : il note juste
+       « cette tour a tire sur ce point », l'affichage en fait des projectiles.
+       Vide a chaque pas, donc sans effet sur la simulation ni sur la rejouabilite. */
+    tirs: []
   };
   for (let i = 0; i < joueurs; i++){
     const l = creerLigne(cfg, prof, i, i === 0);
@@ -138,6 +142,7 @@ function faireApparaitre(etat, ligne, type, proprietaire){
 function avancer(etat){
   const cfg = etat.cfg;
   etat.pas++;
+  etat.tirs.length = 0;
   /* Versement. Trois details repris du JASS de la map :
        - le premier tombe un intervalle complet apres le debut, pas au pas 0 ;
        - les elimines ne touchent rien (ils sortent de la force ThePlayers) ;
@@ -225,6 +230,8 @@ function deplacerMonstres(etat, l){
           m.frappe = (m.frappe || 0) - 1;
           if (m.frappe <= 0){
             m.frappe = def.siege.cadence;
+            etat.tirs.push({ligne: l.i, monstre: m.type, x: m.x, y: m.y,
+                            cx: bx, cy: by, zone: def.siege.zone || 0});
             const touches = def.siege.zone
               ? l.batiments.filter(b => {
                   const ax = b.x * cfg.MILLI + cfg.MILLI / 2, ay = b.y * cfg.MILLI + cfg.MILLI / 2;
@@ -295,6 +302,8 @@ function tirer(etat, l){
     }
     if (!cible) continue;
     b.recharge = def.c;
+    etat.tirs.push({ligne: l.i, type: b.type, x: bx, y: by,
+                    cx: cible.x, cy: cible.y, zone: def.zone || 0});
     if (def.teleporte){ cible.etape = 0;
       cible.x = cfg.entree.x * cfg.MILLI + cfg.MILLI / 2;
       cible.y = cfg.entree.y * cfg.MILLI + cfg.MILLI / 2; continue; }

@@ -6,7 +6,7 @@ import {readFileSync} from 'fs';
 const src = ['rng','config','grille','moteur'].map(f =>
   readFileSync(`src/engine/${f}.js`, 'utf8')).join('\n');
 const M = {};
-new Function('X', src + '\nObject.assign(X,{creerPartie,avancer,poserBatiment,envoyer,CONFIG});')(M);
+new Function('X', src + '\nObject.assign(X,{creerPartie,avancer,poserBatiment,envoyer,faireApparaitre,CONFIG});')(M);
 
 function empreinte(e){
   const p = [e.pas, e.fini, e.vainqueur];
@@ -185,6 +185,25 @@ for (const d of ['facile','impitoyable']){
 }
 dire(envois.impitoyable > envois.facile * 1.5,
   `revenu d'un bot a 150 s : debutant ${envois.facile}, impitoyable ${envois.impitoyable}`);
+
+/* Les projectiles sont dessines a partir de cette trace : si le moteur cesse
+   de la remplir, les tours tirent en silence et personne ne le voit passer. */
+console.log('\nle moteur laisse une trace de chaque tir');
+{
+  const e = M.creerPartie({graine: 7, joueurs: 3});
+  M.poserBatiment(e, e.lignes[0], 'guet', 4, 4);
+  M.faireApparaitre(e, e.lignes[0], 'mouton', 1);
+  let vus = 0, exemple = null;
+  for (let i = 0; i < 40; i++){
+    M.avancer(e);
+    for (const t of e.tirs) if (t.ligne === 0){ vus++; exemple = exemple || t; }
+  }
+  dire(vus > 0, `une tour de guet laisse ${vus} tir(s) en 4 s`);
+  dire(exemple && exemple.type === 'guet' && Number.isInteger(exemple.cx),
+    'le tir porte le type de la tour et un point d\'impact entier');
+  const avant = e.tirs.length; M.avancer(e);
+  dire(e.tirs.length <= Math.max(1, avant + 2), 'la trace est videe a chaque pas, elle ne s\'accumule pas');
+}
 
 console.log(echecs ? `\n${echecs} echec(s)\n` : '\ntout passe\n');
 process.exit(echecs ? 1 : 0);

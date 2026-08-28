@@ -14,7 +14,7 @@ const SPRITE = {                    // quelle planche de sprite pour quelle tour
 /* Chaque monstre a deux images ; on alterne pour la marche. */
 
 let etat, camp, cache = {}, enMain = null, selection = null, ligneVue = 0,
-    menu = null, acceleration = 1, dernier = 0, accum = 0;
+    menu = null, acceleration = 1, dernier = 0, accum = 0, tirs = [];
 
 /* ---- pre-rendu des sprites ---------------------------------------------- */
 function preparerSprites(){
@@ -88,6 +88,10 @@ function dessinerJeu(){
     c.fillStyle = 'rgba(230,70,60,.18)'; c.fillRect(ox, oy, T * cfg.LARGEUR, T * cfg.HAUTEUR);
   }
 
+  /* Tours, monstres et projectiles debordent leur case : on les enferme dans
+     le plateau, sinon une tour posee en bord de grille bave sur le decor. */
+  c.save(); c.beginPath(); c.rect(ox, oy, T * cfg.LARGEUR, T * cfg.HAUTEUR); c.clip();
+
   const tailleSprite = Math.round(T * 1.5);   // la tour deborde sa case, comme dans l'original
   for (const b of [...l.batiments].sort((a, z) => a.y - z.y)){
     const img = cache[(SPRITE[b.type] || 'fleche') + ':' + camp.k];
@@ -131,6 +135,9 @@ function dessinerJeu(){
     }
   }
 
+  dessinerTirs(c, cfg, T, ox, oy, tirs);   // au-dessus des monstres qu'ils frappent
+  c.restore();
+
   if (etat.controleur && etat.controleur.ligne === ligneVue){
     const k = etat.controleur;
     const x = ox + k.x * T / cfg.MILLI, y = oy + k.y * T / cfg.MILLI, r = T * .34;
@@ -170,7 +177,11 @@ function majBandeau(){
   onglets.innerHTML = etat.lignes.map((x, i) =>
     `<button class="ong ${i === ligneVue ? 'actif' : ''} ${x.mort ? 'mort' : ''}" data-ligne="${i}">
       <b>${i === etat.moi ? 'Toi' : 'Bot ' + i}</b><span>♥ ${x.vies} · +${x.revenu}</span></button>`).join('');
-  document.getElementById('lecture').hidden = (ligneVue === etat.moi);
+  /* Le bandeau dit AUSSI quelle ligne on regarde : apres un glissement, les
+     onglets du haut ne sont pas forcement dans le champ du regard. */
+  const badge = document.getElementById('lecture');
+  badge.hidden = (ligneVue === etat.moi);
+  badge.textContent = etat.lignes[ligneVue].nom + ' · lecture seule';
 }
 
 function panneau(){
@@ -244,8 +255,12 @@ function boucle(t){
        de plusieurs secondes d'un coup : les monstres semblaient se teleporter.
        Mieux vaut perdre un peu de temps de jeu qu'un saut visible. */
     accum = Math.min(accum + dt * acceleration, etat.cfg.PAS_MS * 4);
-    while (accum >= etat.cfg.PAS_MS){ avancer(etat); accum -= etat.cfg.PAS_MS; }
+    while (accum >= etat.cfg.PAS_MS){
+      avancer(etat); accum -= etat.cfg.PAS_MS;
+      collecterTirs(etat, ligneVue, tirs);
+    }
   }
+  avancerTirs(tirs, dt * acceleration);
   geo = dessinerJeu();
   majBandeau();
   if (etat.fini) finir();
@@ -271,11 +286,44 @@ function caseSous(ev){
   if (x < 0 || y < 0 || x >= etat.cfg.LARGEUR || y >= etat.cfg.HAUTEUR) return null;
   return {x, y};
 }
+/* Changer de ligne. Le glisser fait la meme chose que les onglets du haut,
+   au pouce : c'est le geste attendu sur telephone pour « la ligne d'a cote ». */
+function allerLigne(i){
+  const n = etat.lignes.length;
+  ligneVue = ((i % n) + n) % n;
+  selection = null; enMain = null; sentier = null; tirs.length = 0;
+  panneau();
+}
+
 function brancher(){
   const cv = document.getElementById('scene');
-  cv.addEventListener('pointermove', e => { survol = caseSous(e); });
+  /* Un appui devient un glissement des qu'il depasse le seuil ; la pose de
+     tour part alors au relachement, jamais a l'appui, sinon un glisser
+     poserait une tour au passage. */
+  let geste = null;
+  const SEUIL = 34;                                   // px avant de parler de glissement
+  cv.addEventListener('pointermove', e => {
+    survol = caseSous(e);
+    if (!geste) return;
+    const dx = e.clientX - geste.x, dy = e.clientY - geste.y;
+    if (Math.abs(dx) > SEUIL && Math.abs(dx) > Math.abs(dy) * 1.4) geste.glisse = true;
+    else if (Math.abs(dy) > SEUIL) geste.annule = true;
+  });
   cv.addEventListener('pointerleave', () => { survol = null; });
   cv.addEventListener('pointerdown', e => {
+    survol = caseSous(e);
+    geste = {x: e.clientX, y: e.clientY, glisse: false, annule: false};
+    cv.setPointerCapture && cv.setPointerCapture(e.pointerId);
+  });
+  cv.addEventListener('pointercancel', () => { geste = null; });
+  cv.addEventListener('pointerup', e => {
+    const g = geste; geste = null;
+    if (!g) return;
+    if (g.glisse){                                    // gauche = ligne suivante
+      allerLigne(ligneVue + (e.clientX < g.x ? 1 : -1));
+      return;
+    }
+    if (g.annule) return;
     const p = caseSous(e); survol = p;
     if (!p || ligneVue !== etat.moi) return;
     const l = etat.lignes[etat.moi];
@@ -315,7 +363,7 @@ function brancher(){
   });
   document.getElementById('lignes').addEventListener('click', e => {
     const b = e.target.closest('[data-ligne]'); if (!b) return;
-    ligneVue = +b.dataset.ligne; selection = null; enMain = null; sentier = null; panneau();
+    allerLigne(+b.dataset.ligne);
   });
   document.getElementById('vitesse').addEventListener('click', e => {
     acceleration = acceleration === 1 ? 2 : acceleration === 2 ? 4 : 1;
@@ -352,6 +400,7 @@ function demarrer(memeGraine){
   terrain = null; sentier = null;
   etat = creerPartie({graine, profil, joueurs, difficulte});
   ligneVue = etat.moi; selection = null; enMain = null; menu = 'batiments'; acceleration = 1;
+  tirs.length = 0;
   document.querySelectorAll('[data-menu]').forEach(x =>
     x.setAttribute('aria-pressed', String(x.dataset.menu === 'batiments')));
   document.getElementById('fin').hidden = true;

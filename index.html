@@ -1,3 +1,4 @@
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>LTW 7 Warnet — prototype</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@600;800&family=Source+Sans+3:wght@400;600&display=swap">
 <style>
@@ -5,55 +6,59 @@
   --or:#f0c451;--vert:#6fc46a;--rouge:#e05a5a;--bois:#b98a54}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
+/* dvh : la barre d'adresse mobile mange une partie de 100vh. */
+body{height:100dvh}
 body{background:var(--fond);color:var(--encre);font-family:"Source Sans 3",system-ui,sans-serif;
   display:flex;flex-direction:column;overflow:hidden;user-select:none;touch-action:manipulation}
 h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
-#haut{display:flex;align-items:center;gap:9px;padding:6px 9px;background:var(--panneau);
+#haut{display:flex;align-items:center;gap:11px;padding:7px 9px;background:var(--panneau);
   border-bottom:1px solid var(--bord)}
 #reglages{display:none;gap:8px;padding:2px 9px 8px;background:var(--panneau);
   border-bottom:1px solid var(--bord);align-items:flex-end;flex-wrap:wrap}
 #reglages label{display:flex;flex-direction:column;gap:2px;font-family:Oxanium,sans-serif;
-  font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--doux)}
+  font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--doux)}
 #reglages input{background:var(--bord);color:var(--encre);border:1px solid #3b3552;
-  border-radius:7px;padding:6px;font-size:12px;font-family:Oxanium;font-weight:600;width:74px}
+  border-radius:7px;padding:8px;font-size:14px;font-family:Oxanium;font-weight:600;width:74px}
 #reglages[data-ouvert="1"]{display:flex}
 .stat{display:flex;flex-direction:column;line-height:1.05;min-width:0}
-.stat b{font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
-.stat span{font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--doux)}
+.stat b{font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat span{font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:var(--doux)}
 .stat.or b{color:var(--or)} .stat.vies b{color:var(--rouge)} .stat.bois b{color:var(--bois)}
 .stat.rev b{color:var(--vert)}
-#jauge{flex:1;min-width:70px;height:5px;background:#000;border-radius:3px;overflow:hidden}
+#jauge{flex:1;min-width:36px;height:6px;background:#000;border-radius:3px;overflow:hidden}
 #jaugeRevenu{height:100%;background:var(--vert);width:0}
 #haut button{background:var(--bord);color:var(--encre);border:0;border-radius:7px;
-  padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer}
+  padding:8px 11px;font-size:14px;font-weight:700;cursor:pointer}
 #lignes{display:flex;gap:5px;overflow-x:auto;padding:6px 8px;background:#191627;
   border-bottom:1px solid var(--bord)}
 .ong{flex:0 0 auto;background:transparent;border:1px solid var(--bord);border-radius:8px;
   padding:5px 9px;color:var(--doux);display:flex;flex-direction:column;line-height:1.15;cursor:pointer}
-.ong b{font-size:12px;color:var(--encre)} .ong span{font-size:10px}
+.ong b{font-size:14px;color:var(--encre)} .ong span{font-size:11.5px}
 .ong.actif{border-color:var(--or);background:rgba(240,196,81,.12)}
 .ong.mort{opacity:.35;text-decoration:line-through}
 #zone{flex:1;position:relative;min-height:0}
-#scene{width:100%;height:100%;display:block}
-#lecture{position:absolute;top:8px;left:50%;transform:translateX(-50%);
+/* touch-action:none — sinon le navigateur avale le glisser et le changement
+   de ligne au doigt ne part jamais. */
+#scene{width:100%;height:100%;display:block;touch-action:none}
+#lecture{position:absolute;top:8px;left:50%;transform:translateX(-50%);white-space:nowrap;
   background:rgba(20,18,32,.9);border:1px solid var(--or);color:var(--or);
-  padding:5px 12px;border-radius:20px;font-size:11.5px;font-weight:700;font-family:Oxanium}
+  padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;font-family:Oxanium}
 #bas{background:var(--panneau);border-top:1px solid var(--bord)}
 /* Hauteur FIXE : sinon changer de menu redimensionne la zone de jeu, ce qui
    force un recuit du terrain et provoque un a-coup. */
-#panneau{height:104px;padding:8px 8px 4px;overflow-y:auto;overscroll-behavior:contain}
+#panneau{height:124px;padding:8px 8px 4px;overflow-y:auto;overscroll-behavior:contain}
 .rangee{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
 .art{flex:0 0 auto;background:var(--bord);border:1px solid #3b3552;border-radius:9px;
   padding:7px 10px;color:var(--encre);display:flex;flex-direction:column;align-items:flex-start;
   line-height:1.2;cursor:pointer;min-width:74px}
-.art b{font-size:12.5px} .art span{font-size:10.5px;color:var(--doux)}
-.art i{font-size:10px;color:var(--vert);font-style:normal;font-variant-numeric:tabular-nums;
+.art b{font-size:14px} .art span{font-size:12px;color:var(--doux)}
+.art i{font-size:11.5px;color:var(--vert);font-style:normal;font-variant-numeric:tabular-nums;
   display:flex;gap:5px;align-items:center}
-.art u{text-decoration:none;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;
+.art u{text-decoration:none;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
   background:rgba(224,90,90,.22);color:#ef8f8f;border-radius:4px;padding:1px 4px}
 .art u.air{background:rgba(127,208,200,.2);color:#8fdcd4}
 .art u.sacr{background:rgba(200,120,255,.2);color:#c79cf0}
-.art em{font-style:normal;color:var(--doux);font-size:9.5px;
+.art em{font-style:normal;color:var(--doux);font-size:11px;
   background:rgba(255,255,255,.08);border-radius:4px;padding:1px 4px}
 .art.verrou{opacity:.45;border-style:dashed;cursor:default}
 .art.verrou span{color:var(--or)}
@@ -62,21 +67,24 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
 .aide b{color:var(--encre)}
 .art.off{opacity:.4} .art.pris{border-color:var(--or);background:rgba(240,196,81,.16)}
 .art.acquis{border-color:var(--vert);color:var(--vert)} .art.vente{border-color:#6b3a3a}
-.tete{font-family:Oxanium;font-weight:800;font-size:14px;padding:0 2px 6px;display:flex;
-  flex-direction:column} .tete span{font-family:"Source Sans 3";font-weight:400;font-size:11px;color:var(--doux)}
-.aide{margin:5px 2px 0;font-size:11px;color:var(--doux);line-height:1.35;
+.tete{font-family:Oxanium;font-weight:800;font-size:16px;padding:0 2px 6px;display:flex;
+  flex-direction:column} .tete span{font-family:"Source Sans 3";font-weight:400;font-size:12.5px;color:var(--doux)}
+.aide{margin:5px 2px 0;font-size:12.5px;color:var(--doux);line-height:1.35;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.vide{margin:14px 2px;font-size:12.5px;color:var(--doux)}
-#barre{display:flex;gap:6px;padding:6px 8px 10px}
+.vide{margin:14px 2px;font-size:14px;color:var(--doux)}
+#barre{display:flex;gap:6px;padding:6px 8px calc(10px + env(safe-area-inset-bottom))}
 #barre button{flex:1;background:var(--bord);color:var(--encre);border:1px solid #3b3552;
-  border-radius:9px;padding:11px 4px;font-size:13px;font-weight:700;cursor:pointer}
+  border-radius:9px;padding:13px 4px;font-size:15px;font-weight:700;cursor:pointer}
 #barre button[aria-pressed="true"]{background:var(--or);color:#1a1408;border-color:var(--or)}
 select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border-radius:7px;
-  padding:6px;font-size:12px;font-family:Oxanium;font-weight:600}
+  padding:8px;font-size:14px;font-family:Oxanium;font-weight:600}
 #fin{position:fixed;inset:0;background:rgba(10,9,16,.88);display:flex;align-items:center;
   justify-content:center;z-index:9;padding:24px;text-align:center}
 /* hidden pose display:none, mais display:flex le supplante : il faut le dire. */
 #fin[hidden],#lecture[hidden]{display:none}
+/* Sous 380 px de large (beaucoup d'Android), la jauge est ce qui saute :
+   le chiffre du versement suffit. */
+@media (max-width:379px){ #jauge{display:none} .stat b{font-size:16px} }
 #fin h2{font-size:30px;margin:0 0 8px} #fin p{color:var(--doux);font-size:14px;margin:0 0 12px}
 #fin .cfg{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--doux);
   background:rgba(255,255,255,.06);border-radius:8px;padding:9px 12px;margin:0 0 16px;
@@ -1175,7 +1183,11 @@ function creerPartie({graine = 12345, profil = 'BLITZ', joueurs = 4,
   const etat = {
     cfg, prof, diff, pas: 0, rng: creerRng(graine), graine, profil, difficulte,
     lignes: [], moi: 0, fini: false, vainqueur: null, journal: [],
-    controleur: null, prochainControleur: cfg.controleur.periode
+    controleur: null, prochainControleur: cfg.controleur.periode,
+    /* Trace des tirs du pas courant. Le moteur ne dessine rien : il note juste
+       « cette tour a tire sur ce point », l'affichage en fait des projectiles.
+       Vide a chaque pas, donc sans effet sur la simulation ni sur la rejouabilite. */
+    tirs: []
   };
   for (let i = 0; i < joueurs; i++){
     const l = creerLigne(cfg, prof, i, i === 0);
@@ -1285,6 +1297,7 @@ function faireApparaitre(etat, ligne, type, proprietaire){
 function avancer(etat){
   const cfg = etat.cfg;
   etat.pas++;
+  etat.tirs.length = 0;
   /* Versement. Trois details repris du JASS de la map :
        - le premier tombe un intervalle complet apres le debut, pas au pas 0 ;
        - les elimines ne touchent rien (ils sortent de la force ThePlayers) ;
@@ -1372,6 +1385,8 @@ function deplacerMonstres(etat, l){
           m.frappe = (m.frappe || 0) - 1;
           if (m.frappe <= 0){
             m.frappe = def.siege.cadence;
+            etat.tirs.push({ligne: l.i, monstre: m.type, x: m.x, y: m.y,
+                            cx: bx, cy: by, zone: def.siege.zone || 0});
             const touches = def.siege.zone
               ? l.batiments.filter(b => {
                   const ax = b.x * cfg.MILLI + cfg.MILLI / 2, ay = b.y * cfg.MILLI + cfg.MILLI / 2;
@@ -1442,6 +1457,8 @@ function tirer(etat, l){
     }
     if (!cible) continue;
     b.recharge = def.c;
+    etat.tirs.push({ligne: l.i, type: b.type, x: bx, y: by,
+                    cx: cible.x, cy: cible.y, zone: def.zone || 0});
     if (def.teleporte){ cible.etape = 0;
       cible.x = cfg.entree.x * cfg.MILLI + cfg.MILLI / 2;
       cible.y = cfg.entree.y * cfg.MILLI + cfg.MILLI / 2; continue; }
@@ -1903,6 +1920,177 @@ function dessinerSortie(c, cfg, T, ox, oy, B){
 }
 
 
+/* ===== src/game/projectiles.js ===== */
+/* Les projectiles. Purement decoratifs : le moteur a deja applique les degats
+   au pas ou il a tire, on ne fait que rejouer le trajet a l'ecran. Une tour
+   qui frappe sans qu'on voie rien partir donne l'impression qu'elle dort. */
+
+const PROJ = {
+  /* v : milli-cases par milliseconde. duree = distance / v, bornee. */
+  fleche:  {v:14, forme:'fleche', fut:'#8a6b3a', c:'#e8eef5', b:'#2a2420',
+            plume:'#d8434a', eclat:'#fff6d8'},
+  perce:   {v:26, forme:'dard',   fut:'#6a707e', c:'#e2e7ef', b:'#22262e', eclat:'#ffffff'},
+  mortier: {v:7,  forme:'bombe',  c:'#4b4750', b:'#141219', eclat:'#ffb24a', arc:0.26},
+  braise:  {v:11, forme:'gemme',  c:'#ff9a2e', b:'#5e2004', eclat:'#ffe6a8', trainee:'#ff6a1a'},
+  givre:   {v:12, forme:'gemme',  c:'#9fe4ff', b:'#1d4a68', eclat:'#f2fcff', trainee:'#5fc4ee'},
+  foudre:  {v:0,  forme:'eclair', c:'#bfe6ff', b:'#2f7fb8', eclat:'#ffffff'},
+  prisme:  {v:10, forme:'gemme',  c:'#c58cff', b:'#3a1e5e', eclat:'#f6ecff', trainee:'#8e5ad6'},
+  /* Les monstres de siege lancent des blocs, pas des sorts. */
+  siege:   {v:9,  forme:'bombe',  c:'#7a5c3a', b:'#231708', eclat:'#e0a860', arc:0.22}
+};
+const DUREE_ECLAT = 130;                   // ms de flash a l'impact
+
+/* Ramasse les tirs du pas qui vient d'etre simule, pour la ligne regardee. */
+function collecterTirs(etat, ligne, liste){
+  for (const t of etat.tirs){
+    if (t.ligne !== ligne) continue;
+    const genre = t.monstre ? 'siege' : (SPRITE[t.type] || 'fleche');
+    const p = PROJ[genre] || PROJ.fleche;
+    const dx = t.cx - t.x, dy = t.cy - t.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    liste.push({
+      genre, p, dist,
+      x: t.x, y: t.y - (t.monstre ? 0 : 260),   // la tour tire depuis sa hauteur
+      cx: t.cx, cy: t.cy, zone: t.zone,
+      age: 0, duree: p.v ? Math.max(60, Math.min(420, dist / p.v)) : 90
+    });
+    if (liste.length > 220) liste.shift();       // garde-fou en vitesse x8
+  }
+}
+
+function avancerTirs(liste, dt){
+  for (let i = liste.length - 1; i >= 0; i--){
+    liste[i].age += dt;
+    if (liste[i].age > liste[i].duree + DUREE_ECLAT) liste.splice(i, 1);
+  }
+}
+
+/* Un pave aligne sur la grille des pixels : c'est ce qui garde le rendu net. */
+function pav(c, x, y, w, h, couleur){
+  c.fillStyle = couleur;
+  c.fillRect(Math.round(x), Math.round(y), Math.max(1, Math.round(w)), Math.max(1, Math.round(h)));
+}
+
+function dessinerTirs(c, cfg, T, ox, oy, liste){
+  const u2p = v => v * T / cfg.MILLI;
+  for (const t of liste){
+    const u = Math.min(1, t.age / t.duree);
+    const x0 = ox + u2p(t.x), y0 = oy + u2p(t.y);
+    const x1 = ox + u2p(t.cx), y1 = oy + u2p(t.cy);
+    const ang = Math.atan2(y1 - y0, x1 - x0);
+    const taille = Math.max(4, Math.round(T * 0.17));
+
+    if (t.age <= t.duree){
+      if (t.genre === 'foudre'){ eclair(c, x0, y0, x1, y1, t.p, u, taille); continue; }
+      let x = x0 + (x1 - x0) * u, y = y0 + (y1 - y0) * u;
+      if (t.p.arc) y -= Math.sin(Math.PI * u) * u2p(t.dist) * t.p.arc;
+      if (t.p.trainee){                         // quatre copies qui s'effacent
+        for (let k = 1; k <= 4; k++){
+          const v = u - k * 0.08; if (v < 0) break;
+          let tx = x0 + (x1 - x0) * v, ty = y0 + (y1 - y0) * v;
+          if (t.p.arc) ty -= Math.sin(Math.PI * v) * u2p(t.dist) * t.p.arc;
+          const r = taille * (0.44 - k * 0.07);
+          c.globalAlpha = 0.75 - k * 0.15;
+          pav(c, tx - r, ty - r, r * 2, r * 2, t.p.trainee);
+        }
+        c.globalAlpha = 1;
+      }
+      corps(c, t, x, y, ang, taille);
+    } else {
+      impact(c, t, x1, y1, (t.age - t.duree) / DUREE_ECLAT, u2p, taille);
+    }
+  }
+  c.globalAlpha = 1;
+}
+
+/* Le projectile lui-meme. Contour sombre puis coeur clair : la meme recette
+   que les sprites, pour que tout se detache du sol.
+   La fleche est dessinee piece par piece — fut, tete en escalier, empennage —
+   parce qu'un simple trait clair sur l'herbe ne se lit pas comme une fleche. */
+function corps(c, t, x, y, ang, s){
+  const p = t.p;
+  if (p.forme === 'fleche' || p.forme === 'dard'){
+    const plumes = p.forme === 'fleche';
+    const L = plumes ? s * 2.6 : s * 1.8;
+    const h = Math.max(2, s * 0.30);              // demi-epaisseur du fut
+    c.save(); c.translate(Math.round(x), Math.round(y)); c.rotate(ang);
+    pav(c, -L / 2 - 1, -h - 1, L * 0.80 + 2, h * 2 + 2, p.b);      // contour du fut
+    pav(c, -L / 2, -h, L * 0.80, h * 2, p.fut);
+    const tete = L * 0.36, n = 4;                 // tete en escalier, du gros au fin
+    for (let pass = 0; pass < 2; pass++)          // contour d'abord, coeur ensuite
+      for (let k = 0; k < n; k++){
+        const hh = h * (1.75 - k * 0.34), w = tete / n, e = pass ? 0 : 1;
+        pav(c, L * 0.26 + k * w - e, -hh - e, w + e * 2, hh * 2 + e * 2,
+            pass ? (k < 2 ? p.c : p.eclat) : p.b);
+      }
+    if (plumes) for (const sg of [-1, 1]){        // empennage : deux plumes rouges
+      pav(c, -L / 2 - 1, sg * h - 1, s * 0.75 + 2, h * 1.5 + 2, p.b);
+      pav(c, -L / 2, sg * h, s * 0.75, h * 1.5, p.plume);
+    }
+    c.restore();
+    return;
+  }
+  if (p.forme === 'gemme'){                       // losange : ni tour, ni monstre
+    const r = s * 0.72;
+    for (let k = -2; k <= 2; k++){
+      const w = r * (1 - Math.abs(k) / 3), q = r / 2.5;
+      pav(c, x - w - 1, y + k * q - 1, w * 2 + 2, q + 2, p.b);
+    }
+    for (let k = -2; k <= 2; k++){
+      const w = r * (1 - Math.abs(k) / 3), q = r / 2.5;
+      pav(c, x - w, y + k * q, w * 2, q, k <= -1 ? p.eclat : p.c);
+    }
+    return;
+  }
+  /* Bombe : un octogone, pas un carre — un carre se confond avec les pierres
+     du decor. Bandes de largeurs decroissantes, contour puis coeur. */
+  const r = s * 0.85, bandes = [0.52, 0.86, 1, 0.86, 0.52], q = r * 2 / 5;
+  for (let pass = 0; pass < 2; pass++)
+    bandes.forEach((f, k) => {
+      const w = r * f, e = pass ? 0 : 1;
+      pav(c, x - w - e, y - r + k * q - e, w * 2 + e * 2, q + e * 2, pass ? p.c : p.b);
+    });
+  pav(c, x - r * 0.5, y - r * 0.55, r * 0.45, q * 0.8, p.eclat);   // reflet
+  pav(c, x - r * 0.22, y - r * 1.45, r * 0.44, r * 0.5, p.eclat);  // etincelle de meche
+}
+
+/* La foudre ne voyage pas : elle est deja arrivee. On la dessine en zigzag,
+   avec un decalage qui depend du temps pour qu'elle grouille. */
+function eclair(c, x0, y0, x1, y1, p, u, s){
+  const n = 5, dx = (x1 - x0) / n, dy = (y1 - y0) / n;
+  const nx = -(y1 - y0), ny = (x1 - x0);
+  const norme = Math.max(1, Math.sqrt(nx * nx + ny * ny));
+  c.globalAlpha = 1 - u * 0.65;
+  for (let k = 0; k < n; k++){
+    const d = (k % 2 ? 1 : -1) * s * 0.9 * (1 - k / n);
+    const ax = x0 + dx * k + nx / norme * (k ? d : 0);
+    const ay = y0 + dy * k + ny / norme * (k ? d : 0);
+    const bx = x0 + dx * (k + 1) + nx / norme * (k + 1 < n ? -d : 0);
+    const by = y0 + dy * (k + 1) + ny / norme * (k + 1 < n ? -d : 0);
+    c.strokeStyle = p.b; c.lineWidth = Math.max(3, s * 0.7);
+    c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, by); c.stroke();
+    c.strokeStyle = p.eclat; c.lineWidth = Math.max(1, s * 0.28);
+    c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, by); c.stroke();
+  }
+  c.globalAlpha = 1;
+}
+
+/* L'impact. Une gerbe de quatre pixels, et un anneau si la tour frappe en zone
+   — c'est la seule facon de voir d'un coup d'oeil qu'elle touche un groupe. */
+function impact(c, t, x, y, u, u2p, s){
+  c.globalAlpha = 1 - u;
+  const d = s * (0.5 + u * 1.6);
+  for (const [sx, sy] of [[-1,-1],[1,-1],[-1,1],[1,1]])
+    pav(c, x + sx * d - s * 0.25, y + sy * d - s * 0.25, s * 0.5, s * 0.5, t.p.eclat);
+  pav(c, x - s * 0.4, y - s * 0.4, s * 0.8, s * 0.8, t.p.c);
+  if (t.zone){
+    c.strokeStyle = t.p.eclat; c.lineWidth = 2;
+    c.beginPath(); c.arc(x, y, u2p(t.zone) * (0.35 + u * 0.65), 0, 7); c.stroke();
+  }
+  c.globalAlpha = 1;
+}
+
+
 /* ===== src/game/jeu.js ===== */
 /* Rendu et entrees. Tout ce qui touche au DOM vit ici — le moteur, lui, n'en
    sait rien. */
@@ -1920,7 +2108,7 @@ const SPRITE = {                    // quelle planche de sprite pour quelle tour
 /* Chaque monstre a deux images ; on alterne pour la marche. */
 
 let etat, camp, cache = {}, enMain = null, selection = null, ligneVue = 0,
-    menu = null, acceleration = 1, dernier = 0, accum = 0;
+    menu = null, acceleration = 1, dernier = 0, accum = 0, tirs = [];
 
 /* ---- pre-rendu des sprites ---------------------------------------------- */
 function preparerSprites(){
@@ -1994,6 +2182,10 @@ function dessinerJeu(){
     c.fillStyle = 'rgba(230,70,60,.18)'; c.fillRect(ox, oy, T * cfg.LARGEUR, T * cfg.HAUTEUR);
   }
 
+  /* Tours, monstres et projectiles debordent leur case : on les enferme dans
+     le plateau, sinon une tour posee en bord de grille bave sur le decor. */
+  c.save(); c.beginPath(); c.rect(ox, oy, T * cfg.LARGEUR, T * cfg.HAUTEUR); c.clip();
+
   const tailleSprite = Math.round(T * 1.5);   // la tour deborde sa case, comme dans l'original
   for (const b of [...l.batiments].sort((a, z) => a.y - z.y)){
     const img = cache[(SPRITE[b.type] || 'fleche') + ':' + camp.k];
@@ -2037,6 +2229,9 @@ function dessinerJeu(){
     }
   }
 
+  dessinerTirs(c, cfg, T, ox, oy, tirs);   // au-dessus des monstres qu'ils frappent
+  c.restore();
+
   if (etat.controleur && etat.controleur.ligne === ligneVue){
     const k = etat.controleur;
     const x = ox + k.x * T / cfg.MILLI, y = oy + k.y * T / cfg.MILLI, r = T * .34;
@@ -2076,7 +2271,11 @@ function majBandeau(){
   onglets.innerHTML = etat.lignes.map((x, i) =>
     `<button class="ong ${i === ligneVue ? 'actif' : ''} ${x.mort ? 'mort' : ''}" data-ligne="${i}">
       <b>${i === etat.moi ? 'Toi' : 'Bot ' + i}</b><span>♥ ${x.vies} · +${x.revenu}</span></button>`).join('');
-  document.getElementById('lecture').hidden = (ligneVue === etat.moi);
+  /* Le bandeau dit AUSSI quelle ligne on regarde : apres un glissement, les
+     onglets du haut ne sont pas forcement dans le champ du regard. */
+  const badge = document.getElementById('lecture');
+  badge.hidden = (ligneVue === etat.moi);
+  badge.textContent = etat.lignes[ligneVue].nom + ' · lecture seule';
 }
 
 function panneau(){
@@ -2150,8 +2349,12 @@ function boucle(t){
        de plusieurs secondes d'un coup : les monstres semblaient se teleporter.
        Mieux vaut perdre un peu de temps de jeu qu'un saut visible. */
     accum = Math.min(accum + dt * acceleration, etat.cfg.PAS_MS * 4);
-    while (accum >= etat.cfg.PAS_MS){ avancer(etat); accum -= etat.cfg.PAS_MS; }
+    while (accum >= etat.cfg.PAS_MS){
+      avancer(etat); accum -= etat.cfg.PAS_MS;
+      collecterTirs(etat, ligneVue, tirs);
+    }
   }
+  avancerTirs(tirs, dt * acceleration);
   geo = dessinerJeu();
   majBandeau();
   if (etat.fini) finir();
@@ -2177,11 +2380,44 @@ function caseSous(ev){
   if (x < 0 || y < 0 || x >= etat.cfg.LARGEUR || y >= etat.cfg.HAUTEUR) return null;
   return {x, y};
 }
+/* Changer de ligne. Le glisser fait la meme chose que les onglets du haut,
+   au pouce : c'est le geste attendu sur telephone pour « la ligne d'a cote ». */
+function allerLigne(i){
+  const n = etat.lignes.length;
+  ligneVue = ((i % n) + n) % n;
+  selection = null; enMain = null; sentier = null; tirs.length = 0;
+  panneau();
+}
+
 function brancher(){
   const cv = document.getElementById('scene');
-  cv.addEventListener('pointermove', e => { survol = caseSous(e); });
+  /* Un appui devient un glissement des qu'il depasse le seuil ; la pose de
+     tour part alors au relachement, jamais a l'appui, sinon un glisser
+     poserait une tour au passage. */
+  let geste = null;
+  const SEUIL = 34;                                   // px avant de parler de glissement
+  cv.addEventListener('pointermove', e => {
+    survol = caseSous(e);
+    if (!geste) return;
+    const dx = e.clientX - geste.x, dy = e.clientY - geste.y;
+    if (Math.abs(dx) > SEUIL && Math.abs(dx) > Math.abs(dy) * 1.4) geste.glisse = true;
+    else if (Math.abs(dy) > SEUIL) geste.annule = true;
+  });
   cv.addEventListener('pointerleave', () => { survol = null; });
   cv.addEventListener('pointerdown', e => {
+    survol = caseSous(e);
+    geste = {x: e.clientX, y: e.clientY, glisse: false, annule: false};
+    cv.setPointerCapture && cv.setPointerCapture(e.pointerId);
+  });
+  cv.addEventListener('pointercancel', () => { geste = null; });
+  cv.addEventListener('pointerup', e => {
+    const g = geste; geste = null;
+    if (!g) return;
+    if (g.glisse){                                    // gauche = ligne suivante
+      allerLigne(ligneVue + (e.clientX < g.x ? 1 : -1));
+      return;
+    }
+    if (g.annule) return;
     const p = caseSous(e); survol = p;
     if (!p || ligneVue !== etat.moi) return;
     const l = etat.lignes[etat.moi];
@@ -2221,7 +2457,7 @@ function brancher(){
   });
   document.getElementById('lignes').addEventListener('click', e => {
     const b = e.target.closest('[data-ligne]'); if (!b) return;
-    ligneVue = +b.dataset.ligne; selection = null; enMain = null; sentier = null; panneau();
+    allerLigne(+b.dataset.ligne);
   });
   document.getElementById('vitesse').addEventListener('click', e => {
     acceleration = acceleration === 1 ? 2 : acceleration === 2 ? 4 : 1;
@@ -2258,6 +2494,7 @@ function demarrer(memeGraine){
   terrain = null; sentier = null;
   etat = creerPartie({graine, profil, joueurs, difficulte});
   ligneVue = etat.moi; selection = null; enMain = null; menu = 'batiments'; acceleration = 1;
+  tirs.length = 0;
   document.querySelectorAll('[data-menu]').forEach(x =>
     x.setAttribute('aria-pressed', String(x.dataset.menu === 'batiments')));
   document.getElementById('fin').hidden = true;
