@@ -6,7 +6,27 @@
 let particules = [];
 
 /* Chaque type porte sa duree et sa facon de se dessiner. */
-const VIE = {bouffee: 420, vol: 700, vapeur: 600, poussiere: 340, vente: 340};
+const VIE = {bouffee: 420, vol: 700, vapeur: 600, poussiere: 340, vente: 340, bouche: 110};
+
+/* Le recul. Une tour qui tire doit reculer : sans ca elle reste un decor pose
+   sur l'herbe pendant que des projectiles en sortent. Coup sec vers l'arriere,
+   retour trois fois plus lent — c'est ce rapport qui donne le poids. */
+const reculs = new Map();
+const DUREE_RECUL = 200;
+function noterRecul(id, dx, dy){
+  const n = Math.max(1, Math.hypot(dx, dy));
+  reculs.set(id, {ux: dx / n, uy: dy / n, age: 0});
+}
+function avancerReculs(dt){
+  for (const [id, r] of reculs){ r.age += dt; if (r.age > DUREE_RECUL) reculs.delete(id); }
+}
+function reculDe(id, T){
+  const r = reculs.get(id); if (!r) return null;
+  const u = r.age / DUREE_RECUL;
+  const k = u < .22 ? u / .22 : 1 - (u - .22) / .78;
+  const d = k * T * .13;
+  return {dx: -r.ux * d, dy: -r.uy * d};
+}
 
 function effet(type, x, y, opts){                  // x, y en milli-cases
   particules.push({type, x, y, age: 0, ...opts});
@@ -69,6 +89,16 @@ function dessinerEffets(c, cfg, T, ox, oy){
       continue;
     }
 
+    if (p.type === 'bouche'){
+      /* Eclair de bouche : la tour s'allume l'instant ou le coup part. */
+      c.globalAlpha = (1 - u) * .85;
+      const r = T * (.10 + u * .12);
+      c.fillStyle = p.c;
+      c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+      c.globalAlpha = 1;
+      continue;
+    }
+
     if (p.type === 'poussiere' || p.type === 'vente'){
       c.globalAlpha = 1 - u;
       c.fillStyle = p.type === 'vente' ? '#f0c451' : '#cbb99a';
@@ -96,4 +126,4 @@ function voileDeVol(c, larg, haut){
   c.globalAlpha = 1;
 }
 
-function viderEffets(){ particules = []; }
+function viderEffets(){ particules = []; reculs.clear(); }

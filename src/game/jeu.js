@@ -11,6 +11,9 @@ let etat, camp, cache = {}, enMain = null, selection = null, ligneVue = 0,
    trop d'une ligne a l'autre. */
 let transi = null, photo = null;
 const DUREE_TRANSI = 260;
+/* Horloge de rendu, en millisecondes reelles. Le pas de simulation ne bouge
+   que tous les 100 ms : une animation calee dessus saccade a l'oeil nu. */
+let horloge = 0;
 
 /* Une couleur par joueur : c'est ce qui permet de reconnaitre d'ou vient un
    monstre sans lire une seule ligne de texte. Le joueur est toujours l'or. */
@@ -140,9 +143,25 @@ function dessinerJeu(){
   const tailleSprite = Math.round(T * 1.5);   // la tour deborde sa case, comme dans l'original
   for (const b of [...l.batiments].sort((a, z) => a.y - z.y)){
     const img = cache[b.type + ':' + camp.k] || cache['guet:' + camp.k];
-    const px = ox + b.x * T + (T - tailleSprite) / 2;
-    const py = oy + (b.y + 1) * T - tailleSprite * 0.92;
+    const r = reculDe(b.id, T);
+    const px = ox + b.x * T + (T - tailleSprite) / 2 + (r ? r.dx : 0);
+    const py = oy + (b.y + 1) * T - tailleSprite * 0.92 + (r ? r.dy : 0);
     c.drawImage(img, px, py, tailleSprite, tailleSprite);
+    /* Les elementaires respirent : une lueur a la couleur de leur branche,
+       posee sur l'emetteur, qui bat lentement. Une tour amelioree doit se
+       remarquer meme quand elle ne tire pas. */
+    const art = TOURS_ART[b.type];
+    if (art && art.t){
+      const bat = .55 + .45 * Math.sin(horloge / 380 + b.id);
+      const lueur = c.createRadialGradient(px + tailleSprite / 2, py + tailleSprite * .38, 0,
+                                           px + tailleSprite / 2, py + tailleSprite * .38,
+                                           tailleSprite * .30);
+      lueur.addColorStop(0, TEINTES[art.t].g2); lueur.addColorStop(1, 'rgba(0,0,0,0)');
+      c.globalAlpha = .10 + .22 * bat; c.globalCompositeOperation = 'lighter';
+      c.fillStyle = lueur;
+      c.fillRect(px, py, tailleSprite, tailleSprite);
+      c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;
+    }
     if (b.pv < b.pvMax){
       c.fillStyle = '#000'; c.fillRect(ox + b.x * T + 3, oy + b.y * T + 2, T - 6, 3);
       c.fillStyle = '#6de06d';
@@ -168,7 +187,11 @@ function dessinerJeu(){
     const def = cfg.MONSTRES[m.type];
     const taille = Math.round(T * (def.ech || 0.55));
     /* Les volants planent : on les remonte et on les fait osciller. */
-    const vol = def.vol ? -taille * 0.30 + Math.sin((etat.pas + m.id * 7) / 6) * taille * 0.06 : 0;
+    /* Les volants planent haut et oscillent ; ceux au sol respirent, un
+       tangage de quatre pour cent qui suffit a les sortir de l'image fixe. */
+    const vol = def.vol
+      ? -taille * 0.30 + Math.sin(horloge / 380 + m.id * 7) * taille * 0.07
+      : Math.abs(Math.sin(horloge / 190 + m.id * 5)) * -taille * 0.045;
     /* `sprite` permet a un monstre d'emprunter le dessin d'un autre. Les cinq
        du haut de catalogue n'ont pas encore le leur — sans ce repli ils
        seraient purement invisibles. */
@@ -219,7 +242,7 @@ function dessinerJeu(){
     /* Halo d'alerte : il n'appartient a personne et il efface des batiments,
        il faut qu'on le reconnaisse avant qu'il n'arrive. */
     c.strokeStyle = 'rgba(255,207,58,.45)'; c.lineWidth = 2;
-    c.beginPath(); c.arc(x, y, T * (.42 + .06 * Math.sin(etat.pas / 3)), 0, 7); c.stroke();
+    c.beginPath(); c.arc(x, y, T * (.42 + .06 * Math.sin(horloge / 260)), 0, 7); c.stroke();
     if (im) c.drawImage(im, Math.round(x - taille / 2), Math.round(y - taille * .62), taille, taille);
   }
 
@@ -447,6 +470,8 @@ function boucle(t){
   }
   avancerTirs(tirs, dt * acceleration);
   avancerEffets(dt * acceleration);
+  avancerReculs(dt * acceleration);
+  horloge += dt;
   if (transi){                                      // en temps reel, pas en temps de jeu
     transi.u += dt / DUREE_TRANSI;
     if (transi.u >= 1) transi = null;

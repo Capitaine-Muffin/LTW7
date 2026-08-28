@@ -37,6 +37,8 @@ function collecterTirs(etat, ligne, liste){
       age: 0, duree: p.v ? Math.max(60, Math.min(420, dist / p.v)) : 90
     });
     jouerSon(genre);
+    if (t.bat != null) noterRecul(t.bat, t.cx - t.x, t.cy - t.y);
+    if (genre !== 'siege') effet('bouche', t.x, t.y - 260, {c: p.eclat});
     if (liste.length > 220) liste.shift();       // garde-fou en vitesse x8
   }
 }

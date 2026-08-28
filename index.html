@@ -18,8 +18,8 @@ body{height:100dvh}
 body{background:var(--fond);color:var(--encre);font-family:"Source Sans 3",system-ui,sans-serif;
   display:flex;flex-direction:column;overflow:hidden;user-select:none;touch-action:manipulation}
 h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
-#haut{display:flex;align-items:center;gap:11px;padding:7px 9px;background:var(--panneau);
-  border-bottom:1px solid var(--bord)}
+#haut{display:flex;align-items:center;gap:9px;padding:7px 8px;background:var(--panneau);
+  border-bottom:1px solid var(--bord);overflow:hidden}
 #reglages{display:flex;gap:9px;align-items:flex-end;flex-wrap:wrap}
 #reglages label{display:flex;flex-direction:column;gap:2px;font-family:Oxanium,sans-serif;
   font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--doux)}
@@ -33,7 +33,7 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
 #jauge{flex:1;min-width:36px;height:6px;background:#000;border-radius:3px;overflow:hidden}
 #jaugeRevenu{height:100%;background:var(--vert);width:0}
 #haut button{background:var(--bord);color:var(--encre);border:0;border-radius:7px;
-  padding:8px 11px;font-size:14px;font-weight:700;cursor:pointer}
+  padding:8px 10px;font-size:14px;font-weight:700;cursor:pointer;flex:0 0 auto}
 #sonBtn[data-coupe="1"]{color:var(--doux);opacity:.55;text-decoration:line-through}
 #lignes{display:flex;gap:5px;overflow-x:auto;padding:6px 8px;background:#191627;
   border-bottom:1px solid var(--bord)}
@@ -125,9 +125,12 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   justify-content:center;z-index:9;padding:24px;text-align:center}
 /* hidden pose display:none, mais display:flex le supplante : il faut le dire. */
 #fin[hidden],#lecture[hidden]{display:none}
-/* Sous 380 px de large (beaucoup d'Android), la jauge est ce qui saute :
-   le chiffre du versement suffit. */
-@media (max-width:379px){ #jauge{display:none} .stat b{font-size:16px} }
+/* Le bandeau porte cinq chiffres, une jauge et trois boutons : c'est la jauge
+   qui saute en premier quand la place manque, le chiffre du versement dit deja
+   la meme chose. Avec un or a six chiffres en fin de partie, le seuil arrive
+   plus tot qu'on ne croit. */
+@media (max-width:430px){ #jauge{display:none} }
+@media (max-width:360px){ .stat b{font-size:15px} .stat span{font-size:8px} }
 #fin h2{font-size:30px;margin:0 0 8px} #fin p{color:var(--doux);font-size:14px;margin:0 0 12px}
 #fin .cfg{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--doux);
   background:rgba(255,255,255,.06);border-radius:8px;padding:9px 12px;margin:0 0 16px;
@@ -1835,7 +1838,7 @@ function tirer(etat, l){
     }
     if (!cible) continue;
     b.recharge = def.c;
-    etat.tirs.push({ligne: l.i, type: b.type, x: bx, y: by, cibleId: cible.id,
+    etat.tirs.push({ligne: l.i, type: b.type, bat: b.id, x: bx, y: by, cibleId: cible.id,
                     cx: cible.x, cy: cible.y, zone: def.zone || 0});
     if (def.teleporte){ cible.etape = 0;
       cible.x = cfg.entree.x * cfg.MILLI + cfg.MILLI / 2;
@@ -2349,6 +2352,8 @@ function collecterTirs(etat, ligne, liste){
       age: 0, duree: p.v ? Math.max(60, Math.min(420, dist / p.v)) : 90
     });
     jouerSon(genre);
+    if (t.bat != null) noterRecul(t.bat, t.cx - t.x, t.cy - t.y);
+    if (genre !== 'siege') effet('bouche', t.x, t.y - 260, {c: p.eclat});
     if (liste.length > 220) liste.shift();       // garde-fou en vitesse x8
   }
 }
@@ -2495,7 +2500,27 @@ function impact(c, t, x, y, u, u2p, s){
 let particules = [];
 
 /* Chaque type porte sa duree et sa facon de se dessiner. */
-const VIE = {bouffee: 420, vol: 700, vapeur: 600, poussiere: 340, vente: 340};
+const VIE = {bouffee: 420, vol: 700, vapeur: 600, poussiere: 340, vente: 340, bouche: 110};
+
+/* Le recul. Une tour qui tire doit reculer : sans ca elle reste un decor pose
+   sur l'herbe pendant que des projectiles en sortent. Coup sec vers l'arriere,
+   retour trois fois plus lent — c'est ce rapport qui donne le poids. */
+const reculs = new Map();
+const DUREE_RECUL = 200;
+function noterRecul(id, dx, dy){
+  const n = Math.max(1, Math.hypot(dx, dy));
+  reculs.set(id, {ux: dx / n, uy: dy / n, age: 0});
+}
+function avancerReculs(dt){
+  for (const [id, r] of reculs){ r.age += dt; if (r.age > DUREE_RECUL) reculs.delete(id); }
+}
+function reculDe(id, T){
+  const r = reculs.get(id); if (!r) return null;
+  const u = r.age / DUREE_RECUL;
+  const k = u < .22 ? u / .22 : 1 - (u - .22) / .78;
+  const d = k * T * .13;
+  return {dx: -r.ux * d, dy: -r.uy * d};
+}
 
 function effet(type, x, y, opts){                  // x, y en milli-cases
   particules.push({type, x, y, age: 0, ...opts});
@@ -2558,6 +2583,16 @@ function dessinerEffets(c, cfg, T, ox, oy){
       continue;
     }
 
+    if (p.type === 'bouche'){
+      /* Eclair de bouche : la tour s'allume l'instant ou le coup part. */
+      c.globalAlpha = (1 - u) * .85;
+      const r = T * (.10 + u * .12);
+      c.fillStyle = p.c;
+      c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+      c.globalAlpha = 1;
+      continue;
+    }
+
     if (p.type === 'poussiere' || p.type === 'vente'){
       c.globalAlpha = 1 - u;
       c.fillStyle = p.type === 'vente' ? '#f0c451' : '#cbb99a';
@@ -2585,7 +2620,7 @@ function voileDeVol(c, larg, haut){
   c.globalAlpha = 1;
 }
 
-function viderEffets(){ particules = []; }
+function viderEffets(){ particules = []; reculs.clear(); }
 
 
 /* ===== src/game/son.js ===== */
@@ -2767,6 +2802,9 @@ let etat, camp, cache = {}, enMain = null, selection = null, ligneVue = 0,
    trop d'une ligne a l'autre. */
 let transi = null, photo = null;
 const DUREE_TRANSI = 260;
+/* Horloge de rendu, en millisecondes reelles. Le pas de simulation ne bouge
+   que tous les 100 ms : une animation calee dessus saccade a l'oeil nu. */
+let horloge = 0;
 
 /* Une couleur par joueur : c'est ce qui permet de reconnaitre d'ou vient un
    monstre sans lire une seule ligne de texte. Le joueur est toujours l'or. */
@@ -2896,9 +2934,25 @@ function dessinerJeu(){
   const tailleSprite = Math.round(T * 1.5);   // la tour deborde sa case, comme dans l'original
   for (const b of [...l.batiments].sort((a, z) => a.y - z.y)){
     const img = cache[b.type + ':' + camp.k] || cache['guet:' + camp.k];
-    const px = ox + b.x * T + (T - tailleSprite) / 2;
-    const py = oy + (b.y + 1) * T - tailleSprite * 0.92;
+    const r = reculDe(b.id, T);
+    const px = ox + b.x * T + (T - tailleSprite) / 2 + (r ? r.dx : 0);
+    const py = oy + (b.y + 1) * T - tailleSprite * 0.92 + (r ? r.dy : 0);
     c.drawImage(img, px, py, tailleSprite, tailleSprite);
+    /* Les elementaires respirent : une lueur a la couleur de leur branche,
+       posee sur l'emetteur, qui bat lentement. Une tour amelioree doit se
+       remarquer meme quand elle ne tire pas. */
+    const art = TOURS_ART[b.type];
+    if (art && art.t){
+      const bat = .55 + .45 * Math.sin(horloge / 380 + b.id);
+      const lueur = c.createRadialGradient(px + tailleSprite / 2, py + tailleSprite * .38, 0,
+                                           px + tailleSprite / 2, py + tailleSprite * .38,
+                                           tailleSprite * .30);
+      lueur.addColorStop(0, TEINTES[art.t].g2); lueur.addColorStop(1, 'rgba(0,0,0,0)');
+      c.globalAlpha = .10 + .22 * bat; c.globalCompositeOperation = 'lighter';
+      c.fillStyle = lueur;
+      c.fillRect(px, py, tailleSprite, tailleSprite);
+      c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;
+    }
     if (b.pv < b.pvMax){
       c.fillStyle = '#000'; c.fillRect(ox + b.x * T + 3, oy + b.y * T + 2, T - 6, 3);
       c.fillStyle = '#6de06d';
@@ -2924,7 +2978,11 @@ function dessinerJeu(){
     const def = cfg.MONSTRES[m.type];
     const taille = Math.round(T * (def.ech || 0.55));
     /* Les volants planent : on les remonte et on les fait osciller. */
-    const vol = def.vol ? -taille * 0.30 + Math.sin((etat.pas + m.id * 7) / 6) * taille * 0.06 : 0;
+    /* Les volants planent haut et oscillent ; ceux au sol respirent, un
+       tangage de quatre pour cent qui suffit a les sortir de l'image fixe. */
+    const vol = def.vol
+      ? -taille * 0.30 + Math.sin(horloge / 380 + m.id * 7) * taille * 0.07
+      : Math.abs(Math.sin(horloge / 190 + m.id * 5)) * -taille * 0.045;
     /* `sprite` permet a un monstre d'emprunter le dessin d'un autre. Les cinq
        du haut de catalogue n'ont pas encore le leur — sans ce repli ils
        seraient purement invisibles. */
@@ -2975,7 +3033,7 @@ function dessinerJeu(){
     /* Halo d'alerte : il n'appartient a personne et il efface des batiments,
        il faut qu'on le reconnaisse avant qu'il n'arrive. */
     c.strokeStyle = 'rgba(255,207,58,.45)'; c.lineWidth = 2;
-    c.beginPath(); c.arc(x, y, T * (.42 + .06 * Math.sin(etat.pas / 3)), 0, 7); c.stroke();
+    c.beginPath(); c.arc(x, y, T * (.42 + .06 * Math.sin(horloge / 260)), 0, 7); c.stroke();
     if (im) c.drawImage(im, Math.round(x - taille / 2), Math.round(y - taille * .62), taille, taille);
   }
 
@@ -3203,6 +3261,8 @@ function boucle(t){
   }
   avancerTirs(tirs, dt * acceleration);
   avancerEffets(dt * acceleration);
+  avancerReculs(dt * acceleration);
+  horloge += dt;
   if (transi){                                      // en temps reel, pas en temps de jeu
     transi.u += dt / DUREE_TRANSI;
     if (transi.u >= 1) transi = null;

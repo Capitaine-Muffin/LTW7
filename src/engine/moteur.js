@@ -346,7 +346,7 @@ function tirer(etat, l){
     }
     if (!cible) continue;
     b.recharge = def.c;
-    etat.tirs.push({ligne: l.i, type: b.type, x: bx, y: by, cibleId: cible.id,
+    etat.tirs.push({ligne: l.i, type: b.type, bat: b.id, x: bx, y: by, cibleId: cible.id,
                     cx: cible.x, cy: cible.y, zone: def.zone || 0});
     if (def.teleporte){ cible.etape = 0;
       cible.x = cfg.entree.x * cfg.MILLI + cfg.MILLI / 2;
