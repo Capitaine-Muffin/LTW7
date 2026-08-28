@@ -146,3 +146,18 @@ cailloux ont une ombre portée pour se poser au sol, sinon ils flottent.
 
 Le **sentier n'est pas de la décoration** : c'est de l'information. Il dit au
 joueur où passe le flux, et il se redessine sous ses yeux quand il pose un mur.
+
+## Quatre biomes, un par camp
+
+Même principe que les bâtiments : mêmes formes, palettes différentes. Le terrain
+dit à qui appartient la ligne avant même qu'on lise le nom en haut de l'écran.
+
+| Camp | Biome | Ce qui le signe |
+|---|---|---|
+| Humain | **Prairie** | verts, cailloux gris, fleurs, buissons |
+| Orc | **Terres rouges** | ocres secs, sentier de sable, crânes sur pieux |
+| Mort-vivant | **Terre gâtée** | gris-violet, cendres, arbres morts, champignons verts |
+| Elfe | **Sous-bois** | verts bleutés, mousse, champignons luminescents turquoise |
+
+Un cinquième biome coûte une palette de huit teintes et **une** fonction de
+décor (`PROPS`). Le reste est partagé.

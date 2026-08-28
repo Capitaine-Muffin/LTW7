@@ -47,7 +47,11 @@ function dessinerJeu(){
   const cfg = etat.cfg, l = etat.lignes[ligneVue];
   const dpr = Math.min(3, window.devicePixelRatio || 1);
   const larg = cv.clientWidth, haut = cv.clientHeight;
-  if (cv.width !== larg * dpr){ cv.width = larg * dpr; cv.height = haut * dpr; }
+  /* Verifier la HAUTEUR aussi : ouvrir les reglages retrecit la zone sans
+     changer sa largeur, et le bas du tampon gardait l'image precedente. */
+  if (cv.width !== Math.round(larg * dpr) || cv.height !== Math.round(haut * dpr)){
+    cv.width = Math.round(larg * dpr); cv.height = Math.round(haut * dpr);
+  }
   c.setTransform(dpr, 0, 0, dpr, 0, 0);
   c.imageSmoothingEnabled = false;
 
@@ -57,11 +61,12 @@ function dessinerJeu(){
   c.clearRect(0, 0, larg, haut);
 
   /* Terrain cuit une fois ; sentier recuit seulement quand la grille bouge. */
-  if (!terrain || terrain.T !== T)
-    terrain = {T, img: cuireTerrain(cfg, T)};
-  const sig = ligneVue + ':' + (l.chemin ? l.chemin.join(',') : 'scelle');
+  const B = BIOME(camp.k);
+  if (!terrain || terrain.T !== T || terrain.camp !== camp.k)
+    terrain = {T, camp: camp.k, img: cuireTerrain(cfg, T, B)};
+  const sig = ligneVue + ':' + camp.k + ':' + (l.chemin ? l.chemin.join(',') : 'scelle');
   if (!sentier || sentier.T !== T || sentier.sig !== sig)
-    sentier = {T, sig, img: cuireSentier(cfg, T, l.chemin)};
+    sentier = {T, sig, img: cuireSentier(cfg, T, l.chemin, B)};
   c.drawImage(terrain.img, ox, oy);
   c.drawImage(sentier.img, ox, oy);
 
@@ -73,8 +78,8 @@ function dessinerJeu(){
 
   c.save();                                          // rien ne deborde du plateau
   c.beginPath(); c.rect(ox, oy, T * cfg.LARGEUR, T * cfg.HAUTEUR); c.clip();
-  dessinerEntree(c, cfg, T, ox, oy);
-  dessinerSortie(c, cfg, T, ox, oy);
+  dessinerEntree(c, cfg, T, ox, oy, B);
+  dessinerSortie(c, cfg, T, ox, oy, B);
   c.restore();
   c.strokeStyle = 'rgba(10,9,16,.55)'; c.lineWidth = 2;   // cadre du plateau
   c.strokeRect(ox + 1, oy + 1, T * cfg.LARGEUR - 2, T * cfg.HAUTEUR - 2);
@@ -315,7 +320,8 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('ouvrirReglages').onclick = () => {
     const r = document.getElementById('reglages');
     r.dataset.ouvert = r.dataset.ouvert === '1' ? '0' : '1'; };
-  document.getElementById('camp').onchange = e => { camp = CAMPS[+e.target.value]; };
+  document.getElementById('camp').onchange = e => {
+    camp = CAMPS[+e.target.value]; terrain = null; sentier = null; };
   demarrer();
   requestAnimationFrame(boucle);
 });
