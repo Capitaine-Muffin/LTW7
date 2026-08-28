@@ -8,6 +8,27 @@ Le prototype expose ses réglages derrière le **⚙**. L'écran de fin récapit
 configuration exacte de la partie — **c'est ce récapitulatif qu'il faut me
 recopier**, sinon « c'est trop dur » n'est pas exploitable.
 
+## Le spam n'est plus une stratégie
+
+Retour de partie : « j'ai juste spam les mobs et ça a tué tout le monde ». Ça
+marchait parce que les bots agressifs ne construisaient presque rien à
+l'ouverture — corrigé. Trois façons de jouer, mesurées à armes égales sur cinq
+graines, en Blitz :
+
+| Stratégie du joueur | Bots normaux | Bots agressifs | Bots impitoyables |
+|---|---:|---:|---:|
+| **Spam seul** (aucune tour) | 53 s | 38 s | 37 s |
+| **Tours seules** (aucun envoi) | 163 s | 131 s | 118 s |
+| **Les deux** (poser, améliorer, envoyer) | **221 s** | **170 s** | **153 s** |
+
+L'ordre est désormais le bon : envoyer sans se défendre est la **pire** façon
+de jouer. Un test bloque tout retour en arrière là-dessus.
+
+⚠️ Aucune de ces trois stratégies ne **gagne** dans le banc de mesure — mais mon
+joueur simulé est fruste (labyrinthe fixe, améliore toujours la tour la moins
+chère, une seule branche). C'est à toi de me dire si les bots sont devenus trop
+durs.
+
 ## Durées mesurées
 
 Quatre joueurs, personne de passif (la ligne du joueur est confiée à l'IA, ce
@@ -29,6 +50,13 @@ avant les monstres du très haut de gamme. À traiter, mais Blitz est le rythme
 de référence pour l'instant.
 
 ## Deux couches de dessin
+
+Les monstres sont dessinés **1,35 fois plus grands** qu'avant : les proportions
+entre eux restent celles de la map — un mouton reste minuscule à côté d'un
+élémentaire d'eau — mais l'ensemble était trop petit pour qu'on voie les
+sprites. C'est purement visuel, la simulation ne connaît pas cette valeur
+(`echelleMonstre` dans la config, si tu veux la pousser plus loin).
+
 
 Les **sprites restent du pixel** — c'est l'identité du jeu, et un sprite lissé
 devient une bouillie. Tout ce qui n'est pas un sprite passe en revanche par des

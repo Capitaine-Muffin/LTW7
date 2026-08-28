@@ -216,5 +216,10 @@ const CONFIG = {
   TOURS, MONSTRES, BRANCHES, PROFILS, DIFFICULTES,
   /* Ce qui est constructible d'emblee : trois entrees, tout le reste est
      une amelioration sur place. */
-  boutique:['guet','epine','elementaire']
+  boutique:['guet','epine','elementaire'],
+  /* Grossissement des monstres a l'ecran. Les `ech` gardent le rapport de la
+     map entre eux — un mouton reste minuscule a cote d'un elementaire d'eau —
+     mais l'ensemble etait dessine trop petit pour qu'on voie les sprites.
+     Purement visuel : la simulation ne connait pas cette valeur. */
+  echelleMonstre: 1.35
 };

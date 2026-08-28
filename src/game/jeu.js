@@ -239,7 +239,7 @@ function dessinerJeu(){
   for (const {m, mx, my} of troupe){
     const x = ox + mx * T / cfg.MILLI, y = oy + my * T / cfg.MILLI;
     const def = cfg.MONSTRES[m.type];
-    const taille = Math.round(T * (def.ech || 0.55));
+    const taille = Math.round(T * (def.ech || 0.55) * cfg.echelleMonstre);
     /* Les volants planent : on les remonte et on les fait osciller. */
     /* Les volants planent haut et oscillent ; ceux au sol respirent, un
        tangage de quatre pour cent qui suffit a les sortir de l'image fixe. */

@@ -345,5 +345,33 @@ for (const d of ['normal','agressif','impitoyable']){
   dire(e.fini && e.pas < 6000, `la partie se decide en ${(e.pas/10).toFixed(0)} s`);
 }
 
+/* Le spam ne doit pas etre la meilleure strategie. C'est le defaut qui tue un
+   tower wars : si envoyer sans jamais se defendre gagne, il n'y a plus de
+   decision. On compare trois facons de jouer la ligne 0, a armes egales. */
+console.log('\nenvoyer sans se defendre est la PIRE strategie');
+function survie(diff, strategie){
+  const e = M.creerPartie({graine: 17693, joueurs: 4, profil: 'BLITZ', difficulte: diff});
+  const l = e.lignes[0], cfg = e.cfg;
+  const parRatio = Object.keys(cfg.MONSTRES).sort((a, z) =>
+    cfg.MONSTRES[z].revenu / cfg.MONSTRES[z].or - cfg.MONSTRES[a].revenu / cfg.MONSTRES[a].or);
+  const plan = [];
+  for (let y = 2; y <= 10; y += 2) for (let x = 1; x < 8; x++) plan.push({x, y});
+  for (let i = 0; i < 9000; i++){
+    M.avancer(e);
+    if (l.mort || e.fini) break;
+    if (strategie !== 'spam' && e.pas % 8 === 0 && l.batiments.length < plan.length){
+      const p = plan[l.batiments.length];
+      M.poserBatiment(e, l, l.batiments.length % 3 === 0 ? 'epine' : 'guet', p.x, p.y);
+    }
+    if (strategie !== 'tours' && e.pas % 6 === 0)
+      for (const k of parRatio) if (M.envoyer(e, l, k)) break;
+  }
+  return e.pas;
+}
+for (const d of ['normal', 'agressif', 'impitoyable']){
+  const s = survie(d, 'spam'), t = survie(d, 'tours');
+  dire(s < t, `${d} : spam ${(s/10).toFixed(0)} s contre defense ${(t/10).toFixed(0)} s`);
+}
+
 console.log(echecs ? `\n${echecs} echec(s)\n` : '\ntout passe\n');
 process.exit(echecs ? 1 : 0);
