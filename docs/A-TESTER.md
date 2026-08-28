@@ -8,6 +8,26 @@ Le prototype expose ses réglages derrière le **⚙**. L'écran de fin récapit
 configuration exacte de la partie — **c'est ce récapitulatif qu'il faut me
 recopier**, sinon « c'est trop dur » n'est pas exploitable.
 
+## Durées mesurées
+
+Quatre joueurs, personne de passif (la ligne du joueur est confiée à l'IA, ce
+qui approche un humain qui envoie vraiment). Moyenne sur quatre graines.
+
+| Rythme | Bots | 1re élimination | Fin |
+|---|---|---:|---:|
+| Blitz | Débutant | 209 s | 349 s |
+| Blitz | Normal | 191 s | 247 s |
+| Blitz | Agressif | 145 s | 425 s |
+| Blitz | Impitoyable | 120 s | 296 s |
+| Classique | Normal | 405 s | 462 s |
+| Classique | Agressif | 512 s | 1295 s |
+
+**Classique + Agressif est le cas long** — plus de vingt minutes. C'est le
+rythme fidèle à la map (25 vies, versement toutes les 10 s), et l'économie
+s'emballe des deux côtés : tout le monde s'enrichit sans que personne ne perce
+avant les monstres du très haut de gamme. À traiter, mais Blitz est le rythme
+de référence pour l'instant.
+
 ## Deux couches de dessin
 
 Les **sprites restent du pixel** — c'est l'identité du jeu, et un sprite lissé

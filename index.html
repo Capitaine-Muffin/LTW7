@@ -2117,8 +2117,21 @@ function bots(etat){
     /* Construire — mais pas au point d'etouffer l'economie. La communaute LTW
        s'accorde sur environ 60 % de l'or en envois : un bot qui met tout dans
        ses tours meurt etrangle vingt secondes plus tard. On borne donc la
-       depense en tours par rapport a la depense en envois. */
-    const plafondTours = (l.depenseEnvois + 90) * (1 - d.partEnvois) / d.partEnvois;
+       depense en tours par rapport a la depense en envois.
+         MAIS ce rapport vaut sur toute la partie, pas des la premiere seconde.
+       Tel quel, un bot agressif n'avait droit qu'a vingt-deux pieces d'or de
+       tours au depart — deux tours de guet — et tenait sa ligne avec ca pendant
+       trente secondes. Le premier joueur qui envoyait serieusement le pliait en
+       dix secondes, et la partie etait finie avant d'avoir commence.
+         D'ou un PLANCHER qui monte avec le temps : quoi qu'il ait envoye, un
+       bot a toujours le droit de tenir debout. */
+    /* Le plancher ne protege que l'ouverture : passe quarante secondes, les
+       envois ont assez grossi pour que le rapport reprenne la main. Sans ce
+       plafond au plancher, quatre bots egaux se blindaient a l'infini et une
+       partie Classique agressive durait vingt-trois minutes. */
+    const plancherTours = 45 + Math.min(etat.pas, 400) * 0.30;
+    const plafondTours = Math.max(plancherTours,
+      (l.depenseEnvois + 90) * (1 - d.partEnvois) / d.partEnvois);
     if (etat.pas % d.poseTous === 0 && l.depenseTours < plafondTours){
       const plan = d.maze ? PLAN_MAZE : PLAN_BLOC;
       const place = plan[l.batiments.length];
@@ -3712,7 +3725,9 @@ function finir(){
      lui, « c'est trop dur » n'est pas exploitable. */
   d.innerHTML = `<div><h2>${gagne ? 'Gagné' : 'Éliminé'}</h2>
     <p>${gagne ? 'Dernier debout.'
-               : 'Le dernier debout est ' + (etat.lignes[etat.vainqueur] || {nom:'personne'}).nom + '.'}</p>
+        : etat.vainqueur == null
+          ? 'Personne ne survit : la dernière vague a tout emporté.'
+          : 'Le dernier debout est ' + etat.lignes[etat.vainqueur].nom + '.'}</p>
     <div class="cfg">
       <b>${etat.lignes.length}</b> joueurs · bots <b>${diff.nom || etat.difficulte}</b> · rythme <b>${prof.nom}</b><br>
       graine <b>${etat.graine}</b> · camp <b>${camp.nom}</b><br>

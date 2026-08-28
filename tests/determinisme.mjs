@@ -319,5 +319,31 @@ dire(poserEt('puits').etourdi > 0,      'Puits de magma : il étourdit');
     `les neuf rayons de zone valent ceux de la map (${bons}/9)`);
 }
 
+/* Un bot doit tenir debout avant de depenser en envois. Sans plancher, un bot
+   agressif n'avait droit qu'a deux tours de guet pendant trente secondes et le
+   premier joueur qui envoyait serieusement pliait la partie en dix secondes. */
+console.log('\nun bot se defend avant de harceler');
+for (const d of ['normal','agressif','impitoyable']){
+  const e = M.creerPartie({graine: 17693, joueurs: 4, profil: 'BLITZ', difficulte: d});
+  for (let i = 0; i < 300; i++) M.avancer(e);           // 30 s de jeu
+  /* On mesure l'OR mis dans la defense, pas le nombre de tours : un bot
+     agressif construit en profondeur — quatre tours ameliorees plutot que
+     quatorze tours de guet — et c'est un choix legitime. */
+  const defense = Math.min(...e.lignes.slice(1).map(l => l.depenseTours));
+  dire(defense >= 120, `${d} : a 30 s, le bot le moins arme a mis ${defense} or dans sa defense`);
+}
+{
+  /* Quatre IA de meme niveau : la partie doit se decider, mais pas en dix
+     secondes. C'est exactement le defaut qu'on corrige. */
+  const e = M.creerPartie({graine: 17693, joueurs: 4, profil: 'BLITZ', difficulte: 'agressif'});
+  e.lignes[0].estJoueur = false;
+  let premiere = null;
+  for (let i = 0; i < 6000; i++){ M.avancer(e);
+    if (!premiere && e.lignes.some(l => l.mort)) premiere = e.pas;
+    if (e.fini) break; }
+  dire(premiere > 600, `premiere elimination a ${(premiere/10).toFixed(0)} s (il en faut plus de 60)`);
+  dire(e.fini && e.pas < 6000, `la partie se decide en ${(e.pas/10).toFixed(0)} s`);
+}
+
 console.log(echecs ? `\n${echecs} echec(s)\n` : '\ntout passe\n');
 process.exit(echecs ? 1 : 0);

@@ -616,7 +616,9 @@ function finir(){
      lui, « c'est trop dur » n'est pas exploitable. */
   d.innerHTML = `<div><h2>${gagne ? 'Gagné' : 'Éliminé'}</h2>
     <p>${gagne ? 'Dernier debout.'
-               : 'Le dernier debout est ' + (etat.lignes[etat.vainqueur] || {nom:'personne'}).nom + '.'}</p>
+        : etat.vainqueur == null
+          ? 'Personne ne survit : la dernière vague a tout emporté.'
+          : 'Le dernier debout est ' + etat.lignes[etat.vainqueur].nom + '.'}</p>
     <div class="cfg">
       <b>${etat.lignes.length}</b> joueurs · bots <b>${diff.nom || etat.difficulte}</b> · rythme <b>${prof.nom}</b><br>
       graine <b>${etat.graine}</b> · camp <b>${camp.nom}</b><br>
