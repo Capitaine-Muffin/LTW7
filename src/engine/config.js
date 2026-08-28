@@ -75,8 +75,25 @@ const MONSTRES = {
 };
 
 const PROFILS = {
+  ECLAIR:    {nom:'Éclair',    vies:8,  or:150, revenu:30, tickRevenu:25,  bois:3},
   BLITZ:     {nom:'Blitz',     vies:12, or:120, revenu:25, tickRevenu:40,  bois:3},
+  SOUTENU:   {nom:'Soutenu',   vies:18, or:120, revenu:25, tickRevenu:65,  bois:3},
   CLASSIQUE: {nom:'Classique', vies:25, or:120, revenu:25, tickRevenu:100, bois:3}
+};
+
+/* La difficulte change ce que les bots FONT, pas leurs statistiques : ils
+   jouent le meme jeu que toi, avec les memes couts. Un bot facile construit
+   mal et envoie peu ; un bot impitoyable maze, ameliore, achete ses branches
+   et reinvestit la quasi-totalite de son or. */
+const DIFFICULTES = {
+  facile:      {nom:'Débutant',    intervalle:[150, 230], partEnvois:0.30,
+                maze:false, ameliore:false, branches:false, poseTous:11},
+  normal:      {nom:'Normal',      intervalle:[95, 150],  partEnvois:0.55,
+                maze:true,  ameliore:false, branches:false, poseTous:8},
+  agressif:    {nom:'Agressif',    intervalle:[62, 100],  partEnvois:0.70,
+                maze:true,  ameliore:true,  branches:true,  poseTous:6},
+  impitoyable: {nom:'Impitoyable', intervalle:[45, 72],   partEnvois:0.82,
+                maze:true,  ameliore:true,  branches:true,  poseTous:4}
 };
 
 const CONFIG = {
@@ -86,7 +103,7 @@ const CONFIG = {
   maxVivants:12,             // plafond d'unites par ligne, valeur de la map
   boisParKill:1,
   controleur:{ periode:400, deg:1000, zone:portee(200), v:vitesse(522) },
-  TOURS, MONSTRES, BRANCHES, PROFILS,
+  TOURS, MONSTRES, BRANCHES, PROFILS, DIFFICULTES,
   /* Ce qui est constructible d'emblee : trois entrees, tout le reste est
      une amelioration sur place. */
   boutique:['guet','epine','elementaire']

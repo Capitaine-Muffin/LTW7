@@ -10,8 +10,12 @@ body{background:var(--fond);color:var(--encre);font-family:"Source Sans 3",syste
 h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
 #haut{display:flex;align-items:center;gap:9px;padding:6px 9px;background:var(--panneau);
   border-bottom:1px solid var(--bord)}
-#reglages{display:none;gap:6px;padding:0 9px 7px;background:var(--panneau);
-  border-bottom:1px solid var(--bord);align-items:center}
+#reglages{display:none;gap:8px;padding:2px 9px 8px;background:var(--panneau);
+  border-bottom:1px solid var(--bord);align-items:flex-end;flex-wrap:wrap}
+#reglages label{display:flex;flex-direction:column;gap:2px;font-family:Oxanium,sans-serif;
+  font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--doux)}
+#reglages input{background:var(--bord);color:var(--encre);border:1px solid #3b3552;
+  border-radius:7px;padding:6px;font-size:12px;font-family:Oxanium;font-weight:600;width:74px}
 #reglages[data-ouvert="1"]{display:flex}
 .stat{display:flex;flex-direction:column;line-height:1.05;min-width:0}
 .stat b{font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -61,7 +65,13 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   justify-content:center;z-index:9;padding:24px;text-align:center}
 /* hidden pose display:none, mais display:flex le supplante : il faut le dire. */
 #fin[hidden],#lecture[hidden]{display:none}
-#fin h2{font-size:30px;margin:0 0 8px} #fin p{color:var(--doux);font-size:14px;margin:0 0 16px}
+#fin h2{font-size:30px;margin:0 0 8px} #fin p{color:var(--doux);font-size:14px;margin:0 0 12px}
+#fin .cfg{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--doux);
+  background:rgba(255,255,255,.06);border-radius:8px;padding:9px 12px;margin:0 0 16px;
+  display:inline-block;text-align:left;line-height:1.6}
+#fin .cfg b{color:var(--encre);font-family:"IBM Plex Mono",monospace}
+#fin .duo{display:flex;gap:8px;justify-content:center}
+#fin .duo button:last-child{background:var(--bord);color:var(--encre)}
 #fin button{background:var(--or);color:#1a1408;border:0;border-radius:9px;padding:11px 22px;
   font-size:15px;font-weight:800;cursor:pointer}
 </style>
@@ -77,12 +87,21 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   <button id="ouvrirReglages" title="Réglages">⚙</button>
 </div>
 <div id="reglages">
-  <select id="nbJoueurs" title="Nombre de joueurs">
+  <label>Joueurs<select id="nbJoueurs">
     <option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option>
-  </select>
-  <select id="profil" title="Profil"><option value="BLITZ">Blitz</option><option value="CLASSIQUE">Classique</option></select>
-  <select id="camp" title="Camp"><option value="0">Humain</option><option value="1">Orc</option>
-    <option value="2">Mort-vivant</option><option value="3">Elfe</option></select>
+  </select></label>
+  <label>Bots<select id="difficulte">
+    <option value="facile">Débutant</option><option value="normal" selected>Normal</option>
+    <option value="agressif">Agressif</option><option value="impitoyable">Impitoyable</option>
+  </select></label>
+  <label>Rythme<select id="profil">
+    <option value="ECLAIR">Éclair</option><option value="BLITZ" selected>Blitz</option>
+    <option value="SOUTENU">Soutenu</option><option value="CLASSIQUE">Classique</option>
+  </select></label>
+  <label>Camp<select id="camp"><option value="0">Humain</option><option value="1">Orc</option>
+    <option value="2">Mort-vivant</option><option value="3">Elfe</option></select></label>
+  <label>Graine<input id="graine" type="number" min="1" max="999999" value="1"></label>
+  <button id="memeGraine" title="Rejouer exactement la même partie">↻ même</button>
   <button id="rejouerHaut">Nouvelle partie</button>
 </div>
 <div id="lignes"></div>

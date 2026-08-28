@@ -10,8 +10,12 @@ body{background:var(--fond);color:var(--encre);font-family:"Source Sans 3",syste
 h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
 #haut{display:flex;align-items:center;gap:9px;padding:6px 9px;background:var(--panneau);
   border-bottom:1px solid var(--bord)}
-#reglages{display:none;gap:6px;padding:0 9px 7px;background:var(--panneau);
-  border-bottom:1px solid var(--bord);align-items:center}
+#reglages{display:none;gap:8px;padding:2px 9px 8px;background:var(--panneau);
+  border-bottom:1px solid var(--bord);align-items:flex-end;flex-wrap:wrap}
+#reglages label{display:flex;flex-direction:column;gap:2px;font-family:Oxanium,sans-serif;
+  font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--doux)}
+#reglages input{background:var(--bord);color:var(--encre);border:1px solid #3b3552;
+  border-radius:7px;padding:6px;font-size:12px;font-family:Oxanium;font-weight:600;width:74px}
 #reglages[data-ouvert="1"]{display:flex}
 .stat{display:flex;flex-direction:column;line-height:1.05;min-width:0}
 .stat b{font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -61,7 +65,13 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   justify-content:center;z-index:9;padding:24px;text-align:center}
 /* hidden pose display:none, mais display:flex le supplante : il faut le dire. */
 #fin[hidden],#lecture[hidden]{display:none}
-#fin h2{font-size:30px;margin:0 0 8px} #fin p{color:var(--doux);font-size:14px;margin:0 0 16px}
+#fin h2{font-size:30px;margin:0 0 8px} #fin p{color:var(--doux);font-size:14px;margin:0 0 12px}
+#fin .cfg{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--doux);
+  background:rgba(255,255,255,.06);border-radius:8px;padding:9px 12px;margin:0 0 16px;
+  display:inline-block;text-align:left;line-height:1.6}
+#fin .cfg b{color:var(--encre);font-family:"IBM Plex Mono",monospace}
+#fin .duo{display:flex;gap:8px;justify-content:center}
+#fin .duo button:last-child{background:var(--bord);color:var(--encre)}
 #fin button{background:var(--or);color:#1a1408;border:0;border-radius:9px;padding:11px 22px;
   font-size:15px;font-weight:800;cursor:pointer}
 </style>
@@ -77,12 +87,21 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   <button id="ouvrirReglages" title="Réglages">⚙</button>
 </div>
 <div id="reglages">
-  <select id="nbJoueurs" title="Nombre de joueurs">
+  <label>Joueurs<select id="nbJoueurs">
     <option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option>
-  </select>
-  <select id="profil" title="Profil"><option value="BLITZ">Blitz</option><option value="CLASSIQUE">Classique</option></select>
-  <select id="camp" title="Camp"><option value="0">Humain</option><option value="1">Orc</option>
-    <option value="2">Mort-vivant</option><option value="3">Elfe</option></select>
+  </select></label>
+  <label>Bots<select id="difficulte">
+    <option value="facile">Débutant</option><option value="normal" selected>Normal</option>
+    <option value="agressif">Agressif</option><option value="impitoyable">Impitoyable</option>
+  </select></label>
+  <label>Rythme<select id="profil">
+    <option value="ECLAIR">Éclair</option><option value="BLITZ" selected>Blitz</option>
+    <option value="SOUTENU">Soutenu</option><option value="CLASSIQUE">Classique</option>
+  </select></label>
+  <label>Camp<select id="camp"><option value="0">Humain</option><option value="1">Orc</option>
+    <option value="2">Mort-vivant</option><option value="3">Elfe</option></select></label>
+  <label>Graine<input id="graine" type="number" min="1" max="999999" value="1"></label>
+  <button id="memeGraine" title="Rejouer exactement la même partie">↻ même</button>
   <button id="rejouerHaut">Nouvelle partie</button>
 </div>
 <div id="lignes"></div>
@@ -706,8 +725,25 @@ const MONSTRES = {
 };
 
 const PROFILS = {
+  ECLAIR:    {nom:'Éclair',    vies:8,  or:150, revenu:30, tickRevenu:25,  bois:3},
   BLITZ:     {nom:'Blitz',     vies:12, or:120, revenu:25, tickRevenu:40,  bois:3},
+  SOUTENU:   {nom:'Soutenu',   vies:18, or:120, revenu:25, tickRevenu:65,  bois:3},
   CLASSIQUE: {nom:'Classique', vies:25, or:120, revenu:25, tickRevenu:100, bois:3}
+};
+
+/* La difficulte change ce que les bots FONT, pas leurs statistiques : ils
+   jouent le meme jeu que toi, avec les memes couts. Un bot facile construit
+   mal et envoie peu ; un bot impitoyable maze, ameliore, achete ses branches
+   et reinvestit la quasi-totalite de son or. */
+const DIFFICULTES = {
+  facile:      {nom:'Débutant',    intervalle:[150, 230], partEnvois:0.30,
+                maze:false, ameliore:false, branches:false, poseTous:11},
+  normal:      {nom:'Normal',      intervalle:[95, 150],  partEnvois:0.55,
+                maze:true,  ameliore:false, branches:false, poseTous:8},
+  agressif:    {nom:'Agressif',    intervalle:[62, 100],  partEnvois:0.70,
+                maze:true,  ameliore:true,  branches:true,  poseTous:6},
+  impitoyable: {nom:'Impitoyable', intervalle:[45, 72],   partEnvois:0.82,
+                maze:true,  ameliore:true,  branches:true,  poseTous:4}
 };
 
 const CONFIG = {
@@ -717,7 +753,7 @@ const CONFIG = {
   maxVivants:12,             // plafond d'unites par ligne, valeur de la map
   boisParKill:1,
   controleur:{ periode:400, deg:1000, zone:portee(200), v:vitesse(522) },
-  TOURS, MONSTRES, BRANCHES, PROFILS,
+  TOURS, MONSTRES, BRANCHES, PROFILS, DIFFICULTES,
   /* Ce qui est constructible d'emblee : trois entrees, tout le reste est
      une amelioration sur place. */
   boutique:['guet','epine','elementaire']
@@ -800,17 +836,20 @@ function creerLigne(cfg, prof, i, estJoueur){
     i, estJoueur, nom: estJoueur ? 'Toi' : 'Bot ' + i,
     or: prof.or, revenu: prof.revenu, vies: prof.vies, bois: prof.bois,
     branches: {}, batiments: [], monstres: [],
+    depenseTours: 0, depenseEnvois: 0,   // sert au partage or/envois des bots
     occupe: new Int32Array(cfg.LARGEUR * cfg.HAUTEUR).fill(-1),
     chemin: null, scellee: false, mort: false,
     prochainBot: 60 + i * 17          // decale les bots pour qu'ils ne jouent pas a l'unisson
   };
 }
 
-function creerPartie({graine = 12345, profil = 'BLITZ', joueurs = 4, cfg = CONFIG} = {}){
+function creerPartie({graine = 12345, profil = 'BLITZ', joueurs = 4,
+                      difficulte = 'normal', cfg = CONFIG} = {}){
   _id = 0;
   const prof = cfg.PROFILS[profil];
+  const diff = cfg.DIFFICULTES[difficulte] || cfg.DIFFICULTES.normal;
   const etat = {
-    cfg, prof, pas: 0, rng: creerRng(graine), graine, profil,
+    cfg, prof, diff, pas: 0, rng: creerRng(graine), graine, profil, difficulte,
     lignes: [], moi: 0, fini: false, vainqueur: null, journal: [],
     controleur: null, prochainControleur: cfg.controleur.periode
   };
@@ -841,7 +880,7 @@ function poserBatiment(etat, l, type, x, y){
   if (!def || l.occupe[i] >= 0 || l.or < def.or) return false;
   if (x === cfg.entree.x && y === cfg.entree.y) return false;
   if (x === cfg.exit.x && y === cfg.exit.y) return false;
-  l.or -= def.or;
+  l.or -= def.or; l.depenseTours += def.or;
   const b = {id: nouvelId(), type, x, y, pv: def.pv, pvMax: def.pv, recharge: 0};
   l.batiments.push(b);
   l.occupe[i] = b.id;
@@ -853,7 +892,7 @@ function ameliorer(etat, l, b, vers){
   if (!def) return false;
   if (def.branche && !l.branches[def.branche]) return false;
   if (l.or < def.or) return false;
-  l.or -= def.or;
+  l.or -= def.or; l.depenseTours += def.or;
   b.type = vers; b.pvMax = def.pv; b.pv = def.pv; b.recharge = 0;
   return true;
 }
@@ -874,7 +913,7 @@ function envoyer(etat, l, type){
   const cible = etat.lignes[voisin(etat, l.i)];
   if (cible === l) return false;
   if (cible.monstres.length >= etat.cfg.maxVivants) return false;
-  l.or -= def.or;
+  l.or -= def.or; l.depenseEnvois += def.or;
   l.revenu += def.revenu;                       // definitif : c'est tout le jeu
   faireApparaitre(etat, cible, type, l.i);
   return true;
@@ -916,7 +955,11 @@ function avancer(etat){
 function deplacerMonstres(etat, l){
   const cfg = etat.cfg;
   for (let k = l.monstres.length - 1; k >= 0; k--){
-    const m = l.monstres[k], def = cfg.MONSTRES[m.type];
+    /* sortie() peut vider ce tableau d'un coup si la ligne meurt : on releve
+       l'element a chaque tour et on s'arrete des que la ligne est tombee. */
+    const m = l.monstres[k];
+    if (!m) continue;
+    const def = cfg.MONSTRES[m.type];
     if (m.poisonReste > 0){ m.poisonReste--; if (etat.pas % 10 === 0) m.pv -= m.poison; }
     if (m.pv <= 0){ l.monstres.splice(k, 1); continue; }
     if (m.etourdi > 0){ m.etourdi--; continue; }
@@ -929,7 +972,7 @@ function deplacerMonstres(etat, l){
       const dx = cx - m.x, dy = cy - m.y;
       const d = Math.max(1, Math.round(Math.sqrt(dx * dx + dy * dy)));
       m.x += Math.round(dx * v / d); m.y += Math.round(dy * v / d);
-      if (d <= v){ sortie(etat, l, m, k); }
+      if (d <= v){ sortie(etat, l, m, k); if (l.mort) return; }
       continue;
     }
     if (!l.chemin){ continue; }                     // ligne scellee : il attend
@@ -940,7 +983,7 @@ function deplacerMonstres(etat, l){
     const d = Math.abs(dx) + Math.abs(dy);
     if (d <= v){
       m.x = sx; m.y = sy; m.etape++;
-      if (m.etape >= l.chemin.length - 1){ sortie(etat, l, m, k); }
+      if (m.etape >= l.chemin.length - 1){ sortie(etat, l, m, k); if (l.mort) return; }
     } else {
       m.x += Math.round(dx * v / d); m.y += Math.round(dy * v / d);
     }
@@ -950,7 +993,8 @@ function deplacerMonstres(etat, l){
 /* Un monstre qui sort vole une vie ET repart sur la ligne suivante. */
 function sortie(etat, l, m, k){
   const envoyeur = etat.lignes[m.proprietaire];
-  l.monstres.splice(k, 1);
+  const i = l.monstres.indexOf(m);            // par identite : l'index peut avoir bouge
+  if (i >= 0) l.monstres.splice(i, 1);
   if (l.vies > 0){
     l.vies -= 1;
     if (envoyeur && !envoyeur.mort) envoyeur.vies += 1;
@@ -1005,32 +1049,94 @@ function tirer(etat, l){
   }
 }
 
-/* Bots : deterministes, pas d'IA. Ils mazent en serpentin et envoient
-   regulierement le meilleur monstre qu'ils peuvent payer. */
-const PLAN_BOT = [];
-for (let y = 2; y <= 10; y += 2)
-  for (let x = 0; x < 9; x++) PLAN_BOT.push({x, y: y, sauter: (y / 2) % 2 ? x === 8 : x === 0});
+/* Bots. Deterministes, sans IA : des regles simples dont l'agressivite vient
+   du profil de difficulte. Ils jouent avec les memes couts que le joueur. */
+
+/* Serpentin : on laisse une case libre en bout de rangee, alternee, ce qui
+   allonge le trajet sans jamais sceller le couloir. */
+function planMaze(cfg){
+  const plan = [];
+  for (let r = 0; r < 5; r++){
+    const y = 2 + r * 2, gauche = r % 2 === 0;
+    for (let x = 0; x < cfg.LARGEUR; x++){
+      if (gauche ? x === cfg.LARGEUR - 1 : x === 0) continue;   // la breche
+      plan.push({x, y});
+    }
+  }
+  return plan;
+}
+/* Sans maze : un bloc compact, mauvais et lisible comme tel. */
+function planBloc(cfg){
+  const plan = [];
+  for (let y = 4; y <= 8; y++) for (let x = 2; x <= 6; x++) plan.push({x, y});
+  return plan;
+}
+let PLAN_MAZE = null, PLAN_BLOC = null;
+
 function bots(etat){
-  const cfg = etat.cfg;
+  const cfg = etat.cfg, d = etat.diff;
+  if (!PLAN_MAZE){ PLAN_MAZE = planMaze(cfg); PLAN_BLOC = planBloc(cfg); }
   for (const l of etat.lignes){
     if (l.estJoueur || l.mort) continue;
-    if (l.or >= 30 && etat.pas % 7 === 0){
-      const place = PLAN_BOT.filter(p => !p.sauter)[l.batiments.length];
-      if (place && l.occupe[place.y * cfg.LARGEUR + place.x] < 0)
-        poserBatiment(etat, l, l.batiments.length % 3 === 0 ? 'epine' : 'guet', place.x, place.y);
+
+    /* Construire — mais pas au point d'etouffer l'economie. La communaute LTW
+       s'accorde sur environ 60 % de l'or en envois : un bot qui met tout dans
+       ses tours meurt etrangle vingt secondes plus tard. On borne donc la
+       depense en tours par rapport a la depense en envois. */
+    const plafondTours = (l.depenseEnvois + 90) * (1 - d.partEnvois) / d.partEnvois;
+    if (etat.pas % d.poseTous === 0 && l.depenseTours < plafondTours){
+      const plan = d.maze ? PLAN_MAZE : PLAN_BLOC;
+      const place = plan[l.batiments.length];
+      if (place && l.occupe[place.y * cfg.LARGEUR + place.x] < 0){
+        const type = (l.batiments.length % 3 === 0) ? 'epine' : 'guet';
+        poserBatiment(etat, l, type, place.x, place.y);
+      } else if (d.ameliore && l.batiments.length){
+        /* Plus de place : on monte les tours existantes, la moins avancee
+           d'abord pour garder une defense homogene. */
+        const b = l.batiments.reduce((a, z) =>
+          (cfg.TOURS[z.type].or < cfg.TOURS[a.type].or ? z : a));
+        const vers = (cfg.TOURS[b.type].vers || [])
+          .flatMap(v => v === 'ELEM'
+            ? Object.keys(cfg.TOURS).filter(k => cfg.TOURS[k].branche && l.branches[cfg.TOURS[k].branche])
+            : [v]);
+        if (vers.length) ameliorer(etat, l, b, vers[etat.rng.entre(0, vers.length - 1)]);
+      }
     }
+
+    /* Se specialiser */
+    if (d.branches && l.bois >= 1){
+      const libres = Object.keys(cfg.BRANCHES).filter(k => !l.branches[k]);
+      if (libres.length) acheterBranche(etat, l, libres[etat.rng.entre(0, libres.length - 1)]);
+    }
+
+    /* Envoyer. Le choix du monstre est LA decision economique du jeu, et un
+       bot qui prend toujours le plus cher joue mal : les gros monstres ont le
+       plus mauvais ratio revenu/or (0,054 contre 0,200 pour le moins cher).
+       Un bon bot farme au ratio et ne paye la percee que ponctuellement. */
     if (etat.pas >= l.prochainBot){
-      /* Le seul aleatoire du moteur, et il passe par le RNG seme : sans lui,
-         toutes les parties d'un meme profil seraient identiques. */
-      l.prochainBot = etat.pas + etat.rng.entre(70, 130);
-      const abordables = Object.keys(cfg.MONSTRES)
-        .filter(k => cfg.MONSTRES[k].or <= l.or)
-        .sort((a, b) => cfg.MONSTRES[b].or - cfg.MONSTRES[a].or);
-      if (abordables.length){
-        /* Le plus cher la plupart du temps, sinon le suivant : un bot qui joue
-           toujours pareil se lit en une partie. */
-        const choix = (abordables.length > 1 && etat.rng.entre(0, 3) === 0) ? 1 : 0;
-        envoyer(etat, l, abordables[choix]);
+      l.prochainBot = etat.pas + etat.rng.entre(d.intervalle[0], d.intervalle[1]);
+      let budget = Math.floor(l.or * d.partEnvois);
+      const cles = Object.keys(cfg.MONSTRES);
+      const parRatio = [...cles].sort((a, b) =>
+        (cfg.MONSTRES[b].revenu / cfg.MONSTRES[b].or) - (cfg.MONSTRES[a].revenu / cfg.MONSTRES[a].or));
+      const parPrix = [...cles].sort((a, b) => cfg.MONSTRES[b].or - cfg.MONSTRES[a].or);
+      l.envoisFaits = (l.envoisFaits || 0) + 1;
+      const percee = d.ameliore && l.envoisFaits % 4 === 0;   // percee ponctuelle
+
+      for (let n = 0; n < 6; n++){
+        const abordable = k => cfg.MONSTRES[k].or <= budget && cfg.MONSTRES[k].or <= l.or;
+        let cle;
+        if (!d.maze){                                   // debutant : au hasard
+          const dispo = cles.filter(abordable);
+          if (!dispo.length) break;
+          cle = dispo[etat.rng.entre(0, dispo.length - 1)];
+        } else if (percee && n === 0){
+          cle = parPrix.find(abordable);
+        } else {
+          cle = parRatio.find(abordable);
+        }
+        if (!cle || !envoyer(etat, l, cle)) break;
+        budget -= cfg.MONSTRES[cle].or;
       }
     }
   }
@@ -1631,10 +1737,34 @@ function brancher(){
   });
 }
 
-function demarrer(){
+const CLE_REGLAGES = 'ltw7.reglages';
+function lireReglages(){
+  const ids = ['nbJoueurs','difficulte','profil','camp'];
+  try {
+    const v = JSON.parse(localStorage.getItem(CLE_REGLAGES) || '{}');
+    for (const id of ids) if (v[id] != null) document.getElementById(id).value = v[id];
+  } catch (e){ /* premiere partie, ou stockage refuse : on garde les defauts */ }
+  camp = CAMPS[+document.getElementById('camp').value] || CAMPS[0];
+}
+function ecrireReglages(){
+  const v = {};
+  for (const id of ['nbJoueurs','difficulte','profil','camp'])
+    v[id] = document.getElementById(id).value;
+  try { localStorage.setItem(CLE_REGLAGES, JSON.stringify(v)); } catch (e){ /* sans importance */ }
+}
+
+function demarrer(memeGraine){
   const joueurs = +document.getElementById('nbJoueurs').value;
   const profil = document.getElementById('profil').value;
-  etat = creerPartie({graine: (Date.now() & 0x7fffffff), profil, joueurs});
+  const difficulte = document.getElementById('difficulte').value;
+  const champGraine = document.getElementById('graine');
+  const graine = memeGraine ? (+champGraine.value || 1)
+                            : 1 + Math.floor(Math.random() * 999998);
+  champGraine.value = graine;
+  ecrireReglages();
+  camp = CAMPS[+document.getElementById('camp').value] || CAMPS[0];
+  terrain = null; sentier = null;
+  etat = creerPartie({graine, profil, joueurs, difficulte});
   ligneVue = etat.moi; selection = null; enMain = null; menu = 'batiments'; acceleration = 1;
   document.querySelectorAll('[data-menu]').forEach(x =>
     x.setAttribute('aria-pressed', String(x.dataset.menu === 'batiments')));
@@ -1644,17 +1774,19 @@ function demarrer(){
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  camp = CAMPS[0];
   preparerSprites();
   brancher();
+  lireReglages();
   document.getElementById('rejouerHaut').onclick = () => {
-    document.getElementById('reglages').dataset.ouvert = '0'; demarrer(); };
+    document.getElementById('reglages').dataset.ouvert = '0'; demarrer(false); };
+  document.getElementById('memeGraine').onclick = () => {
+    document.getElementById('reglages').dataset.ouvert = '0'; demarrer(true); };
   document.getElementById('ouvrirReglages').onclick = () => {
     const r = document.getElementById('reglages');
     r.dataset.ouvert = r.dataset.ouvert === '1' ? '0' : '1'; };
   document.getElementById('camp').onchange = e => {
     camp = CAMPS[+e.target.value]; terrain = null; sentier = null; };
-  demarrer();
+  demarrer(false);
   requestAnimationFrame(boucle);
 });
 

@@ -11,17 +11,20 @@ function creerLigne(cfg, prof, i, estJoueur){
     i, estJoueur, nom: estJoueur ? 'Toi' : 'Bot ' + i,
     or: prof.or, revenu: prof.revenu, vies: prof.vies, bois: prof.bois,
     branches: {}, batiments: [], monstres: [],
+    depenseTours: 0, depenseEnvois: 0,   // sert au partage or/envois des bots
     occupe: new Int32Array(cfg.LARGEUR * cfg.HAUTEUR).fill(-1),
     chemin: null, scellee: false, mort: false,
     prochainBot: 60 + i * 17          // decale les bots pour qu'ils ne jouent pas a l'unisson
   };
 }
 
-function creerPartie({graine = 12345, profil = 'BLITZ', joueurs = 4, cfg = CONFIG} = {}){
+function creerPartie({graine = 12345, profil = 'BLITZ', joueurs = 4,
+                      difficulte = 'normal', cfg = CONFIG} = {}){
   _id = 0;
   const prof = cfg.PROFILS[profil];
+  const diff = cfg.DIFFICULTES[difficulte] || cfg.DIFFICULTES.normal;
   const etat = {
-    cfg, prof, pas: 0, rng: creerRng(graine), graine, profil,
+    cfg, prof, diff, pas: 0, rng: creerRng(graine), graine, profil, difficulte,
     lignes: [], moi: 0, fini: false, vainqueur: null, journal: [],
     controleur: null, prochainControleur: cfg.controleur.periode
   };
@@ -52,7 +55,7 @@ function poserBatiment(etat, l, type, x, y){
   if (!def || l.occupe[i] >= 0 || l.or < def.or) return false;
   if (x === cfg.entree.x && y === cfg.entree.y) return false;
   if (x === cfg.exit.x && y === cfg.exit.y) return false;
-  l.or -= def.or;
+  l.or -= def.or; l.depenseTours += def.or;
   const b = {id: nouvelId(), type, x, y, pv: def.pv, pvMax: def.pv, recharge: 0};
   l.batiments.push(b);
   l.occupe[i] = b.id;
@@ -64,7 +67,7 @@ function ameliorer(etat, l, b, vers){
   if (!def) return false;
   if (def.branche && !l.branches[def.branche]) return false;
   if (l.or < def.or) return false;
-  l.or -= def.or;
+  l.or -= def.or; l.depenseTours += def.or;
   b.type = vers; b.pvMax = def.pv; b.pv = def.pv; b.recharge = 0;
   return true;
 }
@@ -85,7 +88,7 @@ function envoyer(etat, l, type){
   const cible = etat.lignes[voisin(etat, l.i)];
   if (cible === l) return false;
   if (cible.monstres.length >= etat.cfg.maxVivants) return false;
-  l.or -= def.or;
+  l.or -= def.or; l.depenseEnvois += def.or;
   l.revenu += def.revenu;                       // definitif : c'est tout le jeu
   faireApparaitre(etat, cible, type, l.i);
   return true;
@@ -127,7 +130,11 @@ function avancer(etat){
 function deplacerMonstres(etat, l){
   const cfg = etat.cfg;
   for (let k = l.monstres.length - 1; k >= 0; k--){
-    const m = l.monstres[k], def = cfg.MONSTRES[m.type];
+    /* sortie() peut vider ce tableau d'un coup si la ligne meurt : on releve
+       l'element a chaque tour et on s'arrete des que la ligne est tombee. */
+    const m = l.monstres[k];
+    if (!m) continue;
+    const def = cfg.MONSTRES[m.type];
     if (m.poisonReste > 0){ m.poisonReste--; if (etat.pas % 10 === 0) m.pv -= m.poison; }
     if (m.pv <= 0){ l.monstres.splice(k, 1); continue; }
     if (m.etourdi > 0){ m.etourdi--; continue; }
@@ -140,7 +147,7 @@ function deplacerMonstres(etat, l){
       const dx = cx - m.x, dy = cy - m.y;
       const d = Math.max(1, Math.round(Math.sqrt(dx * dx + dy * dy)));
       m.x += Math.round(dx * v / d); m.y += Math.round(dy * v / d);
-      if (d <= v){ sortie(etat, l, m, k); }
+      if (d <= v){ sortie(etat, l, m, k); if (l.mort) return; }
       continue;
     }
     if (!l.chemin){ continue; }                     // ligne scellee : il attend
@@ -151,7 +158,7 @@ function deplacerMonstres(etat, l){
     const d = Math.abs(dx) + Math.abs(dy);
     if (d <= v){
       m.x = sx; m.y = sy; m.etape++;
-      if (m.etape >= l.chemin.length - 1){ sortie(etat, l, m, k); }
+      if (m.etape >= l.chemin.length - 1){ sortie(etat, l, m, k); if (l.mort) return; }
     } else {
       m.x += Math.round(dx * v / d); m.y += Math.round(dy * v / d);
     }
@@ -161,7 +168,8 @@ function deplacerMonstres(etat, l){
 /* Un monstre qui sort vole une vie ET repart sur la ligne suivante. */
 function sortie(etat, l, m, k){
   const envoyeur = etat.lignes[m.proprietaire];
-  l.monstres.splice(k, 1);
+  const i = l.monstres.indexOf(m);            // par identite : l'index peut avoir bouge
+  if (i >= 0) l.monstres.splice(i, 1);
   if (l.vies > 0){
     l.vies -= 1;
     if (envoyeur && !envoyeur.mort) envoyeur.vies += 1;
@@ -216,32 +224,94 @@ function tirer(etat, l){
   }
 }
 
-/* Bots : deterministes, pas d'IA. Ils mazent en serpentin et envoient
-   regulierement le meilleur monstre qu'ils peuvent payer. */
-const PLAN_BOT = [];
-for (let y = 2; y <= 10; y += 2)
-  for (let x = 0; x < 9; x++) PLAN_BOT.push({x, y: y, sauter: (y / 2) % 2 ? x === 8 : x === 0});
+/* Bots. Deterministes, sans IA : des regles simples dont l'agressivite vient
+   du profil de difficulte. Ils jouent avec les memes couts que le joueur. */
+
+/* Serpentin : on laisse une case libre en bout de rangee, alternee, ce qui
+   allonge le trajet sans jamais sceller le couloir. */
+function planMaze(cfg){
+  const plan = [];
+  for (let r = 0; r < 5; r++){
+    const y = 2 + r * 2, gauche = r % 2 === 0;
+    for (let x = 0; x < cfg.LARGEUR; x++){
+      if (gauche ? x === cfg.LARGEUR - 1 : x === 0) continue;   // la breche
+      plan.push({x, y});
+    }
+  }
+  return plan;
+}
+/* Sans maze : un bloc compact, mauvais et lisible comme tel. */
+function planBloc(cfg){
+  const plan = [];
+  for (let y = 4; y <= 8; y++) for (let x = 2; x <= 6; x++) plan.push({x, y});
+  return plan;
+}
+let PLAN_MAZE = null, PLAN_BLOC = null;
+
 function bots(etat){
-  const cfg = etat.cfg;
+  const cfg = etat.cfg, d = etat.diff;
+  if (!PLAN_MAZE){ PLAN_MAZE = planMaze(cfg); PLAN_BLOC = planBloc(cfg); }
   for (const l of etat.lignes){
     if (l.estJoueur || l.mort) continue;
-    if (l.or >= 30 && etat.pas % 7 === 0){
-      const place = PLAN_BOT.filter(p => !p.sauter)[l.batiments.length];
-      if (place && l.occupe[place.y * cfg.LARGEUR + place.x] < 0)
-        poserBatiment(etat, l, l.batiments.length % 3 === 0 ? 'epine' : 'guet', place.x, place.y);
+
+    /* Construire — mais pas au point d'etouffer l'economie. La communaute LTW
+       s'accorde sur environ 60 % de l'or en envois : un bot qui met tout dans
+       ses tours meurt etrangle vingt secondes plus tard. On borne donc la
+       depense en tours par rapport a la depense en envois. */
+    const plafondTours = (l.depenseEnvois + 90) * (1 - d.partEnvois) / d.partEnvois;
+    if (etat.pas % d.poseTous === 0 && l.depenseTours < plafondTours){
+      const plan = d.maze ? PLAN_MAZE : PLAN_BLOC;
+      const place = plan[l.batiments.length];
+      if (place && l.occupe[place.y * cfg.LARGEUR + place.x] < 0){
+        const type = (l.batiments.length % 3 === 0) ? 'epine' : 'guet';
+        poserBatiment(etat, l, type, place.x, place.y);
+      } else if (d.ameliore && l.batiments.length){
+        /* Plus de place : on monte les tours existantes, la moins avancee
+           d'abord pour garder une defense homogene. */
+        const b = l.batiments.reduce((a, z) =>
+          (cfg.TOURS[z.type].or < cfg.TOURS[a.type].or ? z : a));
+        const vers = (cfg.TOURS[b.type].vers || [])
+          .flatMap(v => v === 'ELEM'
+            ? Object.keys(cfg.TOURS).filter(k => cfg.TOURS[k].branche && l.branches[cfg.TOURS[k].branche])
+            : [v]);
+        if (vers.length) ameliorer(etat, l, b, vers[etat.rng.entre(0, vers.length - 1)]);
+      }
     }
+
+    /* Se specialiser */
+    if (d.branches && l.bois >= 1){
+      const libres = Object.keys(cfg.BRANCHES).filter(k => !l.branches[k]);
+      if (libres.length) acheterBranche(etat, l, libres[etat.rng.entre(0, libres.length - 1)]);
+    }
+
+    /* Envoyer. Le choix du monstre est LA decision economique du jeu, et un
+       bot qui prend toujours le plus cher joue mal : les gros monstres ont le
+       plus mauvais ratio revenu/or (0,054 contre 0,200 pour le moins cher).
+       Un bon bot farme au ratio et ne paye la percee que ponctuellement. */
     if (etat.pas >= l.prochainBot){
-      /* Le seul aleatoire du moteur, et il passe par le RNG seme : sans lui,
-         toutes les parties d'un meme profil seraient identiques. */
-      l.prochainBot = etat.pas + etat.rng.entre(70, 130);
-      const abordables = Object.keys(cfg.MONSTRES)
-        .filter(k => cfg.MONSTRES[k].or <= l.or)
-        .sort((a, b) => cfg.MONSTRES[b].or - cfg.MONSTRES[a].or);
-      if (abordables.length){
-        /* Le plus cher la plupart du temps, sinon le suivant : un bot qui joue
-           toujours pareil se lit en une partie. */
-        const choix = (abordables.length > 1 && etat.rng.entre(0, 3) === 0) ? 1 : 0;
-        envoyer(etat, l, abordables[choix]);
+      l.prochainBot = etat.pas + etat.rng.entre(d.intervalle[0], d.intervalle[1]);
+      let budget = Math.floor(l.or * d.partEnvois);
+      const cles = Object.keys(cfg.MONSTRES);
+      const parRatio = [...cles].sort((a, b) =>
+        (cfg.MONSTRES[b].revenu / cfg.MONSTRES[b].or) - (cfg.MONSTRES[a].revenu / cfg.MONSTRES[a].or));
+      const parPrix = [...cles].sort((a, b) => cfg.MONSTRES[b].or - cfg.MONSTRES[a].or);
+      l.envoisFaits = (l.envoisFaits || 0) + 1;
+      const percee = d.ameliore && l.envoisFaits % 4 === 0;   // percee ponctuelle
+
+      for (let n = 0; n < 6; n++){
+        const abordable = k => cfg.MONSTRES[k].or <= budget && cfg.MONSTRES[k].or <= l.or;
+        let cle;
+        if (!d.maze){                                   // debutant : au hasard
+          const dispo = cles.filter(abordable);
+          if (!dispo.length) break;
+          cle = dispo[etat.rng.entre(0, dispo.length - 1)];
+        } else if (percee && n === 0){
+          cle = parPrix.find(abordable);
+        } else {
+          cle = parRatio.find(abordable);
+        }
+        if (!cle || !envoyer(etat, l, cle)) break;
+        budget -= cfg.MONSTRES[cle].or;
       }
     }
   }

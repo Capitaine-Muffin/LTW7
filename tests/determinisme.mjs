@@ -86,5 +86,25 @@ const avant = ls.batiments.length;
 for (let i = 0; i < 900; i++) M.avancer(s);
 dire(ls.batiments.length < avant, `le Controleur a demoli (${avant} -> ${ls.batiments.length} batiments)`);
 
+console.log('\nles quatre difficultes tiennent la duree');
+for (const d of ['facile','normal','agressif','impitoyable']){
+  let planté = null;
+  const e2 = M.creerPartie({graine: 31337, joueurs: 7, difficulte: d, profil: 'BLITZ'});
+  try { for (let i = 0; i < 6000; i++) M.avancer(e2); }
+  catch (err){ planté = err.message; }
+  const vivants = e2.lignes.filter(l => !l.mort).length;
+  dire(!planté, `${d} : 600 s sans plantage${planté ? ' — ' + planté : ''} (${vivants} survivant(s))`);
+}
+
+console.log('\nla difficulte change vraiment le jeu');
+const envois = {};
+for (const d of ['facile','impitoyable']){
+  const e3 = M.creerPartie({graine: 99, joueurs: 4, difficulte: d, profil: 'BLITZ'});
+  for (let i = 0; i < 1500; i++) M.avancer(e3);
+  envois[d] = e3.lignes[1].revenu;
+}
+dire(envois.impitoyable > envois.facile * 1.5,
+  `revenu d'un bot a 150 s : debutant ${envois.facile}, impitoyable ${envois.impitoyable}`);
+
 console.log(echecs ? `\n${echecs} echec(s)\n` : '\ntout passe\n');
 process.exit(echecs ? 1 : 0);

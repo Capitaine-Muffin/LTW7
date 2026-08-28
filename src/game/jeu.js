@@ -302,10 +302,34 @@ function brancher(){
   });
 }
 
-function demarrer(){
+const CLE_REGLAGES = 'ltw7.reglages';
+function lireReglages(){
+  const ids = ['nbJoueurs','difficulte','profil','camp'];
+  try {
+    const v = JSON.parse(localStorage.getItem(CLE_REGLAGES) || '{}');
+    for (const id of ids) if (v[id] != null) document.getElementById(id).value = v[id];
+  } catch (e){ /* premiere partie, ou stockage refuse : on garde les defauts */ }
+  camp = CAMPS[+document.getElementById('camp').value] || CAMPS[0];
+}
+function ecrireReglages(){
+  const v = {};
+  for (const id of ['nbJoueurs','difficulte','profil','camp'])
+    v[id] = document.getElementById(id).value;
+  try { localStorage.setItem(CLE_REGLAGES, JSON.stringify(v)); } catch (e){ /* sans importance */ }
+}
+
+function demarrer(memeGraine){
   const joueurs = +document.getElementById('nbJoueurs').value;
   const profil = document.getElementById('profil').value;
-  etat = creerPartie({graine: (Date.now() & 0x7fffffff), profil, joueurs});
+  const difficulte = document.getElementById('difficulte').value;
+  const champGraine = document.getElementById('graine');
+  const graine = memeGraine ? (+champGraine.value || 1)
+                            : 1 + Math.floor(Math.random() * 999998);
+  champGraine.value = graine;
+  ecrireReglages();
+  camp = CAMPS[+document.getElementById('camp').value] || CAMPS[0];
+  terrain = null; sentier = null;
+  etat = creerPartie({graine, profil, joueurs, difficulte});
   ligneVue = etat.moi; selection = null; enMain = null; menu = 'batiments'; acceleration = 1;
   document.querySelectorAll('[data-menu]').forEach(x =>
     x.setAttribute('aria-pressed', String(x.dataset.menu === 'batiments')));
@@ -315,16 +339,18 @@ function demarrer(){
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  camp = CAMPS[0];
   preparerSprites();
   brancher();
+  lireReglages();
   document.getElementById('rejouerHaut').onclick = () => {
-    document.getElementById('reglages').dataset.ouvert = '0'; demarrer(); };
+    document.getElementById('reglages').dataset.ouvert = '0'; demarrer(false); };
+  document.getElementById('memeGraine').onclick = () => {
+    document.getElementById('reglages').dataset.ouvert = '0'; demarrer(true); };
   document.getElementById('ouvrirReglages').onclick = () => {
     const r = document.getElementById('reglages');
     r.dataset.ouvert = r.dataset.ouvert === '1' ? '0' : '1'; };
   document.getElementById('camp').onchange = e => {
     camp = CAMPS[+e.target.value]; terrain = null; sentier = null; };
-  demarrer();
+  demarrer(false);
   requestAnimationFrame(boucle);
 });
