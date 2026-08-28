@@ -8,6 +8,17 @@ Le prototype expose ses réglages derrière le **⚙**. L'écran de fin récapit
 configuration exacte de la partie — **c'est ce récapitulatif qu'il faut me
 recopier**, sinon « c'est trop dur » n'est pas exploitable.
 
+## Deux couches de dessin
+
+Les **sprites restent du pixel** — c'est l'identité du jeu, et un sprite lissé
+devient une bouillie. Tout ce qui n'est pas un sprite passe en revanche par des
+courbes et des dégradés : ombres portées, lumière du plateau, barres de vie
+arrondies, cercle de portée, icônes du bandeau, blason de l'écran-titre. C'est
+le contraste entre les deux qui fait « fini » plutôt que « brut ».
+
+Si quelque chose te paraît trop lissé ou au contraire trop cru, dis-le : le
+dosage est le seul réglage qui compte ici.
+
 ## Les effets des tours, et comment on les voit
 
 Cinq familles portent un effet en plus des dégâts, tous relevés dans les

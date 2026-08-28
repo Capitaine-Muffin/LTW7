@@ -27,13 +27,27 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
   border-radius:7px;padding:8px;font-size:14px;font-family:Oxanium;font-weight:600;width:88px}
 .stat{display:flex;flex-direction:column;line-height:1.05;min-width:0}
 .stat b{font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap}
-.stat span{font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:var(--doux)}
+.stat span{font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:var(--doux);
+  display:flex;align-items:center;gap:3px}
+/* Les icones sont vectorielles : a cote des sprites en pixels, ce contraste
+   est exactement ce qui fait « fini » plutot que « brut ». */
+.stat span svg{width:11px;height:11px;flex:0 0 auto;fill:currentColor}
+.stat span .mot{font-style:normal}
+/* Sous 430 px, l'icone remplace le mot : cinq libelles en capitales prennent
+   plus de place que les chiffres qu'ils annoncent. */
+@media (max-width:430px){ .stat span .mot{display:none}
+  .stat span svg{width:13px;height:13px} .stat span{justify-content:center} }
+.stat span svg .creux{fill:var(--panneau)}
+.stat span svg .trait{fill:none;stroke:var(--panneau);stroke-width:1.4;stroke-linecap:round}
+.stat.or span svg{color:var(--or)} .stat.vies span svg{color:var(--rouge)}
+.stat.bois span svg{color:var(--bois)} .stat.rev span svg{color:var(--vert)}
 .stat.or b{color:var(--or)} .stat.vies b{color:var(--rouge)} .stat.bois b{color:var(--bois)}
 .stat.rev b{color:var(--vert)}
 #jauge{flex:1;min-width:36px;height:6px;background:#000;border-radius:3px;overflow:hidden}
 #jaugeRevenu{height:100%;background:var(--vert);width:0}
-#haut button{background:var(--bord);color:var(--encre);border:0;border-radius:7px;
-  padding:8px 10px;font-size:14px;font-weight:700;cursor:pointer;flex:0 0 auto}
+#haut button{background:linear-gradient(180deg,#3a3452,#282338);color:var(--encre);
+  border:0;border-radius:9px;padding:8px 10px;font-size:14px;font-weight:700;cursor:pointer;
+  flex:0 0 auto;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 2px 5px rgba(0,0,0,.35)}
 #sonBtn[data-coupe="1"]{color:var(--doux);opacity:.55;text-decoration:line-through}
 #bandeauLignes{display:flex;align-items:stretch;background:#191627;
   border-bottom:1px solid var(--bord)}
@@ -62,7 +76,8 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
 #tableau .pastille{display:inline-block;width:7px;height:7px;border-radius:2px;
   margin-right:5px;vertical-align:1px}
 #tableau .pied{color:var(--doux);font-size:10.5px;margin:7px 2px 0;line-height:1.4}
-.ong{flex:0 0 auto;background:transparent;border:1px solid var(--bord);border-radius:8px;
+.ong{flex:0 0 auto;background:linear-gradient(180deg,rgba(255,255,255,.04),transparent);
+  border:1px solid var(--bord);border-radius:10px;
   padding:5px 9px;color:var(--doux);display:flex;flex-direction:column;line-height:1.15;cursor:pointer}
 .ong b{font-size:14px;color:var(--encre)} .ong span{font-size:11.5px}
 .ong.actif{border-color:var(--or);background:rgba(240,196,81,.12)}
@@ -97,7 +112,9 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
    force un recuit du terrain et provoque un a-coup. */
 #panneau{height:124px;padding:8px 8px 4px;overflow-y:auto;overscroll-behavior:contain}
 .rangee{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
-.art{flex:0 0 auto;background:var(--bord);border:1px solid #3b3552;border-radius:9px;
+.art{flex:0 0 auto;background:linear-gradient(180deg,#353050,#262134);
+  border:1px solid #3b3552;border-radius:11px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 2px 6px rgba(0,0,0,.28);
   padding:7px 10px;color:var(--encre);display:flex;flex-direction:column;align-items:flex-start;
   line-height:1.2;cursor:pointer;min-width:74px}
 .art b{font-size:14px} .art span{font-size:12px;color:var(--doux)}
@@ -122,15 +139,19 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .vide{margin:14px 2px;font-size:14px;color:var(--doux)}
 #barre{display:flex;gap:6px;padding:6px 8px calc(10px + env(safe-area-inset-bottom))}
-#barre button{flex:1;background:var(--bord);color:var(--encre);border:1px solid #3b3552;
-  border-radius:9px;padding:6px 4px 8px;font-size:14px;font-weight:700;cursor:pointer;
+#barre button{flex:1;background:linear-gradient(180deg,#37314e,#262135);color:var(--encre);
+  border:1px solid #3b3552;border-radius:12px;padding:6px 4px 8px;font-size:14px;
+  font-weight:700;cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 3px 8px rgba(0,0,0,.32);
   display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.1}
 /* Le vendeur dessine sur le bouton : c'est l'identite de la map, portee par
    nos commandes plutot que par des cases volees au labyrinthe. */
 #barre button canvas{width:38px;height:38px;image-rendering:pixelated;
   margin-bottom:-3px}
 #barre button[aria-pressed="true"] canvas{filter:drop-shadow(0 0 3px rgba(0,0,0,.5))}
-#barre button[aria-pressed="true"]{background:var(--or);color:#1a1408;border-color:var(--or)}
+#barre button[aria-pressed="true"]{background:linear-gradient(180deg,#ffdc72,#e0ab2f);
+  color:#1a1408;border-color:#ffdc72;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 3px 12px rgba(240,196,81,.28)}
 select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border-radius:7px;
   padding:8px;font-size:14px;font-family:Oxanium;font-weight:600}
 /* L'ecran d'accueil. Il tient les reglages, ce qui evite au passage de
@@ -139,15 +160,24 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   display:flex;align-items:center;justify-content:center;padding:18px;
   overflow-y:auto;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
 #accueil[hidden]{display:none}
-#accueil .carte{background:var(--panneau);border:1px solid var(--bord);border-radius:16px;
+#accueil .carte{background:linear-gradient(165deg,#241f38,#171426);
+  border:1px solid var(--bord);border-radius:18px;position:relative;overflow:hidden;
   padding:20px 18px;max-width:420px;width:100%;box-shadow:0 18px 60px rgba(0,0,0,.55)}
+#accueil .blason{width:74px;height:74px;display:block;margin:0 auto 10px;
+  filter:drop-shadow(0 6px 16px rgba(0,0,0,.5))}
 #accueil h1{font-family:Oxanium;font-weight:800;font-size:31px;margin:0;letter-spacing:.02em;
-  line-height:1}
+  line-height:1;text-align:center}
+#accueil .sous{text-align:center}
+/* Une lueur derriere la carte : le meme or que le blason, tres diffus. */
+#accueil .carte::before{content:'';position:absolute;inset:-40% -20% auto;height:70%;
+  background:radial-gradient(ellipse at 50% 0,rgba(240,196,81,.16),transparent 62%);
+  pointer-events:none}
 #accueil h1 em{font-style:normal;color:var(--or)}
 #accueil .sous{color:var(--doux);font-size:13.5px;margin:7px 0 16px;line-height:1.4}
 #accueil .duo{display:flex;gap:8px;margin-top:16px}
-#accueil button{flex:1;background:var(--or);color:#1a1408;border:0;border-radius:11px;
-  padding:14px;font-size:17px;font-weight:800;font-family:Oxanium;cursor:pointer}
+#accueil button{flex:1;background:linear-gradient(180deg,#ffdf80,#dda527);color:#1a1408;
+  border:0;border-radius:13px;padding:14px;font-size:17px;font-weight:800;font-family:Oxanium;
+  cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 6px 18px rgba(240,196,81,.24)}
 #accueil button.doux{background:var(--bord);color:var(--encre);font-size:15px;flex:0 0 auto;
   padding:14px 16px}
 #accueil .note{color:var(--doux);font-size:11.5px;line-height:1.45;margin:14px 0 0}
@@ -175,11 +205,11 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
 </style>
 
 <div id="haut">
-  <div class="stat or"><b id="or">0</b><span>or</span></div>
-  <div class="stat rev"><b id="revenu">+0</b><span>revenu</span></div>
-  <div class="stat vies"><b id="vies">0</b><span>vies</span></div>
-  <div class="stat bois"><b id="bois">0</b><span>bois</span></div>
-  <div class="stat"><b id="minuteur">0 s</b><span>versement</span></div>
+  <div class="stat or"><b id="or">0</b><span><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5"/><circle cx="6" cy="6" r="2.4" class="creux"/></svg><i class="mot">or</i></span></div>
+  <div class="stat rev"><b id="revenu">+0</b><span><svg viewBox="0 0 12 12"><path d="M6 1.5 10.5 7H7.6v3.5H4.4V7H1.5Z"/></svg><i class="mot">revenu</i></span></div>
+  <div class="stat vies"><b id="vies">0</b><span><svg viewBox="0 0 12 12"><path d="M6 10.8 1.6 6.3a2.9 2.9 0 0 1 4.4-3.7 2.9 2.9 0 0 1 4.4 3.7Z"/></svg><i class="mot">vies</i></span></div>
+  <div class="stat bois"><b id="bois">0</b><span><svg viewBox="0 0 12 12"><rect x="1" y="3.4" width="10" height="5.2" rx="2.6"/><ellipse cx="3.6" cy="6" rx="1.5" ry="2.6" class="creux"/></svg><i class="mot">bois</i></span></div>
+  <div class="stat"><b id="minuteur">0 s</b><span><svg viewBox="0 0 12 12"><circle cx="6" cy="6.6" r="4.6"/><path d="M6 3.6v3h2.2" class="trait"/><rect x="4.6" y=".6" width="2.8" height="1.4" rx=".7"/></svg><i class="mot">versement</i></span></div>
   <div id="jauge"><div id="jaugeRevenu"></div></div>
   <button id="vitesse">×1</button>
   <button id="sonBtn" title="Couper le son">♪</button>
@@ -187,6 +217,35 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
 </div>
 <div id="accueil">
   <div class="carte">
+    <svg class="blason" viewBox="0 0 120 120" aria-hidden="true">
+      <defs>
+        <linearGradient id="bOr" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#c99320"/>
+        </linearGradient>
+        <linearGradient id="bNuit" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#3b3358"/><stop offset="1" stop-color="#191428"/>
+        </linearGradient>
+      </defs>
+      <!-- L'ecu : la ligne qu'on defend, et la breche par ou tout arrive. -->
+      <path d="M60 4 108 20v46c0 26-20 42-48 50-28-8-48-24-48-50V20Z" fill="url(#bNuit)"
+            stroke="url(#bOr)" stroke-width="3"/>
+      <path d="M52 22h16v76h-16Z" fill="#2a2140"/>
+      <path d="M60 22v76" stroke="#6b5a2c" stroke-width="2" stroke-dasharray="5 7"/>
+      <!-- Deux tours qui se font face, la chaine du jeu en un signe. -->
+      <g fill="url(#bOr)">
+        <path d="M24 44h18v34H24Zm-3-6h24v7H21Z"/>
+        <path d="M27 32h3v7h-3Zm6 0h3v7h-3Zm6 0h3v7h-3Z"/>
+        <path d="M78 44h18v34H78Zm-3-6h24v7H75Z"/>
+        <path d="M81 32h3v7h-3Zm6 0h3v7h-3Zm6 0h3v7h-3Z"/>
+      </g>
+      <g fill="#2a2140"><rect x="30" y="52" width="6" height="9" rx="1"/>
+        <rect x="84" y="52" width="6" height="9" rx="1"/></g>
+      <!-- Les projectiles convergent vers le couloir : c'est tout le jeu. -->
+      <g stroke="#ffe9a8" stroke-width="3" stroke-linecap="round">
+        <path d="M46 58h6"/><path d="M74 66h-6"/>
+      </g>
+      <circle cx="60" cy="40" r="5" fill="url(#bOr)"/>
+    </svg>
     <h1>LTW 7 <em>Warnet</em></h1>
     <p class="sous">Ta ligne, celles des adversaires, et une chaîne de monstres qui
       tourne. Tu ne tues personne : tu lui envoies de quoi le faire.</p>

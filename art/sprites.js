@@ -268,7 +268,7 @@ const TOURS_ART = {
   sang:        {k:'perce',   r:1},
   canon:       {k:'mortier', r:2},
   socle:       {k:'fleche',  r:2},
-  broyeur:     {k:'perce',   r:2},
+  broyeur:     {k:'moulin',  r:2},
   lame:        {k:'perce',   r:2, v:1},
   elementaire: {k:'fleche',  r:3},
 
@@ -321,8 +321,13 @@ function galons(g, p, r, v){
        une rangee de gemmes se compte d'un coup d'oeil. */
     const n = r, x0 = 24 - (n * 5 - 1) / 2;
     for (let i = 0; i < n; i++){
-      R(t, x0 + i*5, 44, 3, 2, p.t2); R(t, x0 + i*5, 44, 3, 1, p.t);
-      P(t, x0 + i*5 + 1, 44, p.g2); } });
+      if (v){                                     // seconde variante : gemme en losange
+        P(t, x0 + i*5 + 1, 43, p.g2);
+        R(t, x0 + i*5, 44, 3, 1, p.r3); P(t, x0 + i*5 + 1, 45, p.r2);
+      } else {
+        R(t, x0 + i*5, 44, 3, 2, p.t2); R(t, x0 + i*5, 44, 3, 1, p.t);
+        P(t, x0 + i*5 + 1, 44, p.g2);
+      } } });
   if (r >= 2) couche(g, p.d, t => {                      // contreforts
     for (const x of [2,42]){ R(t,x,34,4,11,p.a2); R(t,x,34,4,1,p.a4);
       R(t,x,44,4,1,p.a1); P(t,x+1,38,p.a3); } });
@@ -478,6 +483,27 @@ function dessiner(kind,S,pulse,rang,teinte,variante){
         for(let i=-w;i<=w;i++){const q=(i+w)/(2*w+.001);
           P(t,cx+i,1+j, q<0.24?F3 : q<0.62?F2 : F1);}}
       P(t,cx-7,3,p.g2); P(t,cx+6,7,p.g); P(t,cx+1,2,p.g2);});
+  }
+  else if(kind==='moulin'){                        // Crusher : la meule, pas la baliste
+    sol(g,p,cx,19);
+    couche(g,p.d,t=>socle(t,p,8,41,32,4));
+    couche(g,p.d,t=>{                              // deux montants et leur traverse
+      R(t,7,20,6,22,p.b2); R(t,7,20,6,1,p.b3); R(t,7,41,6,1,p.b1);
+      R(t,35,20,6,22,p.b2); R(t,35,20,6,1,p.b3); R(t,35,41,6,1,p.b1);
+      R(t,6,17,36,4,p.b1); R(t,6,17,36,1,p.b3);});
+    couche(g,p.d,t=>{                              // la meule, dents en peripherie
+      roue(t,cx,29,12,p,12);
+      for(let k=0;k<12;k++){const a=k*Math.PI/6+.26;
+        const x=cx+Math.round(Math.cos(a)*13.5), y=29+Math.round(Math.sin(a)*13.5);
+        R(t,x-1,y-1,3,3,p.m4); P(t,x,y,p.m5);}
+      R(t,cx-2,27,5,5,p.m2); R(t,cx-1,28,3,3,p.m5);});
+    couche(g,p.d,t=>{                              // manivelle
+      R(t,40,26,5,2,p.m2); R(t,43,26,2,7,p.m2); R(t,42,32,5,2,p.b2);
+      P(t,40,26,p.m4); P(t,43,26,p.m4);});
+    couche(g,p.d,t=>{                              // tremie : le grain a broyer
+      for(let j=0;j<6;j++){const w=11-j;
+        R(t,cx-w,9+j,w*2,1, j<2?p.a4:j<4?p.a3:p.a2);}
+      R(t,cx-6,15,12,3,p.d); R(t,cx-4,15,8,1,p.r2);});
   }
   else if(kind==='prisme'){
     sol(g,p,cx,17);

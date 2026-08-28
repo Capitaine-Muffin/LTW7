@@ -172,6 +172,7 @@ function dessinerJeu(){
     sentier = {T, sig, img: cuireSentier(cfg, T, l.chemin, B)};
   c.drawImage(terrain.img, ox, oy);
   c.drawImage(sentier.img, ox, oy);
+  eclairage(c, ox, oy, T * cfg.LARGEUR, T * cfg.HAUTEUR);
 
   c.strokeStyle = 'rgba(0,0,0,.07)'; c.lineWidth = 1;
   for (let x = 1; x < cfg.LARGEUR; x++){ c.beginPath();
@@ -184,8 +185,7 @@ function dessinerJeu(){
   dessinerEntree(c, cfg, T, ox, oy, B);
   dessinerSortie(c, cfg, T, ox, oy, B);
   c.restore();
-  c.strokeStyle = 'rgba(10,9,16,.40)'; c.lineWidth = 2;   // cadre du plateau
-  c.strokeRect(ox + 1, oy + 1, T * cfg.LARGEUR - 2, T * cfg.HAUTEUR - 2);
+  cadrePlateau(c, ox, oy, T * cfg.LARGEUR, T * cfg.HAUTEUR);
 
   if (!l.chemin){                                   // couloir scelle : on le dit
     c.fillStyle = 'rgba(230,70,60,.18)'; c.fillRect(ox, oy, T * cfg.LARGEUR, T * cfg.HAUTEUR);
@@ -201,6 +201,8 @@ function dessinerJeu(){
     const r = reculDe(b.id, T);
     const px = ox + b.x * T + (T - tailleSprite) / 2 + (r ? r.dx : 0);
     const py = oy + (b.y + 1) * T - tailleSprite * 0.92 + (r ? r.dy : 0);
+    ombreDouce(c, ox + (b.x + .5) * T + (r ? r.dx * .4 : 0),
+                  oy + (b.y + .82) * T, T * .40, T * .17);
     c.drawImage(img, px, py, tailleSprite, tailleSprite);
     /* Les elementaires respirent : une lueur a la couleur de leur branche,
        posee sur l'emetteur, qui bat lentement. Une tour amelioree doit se
@@ -217,17 +219,14 @@ function dessinerJeu(){
       c.fillRect(px, py, tailleSprite, tailleSprite);
       c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;
     }
-    if (b.pv < b.pvMax){
-      c.fillStyle = '#000'; c.fillRect(ox + b.x * T + 3, oy + b.y * T + 2, T - 6, 3);
-      c.fillStyle = '#6de06d';
-      c.fillRect(ox + b.x * T + 3, oy + b.y * T + 2, (T - 6) * b.pv / b.pvMax, 3);
-    }
+    if (b.pv < b.pvMax)
+      barreVie(c, ox + b.x * T + 4, oy + b.y * T + 3, T - 8, 4, b.pv / b.pvMax, VIE_TOUR);
     if (selection === b){
       c.strokeStyle = '#ffd24a'; c.lineWidth = 2;
-      c.strokeRect(ox + b.x * T + 1, oy + b.y * T + 1, T - 2, T - 2);
+      pave(c, ox + b.x * T + 1.5, oy + b.y * T + 1.5, T - 3, T - 3, 5); c.stroke();
       const def = cfg.TOURS[b.type];
-      if (def.p){ c.strokeStyle = 'rgba(255,210,74,.35)'; c.beginPath();
-        c.arc(ox + (b.x + .5) * T, oy + (b.y + .5) * T, def.p * T / cfg.MILLI, 0, 7); c.stroke(); }
+      if (def.p) cerclePortee(c, ox + (b.x + .5) * T, oy + (b.y + .5) * T,
+                              def.p * T / cfg.MILLI, horloge);
     }
   }
 
@@ -259,19 +258,20 @@ function dessinerJeu(){
     const ec = etatDominant(m);
     const im = cache['m:' + art + ':' + image + (ec ? ':' + ec : '')]
             || cache['m:' + art + ':' + image];
-    if (def.vol){                                   // ombre portee au sol, detachee
-      c.fillStyle = 'rgba(0,0,0,.28)';
-      c.beginPath(); c.ellipse(x, y + taille * .22, taille * .30, taille * .12, 0, 0, 7); c.fill();
-    }
+    /* Ombre douce : posee au sol pour tout le monde, detachee et plus large
+       pour les volants — c'est ce qui dit qu'ils planent. */
+    ombreDouce(c, x, y + taille * (def.vol ? .22 : .14),
+               taille * (def.vol ? .34 : .30), taille * (def.vol ? .15 : .13));
     /* Anneau aux couleurs de l'expediteur. On voit d'un coup d'oeil que cette
        vague vient de Bot 2 — et donc que c'est lui qui monte en puissance. */
     c.strokeStyle = couleurJoueur(m.proprietaire); c.lineWidth = 2;
     c.beginPath(); c.ellipse(x, y + taille * .16, taille * .34, taille * .14, 0, 0, 7); c.stroke();
     if (im) c.drawImage(im, Math.round(x - taille / 2), Math.round(y - taille * .62 + vol), taille, taille);
     if (m.pv < m.pvMax){                            // barre lisible meme sur un mouton
-      const w = Math.max(10, taille * .7);
-      c.fillStyle = '#000';    c.fillRect(x - w / 2, y - taille * .72 + vol, w, 3);
-      c.fillStyle = '#e05a5a'; c.fillRect(x - w / 2, y - taille * .72 + vol, w * m.pv / m.pvMax, 3);
+      /* Etroite volontairement : sur une colonne de vingt, une barre epaisse
+         devient le sujet du dessin a la place des monstres. */
+      const w = Math.max(11, taille * .60);
+      barreVie(c, x - w / 2, y - taille * .74 + vol, w, 3, m.pv / m.pvMax, VIE_MONSTRE);
     }
     /* Les etats. Le moteur applique quatre effets — ralentissement, poison,
        etourdissement, vulnerabilite — qui n'apparaissaient nulle part : on
@@ -333,6 +333,7 @@ function dessinerJeu(){
   }
 
   dessinerEffets(c, cfg, T, ox, oy);
+  vignette(c, ox, oy, T * cfg.LARGEUR, T * cfg.HAUTEUR);
 
   if (enMain && !transi){                           // apercu de pose
     const p = survol;
