@@ -362,16 +362,25 @@ function bots(etat){
       if (place && l.occupe[place.y * cfg.LARGEUR + place.x] < 0){
         const type = (l.batiments.length % 3 === 0) ? 'epine' : 'guet';
         poserBatiment(etat, l, type, place.x, place.y);
-      } else if (d.ameliore && l.batiments.length){
-        /* Plus de place : on monte les tours existantes, la moins avancee
-           d'abord pour garder une defense homogene. */
-        const b = l.batiments.reduce((a, z) =>
+      }
+      /* Monter les tours, et les monter LOIN. Une tour de guet a 100 points de
+         vie ne survit pas une seconde a un briseur de fin de partie : un bot
+         riche qui continue de poser des tours a 10 or n'a plus de defense du
+         tout. Il faut donc construire en PROFONDEUR des que l'or le permet —
+         plusieurs paliers d'un coup sur la meme tour. */
+      if (d.ameliore && l.batiments.length){
+        let b = l.batiments.reduce((a, z) =>
           (cfg.TOURS[z.type].or < cfg.TOURS[a.type].or ? z : a));
-        const vers = (cfg.TOURS[b.type].vers || [])
-          .flatMap(v => v === 'ELEM'
-            ? Object.keys(cfg.TOURS).filter(k => cfg.TOURS[k].branche && l.branches[cfg.TOURS[k].branche])
-            : [v]);
-        if (vers.length) ameliorer(etat, l, b, vers[etat.rng.entre(0, vers.length - 1)]);
+        for (let etage = 0; etage < 4; etage++){
+          const vers = (cfg.TOURS[b.type].vers || [])
+            .flatMap(v => v === 'ELEM'
+              ? Object.keys(cfg.TOURS).filter(k => cfg.TOURS[k].branche && l.branches[cfg.TOURS[k].branche])
+              : [v])
+            .filter(v => { const t2 = cfg.TOURS[v];
+              return (!t2.branche || l.branches[t2.branche]) && t2.or <= l.or; });
+          if (!vers.length) break;
+          if (!ameliorer(etat, l, b, vers[etat.rng.entre(0, vers.length - 1)])) break;
+        }
       }
     }
 

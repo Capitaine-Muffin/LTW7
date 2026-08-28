@@ -118,25 +118,36 @@ si un changement vient du réglage ou de la chance.
 
 ## Durées mesurées
 
-Simulation à 4 joueurs, **ligne du joueur passive** — c'est donc la borne basse :
-le temps de survie de quelqu'un qui ne fait absolument rien.
+4 joueurs, une graine de référence. « 1re élimination » = le premier joueur qui
+tombe ; « fin » = il ne reste qu'un survivant.
 
-| Rythme | Bots | Mort du passif | Fin de partie |
+| Rythme | Bots | 1re élimination | Fin |
 |---|---|---:|---:|
-| Éclair | Normal | 53 s | 661 s |
-| Éclair | Impitoyable | 17 s | 279 s |
-| Blitz | Normal | 63 s | 1031 s |
-| Blitz | Impitoyable | 21 s | 488 s |
-| Classique | Normal | 110 s | — |
-| Classique | Impitoyable | 34 s | — |
+| Éclair | Débutant | 95 s | 409 s |
+| Éclair | Normal | 42 s | 385 s |
+| Éclair | Impitoyable | 15 s | **43 s** |
+| Blitz | Débutant | 191 s | 430 s |
+| Blitz | Normal | 90 s | 434 s |
+| Blitz | Impitoyable | 20 s | 69 s |
+| Soutenu | Normal | 94 s | 489 s |
+| Classique | Débutant | 260 s | 700 s |
+| Classique | Normal | 123 s | 673 s |
+| Classique | Impitoyable | 34 s | 720 s |
 
-À lire ainsi : en Blitz/Normal tu as **une minute de marge** si tu ne fais rien,
-donc largement de quoi apprendre. En Impitoyable, vingt secondes.
+**Éclair + Impitoyable termine en 43 secondes** : c'est un mode punitif, pas une
+erreur. Pour découvrir le jeu, **Blitz + Débutant** laisse plus de trois minutes
+avant la première élimination.
+
+Il reste de la variance : sur Soutenu + Agressif, quatre graines sur cinq
+finissent entre 7 et 30 minutes, la cinquième bloque au-delà. Un duel entre deux
+défenses solides peut durer très longtemps — c'est aussi vrai dans le jeu
+d'origine.
 
 ## Ce que je sais déjà être bancal
 
-- **Le revenu des bots s'emballe** en fin de partie : plus de 300 000 sur les
-  longues parties. La défense monte plus vite que l'offense, et personne ne
-  meurt plus. Les parties Classique ne se terminent toujours pas.
+- **Le revenu des bots monte très haut** en fin de longue partie (plus de
+  100 000). C'est la conséquence normale d'un revenu qui compose : chaque envoi
+  l'augmente définitivement, et rien ne le fait redescendre. Les parties se
+  terminent, mais les nombres deviennent énormes.
 - Le Contrôleur n'entre en scène que si quelqu'un scelle son couloir. Pour le
   voir, ferme volontairement ta ligne avec une rangée complète.
