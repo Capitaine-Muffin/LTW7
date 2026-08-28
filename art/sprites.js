@@ -250,8 +250,102 @@ function meche(g,x,y,p){
   for(const[dx,dy]of[[1,-2],[3,-3]])P(g,x+dx,y+dy,p.b1);
   P(g,x+1,y-6,p.g2);P(g,x+2,y-6,p.g);P(g,x+1,y-7,p.g);P(g,x,y-6,p.g);}
 
-function dessiner(kind,S,pulse){
-  const g=G(), p=S.pal, A=ARCHI[S.k], cx=24;
+/* ---- une identite visuelle par tour -------------------------------------
+   Trente-deux tours, huit familles de silhouette : sans plus, une Tour BOUM
+   ressemblait trait pour trait a un Brasier et on ne voyait pas ses propres
+   ameliorations. Chaque tour porte donc :
+     k — la famille (ce qu'elle tire) ;
+     r — le rang, 0 a 5, qui ajoute socle, contreforts, bannieres, runes,
+         couronne : la montee en puissance se lit de loin ;
+     t — la branche elementaire, qui reteinte les lueurs ;
+     v — la variante, pour separer les deux feuilles d'une meme branche.
+   Les quadruplets sont tous distincts — c'est ce qui garantit qu'aucune
+   paire de tours ne se ressemble. */
+const TOURS_ART = {
+  guet:        {k:'fleche',  r:0},
+  epine:       {k:'perce',   r:0},
+  pitie:       {k:'fleche',  r:1},
+  sang:        {k:'perce',   r:1},
+  canon:       {k:'mortier', r:2},
+  socle:       {k:'fleche',  r:2},
+  broyeur:     {k:'perce',   r:2},
+  lame:        {k:'perce',   r:2, v:1},
+  elementaire: {k:'fleche',  r:3},
+
+  barbecue:    {k:'braise',  r:3, t:'feu'},
+  glacier:     {k:'givre',   r:3, t:'froid'},
+  courtCircuit:{k:'foudre',  r:3, t:'foudre'},
+  cloaque:     {k:'prisme',  r:3, t:'tenebres'},
+  oiseau:      {k:'prisme',  r:3, t:'lumiere', v:1},
+
+  puits:       {k:'braise',  r:4, t:'feu'},
+  eauBenite:   {k:'givre',   r:4, t:'froid'},
+  canonElec:   {k:'foudre',  r:4, t:'foudre'},
+  damne:       {k:'prisme',  r:4, t:'tenebres'},
+  lanterne:    {k:'prisme',  r:4, t:'lumiere', v:1},
+
+  boom:        {k:'braise',  r:5, t:'feu'},
+  meteore:     {k:'mortier', r:5, t:'feu',      v:1},
+  eauUltime:   {k:'givre',   r:5, t:'froid'},
+  glaceUltime: {k:'givre',   r:5, t:'froid',    v:1},
+  generateur:  {k:'foudre',  r:5, t:'foudre'},
+  condensateur:{k:'foudre',  r:5, t:'foudre',   v:1},
+  mort:        {k:'prisme',  r:5, t:'tenebres'},
+  fosse:       {k:'braise',  r:5, t:'tenebres', v:1},
+  champignon:  {k:'prisme',  r:5, t:'lumiere'},
+  teleporteur: {k:'givre',   r:5, t:'lumiere',  v:1},
+  barricade:   {k:'barricade', r:0}
+};
+
+/* La branche ne change pas la pierre — seulement ce qui brille. Un Brasier
+   humain reste humain, il rougeoie simplement au lieu de bleuir. */
+const TEINTES = {
+  feu:     {g:'#ff8a2a', g2:'#ffd79a', r1:'#5a1a08', r2:'#8f2c0d', r3:'#c8501a'},
+  froid:   {g:'#79dcff', g2:'#e2f9ff', r1:'#123a5c', r2:'#1d5a86', r3:'#3a8cc0'},
+  foudre:  {g:'#ffe14a', g2:'#fffbd0', r1:'#4a3a06', r2:'#7d6410', r3:'#c2a021'},
+  tenebres:{g:'#b06cff', g2:'#ecd6ff', r1:'#2e1450', r2:'#4a2278', r3:'#7038b0'},
+  lumiere: {g:'#fff2b0', g2:'#ffffff', r1:'#6a5a20', r2:'#9c8836', r3:'#d4bd5e'}
+};
+
+/* Les marques de rang. Tout se pose en peripherie — colonnes de bord et bande
+   de sol — pour ne jamais recouvrir la silhouette de la famille. */
+function galons(g, p, r, v){
+  if (r >= 1) couche(g, p.d, t => {                      // socle elargi
+    R(t,6,43,36,4,p.a2); R(t,6,43,36,1,p.a4); R(t,7,46,34,1,p.a1);
+    /* Les gemmes du socle comptent le rang. C'est le seul repere qui se lit
+       a coup sur : d'une famille a l'autre les silhouettes se ressemblent,
+       une rangee de gemmes se compte d'un coup d'oeil. */
+    const n = r, x0 = 24 - (n * 5 - 1) / 2;
+    for (let i = 0; i < n; i++){
+      R(t, x0 + i*5, 44, 3, 2, p.t2); R(t, x0 + i*5, 44, 3, 1, p.t);
+      P(t, x0 + i*5 + 1, 44, p.g2); } });
+  if (r >= 2) couche(g, p.d, t => {                      // contreforts
+    for (const x of [2,42]){ R(t,x,34,4,11,p.a2); R(t,x,34,4,1,p.a4);
+      R(t,x,44,4,1,p.a1); P(t,x+1,38,p.a3); } });
+  if (r >= 3) couche(g, p.d, t => {                      // bannieres pendantes
+    for (const [x,sens] of [[3,1],[43,-1]]){
+      R(t,x+1,19,1,15,p.b2);
+      for (let j=0;j<12;j++){ const w = 4 - (j>8 ? j-8 : 0);
+        if (w>0) R(t, sens>0 ? x+2 : x+2-w+1, 21+j, w, 1, j%3 ? p.r2 : p.r3); } } });
+  if (r >= 4) couche(g, p.d, t => {                      // runes en suspension
+    for (const [x,y] of [[4,9],[42,9],[4,15],[42,15]]){
+      R(t,x,y,3,3,p.g); P(t,x+1,y+1,p.g2); } });
+  if (r >= 5) couche(g, p.d, t => {
+    if (v){                                              // halo
+      const cx=24, cy=9, rx=17, ry=6;
+      for (let a=0;a<64;a++){ const an=a*Math.PI/32;
+        P(t, cx+Math.round(Math.cos(an)*rx), cy+Math.round(Math.sin(an)*ry),
+          a%4<2 ? p.g : p.g2); }
+    } else {                                             // couronne de pointes
+      R(t,6,7,36,2,p.t2); R(t,6,7,36,1,p.t);             // linteau qui les porte
+      for (const x of [7,15,23,31,39]){
+        R(t,x,2,2,6,p.t2); R(t,x,2,2,3,p.t); P(t,x,1,p.g2); P(t,x+1,1,p.g); }
+    } });
+}
+
+function dessiner(kind,S,pulse,rang,teinte,variante){
+  const p = teinte ? Object.assign({}, S.pal, TEINTES[teinte] || {}) : S.pal;
+  const g=G(), A=ARCHI[S.k], cx=24;
 
   if(kind==='barricade'){
     sol(g,p,cx,22);
@@ -324,5 +418,6 @@ function dessiner(kind,S,pulse){
     couche(g,p.d,t=>{R(t,11,37,4,4,p.t2);R(t,33,37,4,4,p.t2);
       P(t,11,37,p.t);P(t,33,37,p.t);});
   }
+  galons(g, p, rang || 0, variante || 0);
   return g;
 }

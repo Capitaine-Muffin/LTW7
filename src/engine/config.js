@@ -81,10 +81,10 @@ const TOURS = {
 const MONSTRES = {
   mouton:  {nom:'Mouton',   or:5,   revenu:1,  pv:5,     v:vitesse(270), ech:0.42, dispo:5,   stock:[20, 2]},
   loup:    {nom:'Loup',     or:10,  revenu:2,  pv:40,    v:vitesse(300), ech:0.50, dispo:10,  stock:[15, 3]},
-  squelette:{nom:'Squelette', or:22, revenu:4,  pv:88,    v:vitesse(270), ech:0.48, dispo:40,  stock:[10, 5], sprite:'acolyte'},
+  squelette:{nom:'Squelette', or:22, revenu:4,  pv:88,    v:vitesse(270), ech:0.48, dispo:40,  stock:[10, 5]},
   acolyte: {nom:'Acolyte',  or:50,  revenu:8,  pv:200,   v:vitesse(270), ech:0.52, dispo:60,  stock:[10, 5]},
   fantassin:{nom:'Fantassin',or:75, revenu:12, pv:250,   v:vitesse(370), ech:0.54, dispo:80,  stock:[10, 5]},
-  grognard:{nom:'Grognard', or:100, revenu:14, pv:400,   v:vitesse(270), ech:0.60, dispo:100, stock:[6, 5],  sprite:'troll'},
+  grognard:{nom:'Grognard', or:100, revenu:14, pv:400,   v:vitesse(270), ech:0.60, dispo:100, stock:[6, 5]},
   ombre:   {nom:'Ombre',    or:200, revenu:22, pv:600,   v:vitesse(300), vol:true, ech:0.58, dispo:120, stock:[20, 7]},
   golem:   {nom:'Golem',    or:350, revenu:37, pv:1400,  v:vitesse(300), ech:0.72, dispo:140, stock:[10, 5]},
   /* Les barreaux intermediaires. Ils manquaient, et c'est ce qui creait douze
@@ -92,15 +92,15 @@ const MONSTRES = {
      rien ne devenait abordable, donc l'attaque n'avancait plus pendant que la
      defense, elle, continuait de monter. Ils viennent tous de la map. */
   centaure:{nom:'Centaure', or:1000, revenu:100, pv:4000,  v:vitesse(300), ech:0.74,
-            dispo:250, stock:[25, 3], sprite:'loup'},
+            dispo:250, stock:[25, 3]},
   colosse: {nom:'Colosse de pierre', or:1000, revenu:100, pv:10000, v:vitesse(270), ech:0.82,
-            dispo:300, stock:[10, 15], sprite:'golem', mecanique:true},
+            dispo:300, stock:[10, 15], mecanique:true},
   taureau: {nom:'Taurren', or:2000, revenu:200, pv:8000,  v:vitesse(270), ech:0.84,
-            dispo:300, stock:[25, 3], sprite:'troll'},
+            dispo:300, stock:[25, 3]},
   troll:   {nom:'Troll berserk', or:5000, revenu:450, pv:5000, v:vitesse(350), ech:0.80,
             dispo:330, stock:[15, 5], siege:{deg:47, portee:portee(150), cadence:cadence(60)}},
   wendigo: {nom:'Wendigo', or:10000, revenu:900, pv:40000, v:vitesse(350), ech:0.86,
-            dispo:360, stock:[25, 3], sprite:'loupOmbre'},
+            dispo:360, stock:[25, 3]},
   banshee: {nom:'Banshee',  or:20000,revenu:1700,pv:60000,v:vitesse(300), vol:true, ech:0.76,
             dispo:390, stock:[20, 5]},
   /* Le haut du catalogue. Il manquait, et c'est ce qui rendait la defense

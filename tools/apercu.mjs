@@ -40,25 +40,36 @@ const hex = c => [parseInt(c.slice(1,3),16), parseInt(c.slice(3,5),16), parseInt
 // --- charge la bibliotheque de sprites (globals, pas de modules) ------------
 const src = readFileSync(process.argv[2] || 'art/sprites.js', 'utf8');
 const ctx = {};
-new Function('g', src + '\nObject.assign(g,{N,CAMPS,BATS,dessiner});')(ctx);
-const {N, CAMPS, BATS, dessiner} = ctx;
+new Function('g', src + '\nObject.assign(g,{N,CAMPS,BATS,TOURS_ART,dessiner});')(ctx);
+const {N, CAMPS, BATS, TOURS_ART, dessiner} = ctx;
 
 const ECH   = +(process.env.ECH || 6);
 const MARGE = 6;
 const fond  = process.env.FOND ? hex(process.env.FOND) : [35,32,48];
 
 const filtreB = process.env.BAT, filtreC = process.env.CAMP;
-const bats  = BATS.filter(b => !filtreB || b.k === filtreB);
+/* Une ligne par TOUR (rang et teinte compris), pas par famille : c'est la
+   seule facon de verifier qu'aucune paire ne se ressemble. */
+const bats  = Object.keys(TOURS_ART).map(type => ({type, ...TOURS_ART[type]}))
+                    .filter(b => !filtreB || b.type === filtreB || b.k === filtreB);
 const camps = CAMPS.filter(c => !filtreC || c.k === filtreC);
 
 const cw = N * ECH + MARGE * 2, ch = N * ECH + MARGE * 2;
-const W = cw * camps.length, H = ch * bats.length;
+/* COLS replie la liste en grille : trente tours en colonne font une bande de
+   cinq mille pixels que personne ne peut regarder d'un coup. */
+const COLS = +(process.env.COLS || 0);
+const cols = COLS || camps.length;
+const lignes = COLS ? Math.ceil(bats.length * camps.length / COLS) : bats.length;
+const W = cw * cols, H = ch * lignes;
 const px = new Uint8Array(W * H * 4);
 for (let i = 0; i < W * H; i++){
   px[i*4] = fond[0]; px[i*4+1] = fond[1]; px[i*4+2] = fond[2]; px[i*4+3] = 255;
 }
-bats.forEach((b, r) => camps.forEach((f, c) => {
-  const g = dessiner(b.k, f, false);
+let n = 0;
+bats.forEach((b, r0) => camps.forEach((f, c0) => {
+  const r = COLS ? Math.floor(n / COLS) : r0, c = COLS ? n % COLS : c0;
+  n++;
+  const g = dessiner(b.k, f, false, b.r, b.t, b.v);
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++){
     const v = g[y][x]; if (!v) continue;
     const [R, G, B] = hex(v);
@@ -71,4 +82,4 @@ bats.forEach((b, r) => camps.forEach((f, c) => {
 }));
 const sortie = process.argv[3] || 'apercu.png';
 writeFileSync(sortie, png(W, H, px));
-console.log(`${sortie}  ${W}x${H}  (${bats.length} batiments x ${camps.length} camps, echelle ${ECH})`);
+console.log(`${sortie}  ${W}x${H}  (${bats.length} tours x ${camps.length} camps, echelle ${ECH})`);

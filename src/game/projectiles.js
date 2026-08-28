@@ -21,7 +21,7 @@ const DUREE_ECLAT = 130;                   // ms de flash a l'impact
 function collecterTirs(etat, ligne, liste){
   for (const t of etat.tirs){
     if (t.ligne !== ligne) continue;
-    const genre = t.monstre ? 'siege' : (SPRITE[t.type] || 'fleche');
+    const genre = t.monstre ? 'siege' : ((TOURS_ART[t.type] || {}).k || 'fleche');
     const p = PROJ[genre] || PROJ.fleche;
     const dx = t.cx - t.x, dy = t.cy - t.y;
     const dist = Math.sqrt(dx * dx + dy * dy);

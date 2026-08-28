@@ -19,7 +19,7 @@ const hex=c=>[parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.sli
 const X={};
 new Function('g',readFileSync('art/monstres.js','utf8')+'\nObject.assign(g,{NM,MONSTRES_ART,dessinerMonstre});')(X);
 const {NM,MONSTRES_ART,dessinerMonstre}=X;
-const cles=Object.keys(MONSTRES_ART), E=+(process.env.ECH||6), M=8;
+const cles=Object.keys(MONSTRES_ART).filter(k=>!process.env.MONSTRE||k===process.env.MONSTRE), E=+(process.env.ECH||6), M=8;
 const fond=hex(process.env.FOND||'#4a7c42');
 const cw=(NM*E+M)*2+M*2, ch=NM*E+M*2;
 const W=cw*2, H=ch*Math.ceil(cles.length/2);

@@ -1,16 +1,6 @@
 /* Rendu et entrees. Tout ce qui touche au DOM vit ici — le moteur, lui, n'en
    sait rien. */
 
-const SPRITE = {                    // quelle planche de sprite pour quelle tour
-  guet:'fleche', pitie:'fleche', socle:'fleche', elementaire:'fleche',
-  epine:'perce', sang:'perce', lame:'perce', broyeur:'perce',
-  canon:'mortier',
-  barbecue:'braise', puits:'braise', boom:'braise', meteore:'braise',
-  glacier:'givre', eauBenite:'givre', eauUltime:'givre', glaceUltime:'givre',
-  courtCircuit:'foudre', canonElec:'foudre', generateur:'foudre', condensateur:'foudre',
-  cloaque:'prisme', damne:'prisme', fosse:'prisme', mort:'prisme',
-  oiseau:'prisme', lanterne:'prisme', champignon:'prisme', teleporteur:'prisme'
-};
 /* Chaque monstre a deux images ; on alterne pour la marche. */
 
 let etat, camp, cache = {}, enMain = null, selection = null, ligneVue = 0,
@@ -34,16 +24,21 @@ function preparerSprites(){
     }
     cache['m:' + cle + ':' + im] = cv;
   }
-  for (const b of BATS) for (const f of CAMPS){
-    const g = dessiner(b.k, f, false);
-    const cv = document.createElement('canvas');
-    cv.width = N; cv.height = N;
-    const c = cv.getContext('2d');
-    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++){
-      const v = g[y][x]; if (!v) continue;
-      c.fillStyle = v; c.fillRect(x, y, 1, 1);
+  /* Une planche par tour ET par camp : 30 tours x 4 camps. Le pre-rendu se
+     fait une fois au demarrage, le jeu ne dessine plus que des images. */
+  for (const type in TOURS_ART){
+    const a = TOURS_ART[type];
+    for (const f of CAMPS){
+      const g = dessiner(a.k, f, false, a.r, a.t, a.v);
+      const cv = document.createElement('canvas');
+      cv.width = N; cv.height = N;
+      const c = cv.getContext('2d');
+      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++){
+        const v = g[y][x]; if (!v) continue;
+        c.fillStyle = v; c.fillRect(x, y, 1, 1);
+      }
+      cache[type + ':' + f.k] = cv;
     }
-    cache[b.k + ':' + f.k] = cv;
   }
 }
 
@@ -109,7 +104,7 @@ function dessinerJeu(){
 
   const tailleSprite = Math.round(T * 1.5);   // la tour deborde sa case, comme dans l'original
   for (const b of [...l.batiments].sort((a, z) => a.y - z.y)){
-    const img = cache[(SPRITE[b.type] || 'fleche') + ':' + camp.k];
+    const img = cache[b.type + ':' + camp.k] || cache['guet:' + camp.k];
     const px = ox + b.x * T + (T - tailleSprite) / 2;
     const py = oy + (b.y + 1) * T - tailleSprite * 0.92;
     c.drawImage(img, px, py, tailleSprite, tailleSprite);

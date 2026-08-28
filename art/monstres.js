@@ -31,6 +31,130 @@ function MOMBRE(g, cx, larg, p){
 }
 
 const MONSTRES_ART = {
+
+  /* --- Squelette : os secs, cage thoracique ouverte, feu vert dans le crane.
+     Il marche en cliquetant : une image sur deux, la machoire tombe. --- */
+  squelette(g, f, p){
+    MOMBRE(g, 12, 6, p);
+    MCOUCHE(g, p.d, t => {                                                        // jambes
+      MR(t, 10 - (f?1:0), 16, 2, 5, p.c2); MR(t, 13 + (f?1:0), 16, 2, 5, p.c2);
+      MR(t, 10 - (f?1:0), 20, 2, 1, p.c1); MR(t, 13 + (f?1:0), 20, 2, 1, p.c1); });
+    MCOUCHE(g, p.d, t => {                                                        // cage thoracique
+      MR(t, 11, 9, 3, 8, p.c1);
+      for (let j = 0; j < 4; j++){ const w = 4 - (j > 2 ? 1 : 0);
+        MR(t, 12 - w, 10 + j*2, w, 1, p.c3); MR(t, 13, 10 + j*2, w, 1, p.c2); } });
+    MCOUCHE(g, p.d, t => {                                                        // bras ballants
+      MR(t, 7 + (f?0:1), 10, 2, 7, p.c2); MR(t, 16 - (f?0:1), 10, 2, 7, p.c2); });
+    MCOUCHE(g, p.d, t => {                                                        // crane
+      MR(t, 9, 2, 7, 6, p.c3); MR(t, 10, 1, 5, 1, p.c3);
+      MR(t, 10, 4, 2, 2, p.d); MR(t, 14, 4, 2, 2, p.d);
+      MP(t, 10, 4, p.lueur); MP(t, 15, 4, p.lueur);
+      MR(t, 10, 7 + (f?1:0), 6, 1, p.c1);                                         // machoire
+      for (let i = 10; i < 16; i += 2) MP(t, i, 7 + (f?1:0), p.d); });
+  },
+  /* --- Grognard : orc trapu, epaules plus larges que hautes, hache basse. --- */
+  grognard(g, f, p){
+    MOMBRE(g, 12, 8, p);
+    MCOUCHE(g, p.d, t => {                                                        // jambes courtes
+      MR(t, 8 - (f?1:0), 17, 4, 4, p.c1); MR(t, 13 + (f?1:0), 17, 4, 4, p.c1);
+      MR(t, 8 - (f?1:0), 20, 4, 1, p.d); MR(t, 13 + (f?1:0), 20, 4, 1, p.d); });
+    MCOUCHE(g, p.d, t => { MCORPS(t, 6, 9, 13, 9, p);                             // torse large
+      MR(t, 6, 12, 13, 1, p.t2); MR(t, 10, 9, 5, 9, p.t1); MR(t, 10, 9, 1, 9, p.t2); });
+    MCOUCHE(g, p.d, t => {                                                        // hache
+      MR(t, 18 + (f?0:1), 7, 2, 12, p.c1);
+      MR(t, 16 + (f?0:1), 5, 6, 4, p.metal); MR(t, 16 + (f?0:1), 5, 6, 1, p.metalC);
+      MR(t, 21 + (f?0:1), 5, 1, 4, p.metalC); });
+    MCOUCHE(g, p.d, t => {                                                        // tete, defenses
+      MR(t, 9, 3, 7, 6, p.c2); MR(t, 10, 2, 5, 1, p.c3);
+      MR(t, 10, 5, 2, 2, p.d); MR(t, 14, 5, 2, 2, p.d);
+      MP(t, 10, 5, p.oeil); MP(t, 15, 5, p.oeil);
+      MP(t, 10, 8, p.metalC); MP(t, 15, 8, p.metalC);                             // defenses
+      MR(t, 8, 4, 1, 3, p.c1); MR(t, 16, 4, 1, 3, p.c1); });
+  },
+  /* --- Centaure : quatre pattes devant, buste humain dessus, arc en travers.
+     La seule silhouette large ET haute du catalogue. --- */
+  centaure(g, f, p){
+    MOMBRE(g, 12, 9, p);
+    MCOUCHE(g, p.d, t => {                                                        // quatre pattes
+      for (const [x, d] of [[6,0],[9,1],[14,1],[17,0]]){
+        MR(t, x, 16 + (f?d:1-d), 2, 5 - (f?d:1-d), p.c1);
+        MR(t, x, 20, 2, 1, p.d); } });
+    MCOUCHE(g, p.d, t => { MCORPS(t, 5, 11, 15, 6, p);                            // croupe
+      MR(t, 5, 11, 15, 1, p.c3);
+      for (let i = 6; i < 20; i += 4) MP(t, i, 14, p.crin); });
+    MCOUCHE(g, p.d, t => { MR(t, 18, 8, 2, 6, p.crin); MP(t, 20, 10, p.crin); });  // queue
+    MCOUCHE(g, p.d, t => {                                                        // buste et epaules
+      MR(t, 8, 6, 9, 2, p.peau);                                                  // epaules
+      MR(t, 10, 8, 5, 4, p.peau); MR(t, 10, 8, 1, 4, p.c2); MR(t, 14, 8, 1, 4, p.c1);
+      MR(t, 8, 8, 2, 4 + (f?1:0), p.peau); MR(t, 15, 8, 2, 4 + (f?0:1), p.peau); });
+    MCOUCHE(g, p.d, t => {                                                        // arc tenu de biais
+      for (let j = 0; j < 11; j++){ const dx = Math.round(2 * Math.sin(j / 10 * Math.PI));
+        MP(t, 4 - dx, 2 + j, p.c1); }
+      for (let j = 1; j < 11; j++) MP(t, 4, 2 + j, p.metal); });
+    MCOUCHE(g, p.d, t => { MR(t, 10, 2, 5, 4, p.peau);                            // tete
+      MR(t, 9, 1, 7, 2, p.crin); MP(t, 9, 3, p.crin); MP(t, 16, 3, p.crin);
+      MP(t, 11, 4, p.d); MP(t, 14, 4, p.d); MP(t, 11, 4, p.oeil); MP(t, 14, 4, p.oeil);
+      MR(t, 11, 5, 3, 1, p.c1); });
+  },
+  /* --- Colosse de pierre : bloc, pas de cou, veine bleue au milieu. --- */
+  colosse(g, f, p){
+    MOMBRE(g, 12, 9, p);
+    MCOUCHE(g, p.d, t => {                                                        // pieds massifs
+      MR(t, 6, 17, 5, 4, p.c1); MR(t, 14, 17, 5, 4, p.c1);
+      MR(t, 6, 20, 5, 1, p.d); MR(t, 14, 20, 5, 1, p.d); });
+    MCOUCHE(g, p.d, t => { MCORPS(t, 5, 5, 15, 13, p);                            // bloc
+      for (const [x, y, w, h] of [[6,7,4,3],[12,6,5,4],[7,12,5,4],[14,11,4,5]]){
+        MR(t, x, y, w, 1, p.c3); MR(t, x, y + h - 1, w, 1, p.d); }
+      MR(t, 11, 8, 2, 8, p.lueur); MP(t, 11, 10, p.c3); });                       // veine
+    MCOUCHE(g, p.d, t => {                                                        // bras-massues
+      MR(t, 1 + (f?0:1), 7, 4, 10, p.c2); MR(t, 19 - (f?0:1), 7, 4, 10, p.c2);
+      MR(t, 1 + (f?0:1), 15, 4, 2, p.c1); MR(t, 19 - (f?0:1), 15, 4, 2, p.c1); });
+    MCOUCHE(g, p.d, t => {                                                        // mousse au sommet
+      MR(t, 7, 3, 4, 2, p.mousse); MR(t, 14, 4, 3, 1, p.mousse);
+      MR(t, 9, 8, 2, 2, p.lueur); MR(t, 14, 8, 2, 2, p.lueur); });
+  },
+  /* --- Taurren : cornes horizontales tres larges, anneau au museau. --- */
+  taureau(g, f, p){
+    MOMBRE(g, 12, 8, p);
+    MCOUCHE(g, p.d, t => {                                                        // sabots
+      MR(t, 8 - (f?1:0), 17, 3, 4, p.c1); MR(t, 14 + (f?1:0), 17, 3, 4, p.c1);
+      MR(t, 8 - (f?1:0), 20, 3, 1, p.d); MR(t, 14 + (f?1:0), 20, 3, 1, p.d); });
+    MCOUCHE(g, p.d, t => { MCORPS(t, 6, 9, 13, 9, p);                             // torse
+      MR(t, 6, 9, 13, 1, p.c3); MR(t, 9, 12, 7, 1, p.c1); });
+    MCOUCHE(g, p.d, t => {                                                        // poings
+      MR(t, 3 + (f?0:1), 11, 3, 4, p.c2); MR(t, 18 - (f?0:1), 11, 3, 4, p.c2); });
+    MCOUCHE(g, p.d, t => { MR(t, 8, 3, 9, 6, p.c2); MR(t, 9, 2, 7, 1, p.c3);      // tete
+      MR(t, 10, 6, 5, 3, p.c1); MP(t, 12, 8, p.anneau); MP(t, 11, 8, p.anneau);
+      MR(t, 9, 4, 2, 2, p.d); MR(t, 14, 4, 2, 2, p.d);
+      MP(t, 9, 4, p.oeil); MP(t, 15, 4, p.oeil); });
+    MCOUCHE(g, p.d, t => {                                                        // cornes
+      for (let i = 0; i < 5; i++){
+        MP(t, 7 - i, 3 - (i > 2 ? 1 : 0), p.corne);
+        MP(t, 17 + i, 3 - (i > 2 ? 1 : 0), p.corne); }
+      MP(t, 2, 1, p.corne); MP(t, 21, 1, p.corne); });
+  },
+  /* --- Wendigo : long, decharne, bois de cerf, souffle de givre. --- */
+  wendigo(g, f, p){
+    MOMBRE(g, 12, 7, p);
+    MCOUCHE(g, p.d, t => {                                                        // longues jambes
+      MR(t, 9 - (f?1:0), 15, 2, 6, p.c1); MR(t, 14 + (f?1:0), 15, 2, 6, p.c1);
+      MR(t, 8 - (f?1:0), 20, 4, 1, p.c2); MR(t, 13 + (f?1:0), 20, 4, 1, p.c2); });
+    MCOUCHE(g, p.d, t => { MCORPS(t, 9, 8, 7, 8, p);                              // torse etroit
+      for (let j = 0; j < 3; j++) MR(t, 10, 9 + j*2, 5, 1, p.c3); });             // cotes
+    MCOUCHE(g, p.d, t => {                                                        // bras tres longs
+      MR(t, 6 + (f?0:1), 8, 2, 11, p.c2); MR(t, 17 - (f?0:1), 8, 2, 11, p.c2);
+      for (let i = 0; i < 3; i++){ MP(t, 5 + (f?0:1) + i, 19, p.corne);
+        MP(t, 17 - (f?0:1) + i, 19, p.corne); } });
+    MCOUCHE(g, p.d, t => { MR(t, 9, 3, 7, 5, p.c3); MR(t, 10, 7, 5, 2, p.c2);     // crane allonge
+      MR(t, 10, 5, 2, 2, p.d); MR(t, 14, 5, 2, 2, p.d);
+      MP(t, 10, 5, p.oeil); MP(t, 15, 5, p.oeil); });
+    MCOUCHE(g, p.d, t => {                                                        // bois
+      for (const s of [-1, 1]) for (let i = 0; i < 4; i++){
+        MP(t, 12 + s * (2 + i), 3 - i, p.corne);
+        if (i % 2) MP(t, 12 + s * (2 + i), 2 - i, p.corne); } });
+    MCOUCHE(g, p.d, t => { if (f){ MP(t, 12, 10, p.givre); MP(t, 11, 12, p.givre);
+      MP(t, 13, 13, p.givre); } });                                               // souffle
+  },
   /* --- Mouton : minuscule, comique, il ne fait peur a personne --- */
   mouton(g, f, p){
     MOMBRE(g, 12, 7, p);
@@ -356,6 +480,18 @@ const MONSTRES_ART = {
 };
 
 const PAL_MONSTRES = {
+  squelette:{d:'#101014', c1:'#8f8b7a', c2:'#c2bda6', c3:'#e6e2cc', oeil:'#7dff86',
+            lueur:'#7dff86', metal:'#6b6f78', sol:'#1e1e26'},
+  grognard:{d:'#0f1410', c1:'#3d5c2e', c2:'#5c8442', c3:'#7ba659', oeil:'#ffd76a',
+            metal:'#7d8496', metalC:'#c2c8d6', t1:'#8a3020', t2:'#5c1e12', sol:'#1f2a1c'},
+  centaure:{d:'#140f0c', c1:'#5c3a22', c2:'#82552f', c3:'#a87445', oeil:'#ffd76a',
+            peau:'#c08a5a', crin:'#2e1c10', metal:'#8a8f9c', sol:'#2a1c14'},
+  colosse: {d:'#0e1216', c1:'#39434c', c2:'#556270', c3:'#758494', lueur:'#6fe0ff',
+            mousse:'#3f6b46', sol:'#1c222a'},
+  taureau: {d:'#140e0a', c1:'#4a2f1c', c2:'#6e4728', c3:'#93643c', oeil:'#ff6a3a',
+            corne:'#ddd3b4', anneau:'#c8a33c', sol:'#281a10'},
+  wendigo: {d:'#0c1014', c1:'#4c5560', c2:'#6d7885', c3:'#93a0ad', oeil:'#a8f0ff',
+            corne:'#d8d2c0', givre:'#c8f0ff', sol:'#1a2028'},
   mouton:  {d:'#141018', c1:'#a8a2ae', c2:'#d8d4dc', c3:'#f2f0f4', t1:'#3a3440', t2:'#544c5c', oeil:'#f2f0f4', sol:'#2a2434'},
   loup:    {d:'#0d1218', c1:'#3a5570', c2:'#557a99', c3:'#7ea6c0', oeil:'#0d1218', lueur:'#8fe8ff', sol:'#1d2836'},
   acolyte: {d:'#120e1a', c1:'#382a52', c2:'#523c73', c3:'#6f5696', lueur:'#b98cff', sol:'#241c34'},
