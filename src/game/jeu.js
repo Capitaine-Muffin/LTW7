@@ -50,6 +50,17 @@ function ecartVisuel(m, l){
           dy: Math.round(long * ETAL * uy + trav * LARGE * ux)};
 }
 
+/* Les quatre etats, par ordre de priorite : un monstre etourdi ET gele se
+   dessine etourdi, c'est l'information la plus urgente pour le joueur. */
+const TEINTES_ETAT = {
+  etourdi:   {c:'#ffe14a', force:.50, pastille:'#ffe14a'},
+  lent:      {c:'#7fd8ff', force:.55, pastille:'#9fe4ff'},
+  poison:    {c:'#7ad04a', force:.45, pastille:'#8fd06a'},
+  vulnerable:{c:'#ff9a4a', force:.35, pastille:'#ff9a4a'}
+};
+const etatDominant = m => m.etourdi > 0 ? 'etourdi' : m.lent > 0 ? 'lent'
+                        : m.poisonReste > 0 ? 'poison' : m.vulnerable > 0 ? 'vulnerable' : null;
+
 /* ---- pre-rendu des sprites ---------------------------------------------- */
 function preparerSprites(){
   for (const cle of Object.keys(MONSTRES_ART)) for (const im of [0, 1]){
@@ -61,6 +72,21 @@ function preparerSprites(){
       const v = g[y][x]; if (!v) continue; c.fillStyle = v; c.fillRect(x, y, 1, 1);
     }
     cache['m:' + cle + ':' + im] = cv;
+    /* Une copie teintee par etat. Les pastilles disent QUELS effets portent,
+       mais de loin on ne les lit pas : c'est la couleur du monstre lui-meme
+       qui doit dire « celui-la est gele ». `source-atop` ne peint que les
+       pixels deja poses, donc la silhouette reste nette. */
+    for (const e in TEINTES_ETAT){
+      const tv = document.createElement('canvas');
+      tv.width = NM; tv.height = NM;
+      const tc = tv.getContext('2d');
+      tc.drawImage(cv, 0, 0);
+      tc.globalCompositeOperation = 'source-atop';
+      tc.globalAlpha = TEINTES_ETAT[e].force;
+      tc.fillStyle = TEINTES_ETAT[e].c;
+      tc.fillRect(0, 0, NM, NM);
+      cache['m:' + cle + ':' + im + ':' + e] = tv;
+    }
   }
   /* Une planche par tour ET par camp : 30 tours x 4 camps. Le pre-rendu se
      fait une fois au demarrage, le jeu ne dessine plus que des images. */
@@ -225,7 +251,14 @@ function dessinerJeu(){
        du haut de catalogue n'ont pas encore le leur — sans ce repli ils
        seraient purement invisibles. */
     const art = def.sprite || m.type;
-    const im = cache['m:' + art + ':' + (((etat.pas / 3) | 0) % 2)];
+    const gele = m.lent > 0 || m.etourdi > 0;
+    /* Un monstre ralenti marche moins vite : sa marche aussi. Un etourdi ne
+       marche plus du tout, son image se fige. */
+    const cadence = m.etourdi > 0 ? 0 : gele ? 6 : 3;
+    const image = cadence ? ((etat.pas / cadence) | 0) % 2 : 0;
+    const ec = etatDominant(m);
+    const im = cache['m:' + art + ':' + image + (ec ? ':' + ec : '')]
+            || cache['m:' + art + ':' + image];
     if (def.vol){                                   // ombre portee au sol, detachee
       c.fillStyle = 'rgba(0,0,0,.28)';
       c.beginPath(); c.ellipse(x, y + taille * .22, taille * .30, taille * .12, 0, 0, 7); c.fill();
@@ -244,10 +277,34 @@ function dessinerJeu(){
        etourdissement, vulnerabilite — qui n'apparaissaient nulle part : on
        voyait une tour tirer sans jamais savoir ce qu'elle faisait. */
     const etats = [];
-    if (m.etourdi > 0)   etats.push('#ffe14a');
-    if (m.lent > 0)      etats.push('#9fe4ff');
-    if (m.poisonReste>0) etats.push('#8fd06a');
-    if (m.vulnerable>0)  etats.push('#ff9a4a');
+    if (m.etourdi > 0)   etats.push(TEINTES_ETAT.etourdi.pastille);
+    if (m.lent > 0)      etats.push(TEINTES_ETAT.lent.pastille);
+    if (m.poisonReste>0) etats.push(TEINTES_ETAT.poison.pastille);
+    if (m.vulnerable>0)  etats.push(TEINTES_ETAT.vulnerable.pastille);
+    /* Des signes qui tournent : cristaux de givre au sol pour un ralenti,
+       etoiles au-dessus de la tete pour un etourdi. C'est ce qu'on voit du
+       coin de l'oeil quand on ne regarde pas le monstre en face. */
+    if (m.lent > 0){
+      c.fillStyle = TEINTES_ETAT.lent.pastille;
+      for (let k = 0; k < 3; k++){
+        const a = horloge / 620 + k * 2.094;
+        const cx = x + Math.cos(a) * taille * .40, cy = y + Math.sin(a) * taille * .17 + taille * .10;
+        const r = Math.max(2, taille * .09);
+        c.fillRect(Math.round(cx - r / 2), Math.round(cy - r), r, r * 2);
+        c.fillRect(Math.round(cx - r), Math.round(cy - r / 2), r * 2, r);
+      }
+    }
+    if (m.etourdi > 0){
+      c.fillStyle = TEINTES_ETAT.etourdi.pastille;
+      for (let k = 0; k < 3; k++){
+        const a = horloge / 260 + k * 2.094;
+        const cx = x + Math.cos(a) * taille * .32;
+        const cy = y - taille * .78 + vol + Math.sin(a) * taille * .10;
+        const r = Math.max(2, taille * .08);
+        c.fillRect(Math.round(cx - r / 2), Math.round(cy - r), r, r * 2);
+        c.fillRect(Math.round(cx - r), Math.round(cy - r / 2), r * 2, r);
+      }
+    }
     if (etats.length){
       const s = Math.max(3, Math.round(taille * .16));
       let px = x - (etats.length * (s + 1) - 1) / 2;

@@ -267,5 +267,57 @@ console.log('\nle journal raconte la partie');
   dire(env && env.de !== env.vers && env.monstre, 'un envoi dit qui, vers qui, et quoi');
 }
 
+/* Les effets speciaux des tours. Ils viennent des capacites lues dans
+   war3map.w3u — Afrb gel, ACbh etourdissement, Aspo poison, Acri affaiblissement,
+   Afae lucioles — et de la logique du JASS, pas des infobulles. */
+console.log('\nchaque famille de tour porte son effet');
+function poserEt(type){
+  const e = M.creerPartie({graine: 4, joueurs: 3});
+  const l = e.lignes[0];
+  l.or = 9e6;
+  for (const b in e.cfg.BRANCHES) l.branches[b] = true;
+  for (const k in e.cfg.TOURS) if (e.cfg.TOURS[k].feuille) l.feuilles[k] = true;
+  M.poserBatiment(e, l, 'guet', 4, 6);
+  const b = l.batiments[0];
+  b.type = type; b.pvMax = b.pv = e.cfg.TOURS[type].pv; b.recharge = 0;
+  M.faireApparaitre(e, l, 'colosse', 1);           // gros sac a PV, il survit
+  /* On observe sur toute la fenetre, pas au dernier pas : un etourdissement
+     dure moins longtemps que le rechargement de la tour qui le pose, donc
+     regarder l'instant final revient a jouer a pile ou face. */
+  const vu = {lent:0, etourdi:0, poison:0, poisonPct:0, vulnerable:0, pv:Infinity};
+  for (let i = 0; i < 60; i++){
+    M.avancer(e);
+    const m = l.monstres[0]; if (!m) break;
+    for (const k of ['lent','etourdi','poison','poisonPct','vulnerable'])
+      vu[k] = Math.max(vu[k], m[k] || 0);
+    vu.pv = Math.min(vu.pv, m.pv);
+  }
+  return vu;
+}
+dire(poserEt('glacier').lent > 0,       'Glacier : le froid ralentit');
+dire(poserEt('eauBenite').pv < 10000, 'Eau bénite : elle frappe fort');
+dire(poserEt('canonElec').etourdi > 0,  'Canon électrique : il étourdit');
+dire(poserEt('cloaque').poison > 0,     'Cloaque : il empoisonne');
+dire(poserEt('cloaque').lent > 0,       'Cloaque : et il ralentit aussi');
+dire(poserEt('damne').lent > 0,         'Tour damnée : l\'affaiblissement ralentit');
+dire(poserEt('lanterne').vulnerable > 0,'Lanterne : les lucioles rendent vulnérable');
+dire(poserEt('fosse').poisonPct > 0,    'Fosse septique : poison en pourcentage');
+dire(poserEt('puits').etourdi > 0,      'Puits de magma : il étourdit');
+{
+  const e = M.creerPartie({graine: 4, joueurs: 3});
+  const cfg = e.cfg;
+  /* Rayons a degats pleins releves dans la map (`ua1f`), en unites Warcraft. */
+  const attendus = {broyeur:200, barbecue:100, puits:100, boom:300, meteore:400,
+                    eauUltime:100, glaceUltime:200, fosse:100, champignon:250};
+  let bons = 0;
+  for (const k in attendus){
+    const voulu = Math.round(attendus[k] * 1000 / 128);
+    if (cfg.TOURS[k].zone === voulu) bons++;
+    else console.log(`    ${k} : ${cfg.TOURS[k].zone} au lieu de ${voulu}`);
+  }
+  dire(bons === Object.keys(attendus).length,
+    `les neuf rayons de zone valent ceux de la map (${bons}/9)`);
+}
+
 console.log(echecs ? `\n${echecs} echec(s)\n` : '\ntout passe\n');
 process.exit(echecs ? 1 : 0);

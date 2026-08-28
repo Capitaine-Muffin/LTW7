@@ -21,6 +21,12 @@ const BRANCHES = {
 };
 
 /* Tours. `vers` = les ameliorations proposees quand on appuie dessus. */
+/* Les rayons de zone viennent des champs d'arme de la map : `ua1f` est le
+   rayon a degats PLEINS, `ua1h` le rayon a degats moyens, `ua1q` le petit —
+   ils vont croissant. Notre moteur n'a qu'un rayon, on prend donc le rayon a
+   degats pleins : c'est le choix conservateur. Mes valeurs precedentes etaient
+   estimees et toutes trop petites (Attracteur 200 au lieu de 400, Champignon
+   150 au lieu de 250). */
 const TOURS = {
   //                       or    pv   deg  portee        cadence      vers
   guet:      {nom:'Guet',      or:10,  pv:100, deg:10,  p:portee(500), c:cadence(60),  vers:['pitie']},
@@ -29,18 +35,18 @@ const TOURS = {
   sang:      {nom:'Sang',      or:30,  pv:350, deg:35,  p:portee(150), c:cadence(100), vers:['broyeur','lame']},
   canon:     {nom:'Canon',     or:120, pv:200, deg:80,  p:portee(600), c:cadence(30),  zone:portee(90), vers:['ELEM']},
   socle:     {nom:'Socle',     or:120, pv:200, deg:25,  p:portee(700), c:cadence(200), vers:['ELEM']},
-  broyeur:   {nom:'Broyeur',   or:120, pv:200, deg:160, p:portee(150), c:cadence(12),  zone:portee(120), vers:['ELEM']},
+  broyeur:   {nom:'Broyeur',   or:120, pv:200, deg:160, p:portee(150), c:cadence(12),  zone:portee(200), vers:['ELEM']},
   lame:      {nom:'Lame',      or:120, pv:200, deg:50,  p:portee(150), c:cadence(200), vers:['ELEM']},
   elementaire:{nom:'Élémentaire',or:200,pv:250, deg:75,  p:portee(700), c:cadence(60),  vers:['ELEM']},
 
   /* Les cinq elementaires coutent 0 or : c'est le "premier upgrade gratuit". */
-  barbecue:    {nom:'Brasier',   branche:'feu',      or:0, pv:300, deg:100,p:portee(300), c:cadence(30), zone:portee(80), vers:['puits']},
+  barbecue:    {nom:'Brasier',   branche:'feu',      or:0, pv:300, deg:100,p:portee(300), c:cadence(30), zone:portee(100), vers:['puits']},
   glacier:     {nom:'Glacier',   branche:'froid',    or:0, pv:300, deg:75, p:portee(700), c:cadence(60), ralentit:35, vers:['eauBenite']},
   courtCircuit:{nom:'Arc',       branche:'foudre',   or:0, pv:300, deg:100,p:portee(300), c:cadence(60), vers:['canonElec']},
   cloaque:     {nom:'Cloaque',   branche:'tenebres', or:0, pv:300, deg:60, p:portee(700), c:cadence(60), poison:40, ralentit:25, vers:['damne']},
   oiseau:      {nom:'Rapace',    branche:'lumiere',  or:0, pv:300, deg:250,p:portee(500), c:cadence(24), vers:['lanterne']},
 
-  puits:     {nom:'Puits de magma', or:800, pv:1000, deg:250, p:portee(500), c:cadence(90),  zone:portee(80), etourdit:8,  vers:['boom','meteore']},
+  puits:     {nom:'Puits de magma', or:800, pv:1000, deg:250, p:portee(500), c:cadence(90),  zone:portee(100), etourdit:8,  vers:['boom','meteore']},
   eauBenite: {nom:'Eau bénite',     or:800, pv:1000, deg:300, p:portee(700), c:cadence(60),  vers:['eauUltime','glaceUltime']},
   canonElec: {nom:'Canon électrique',or:800,pv:1000, deg:150, p:portee(500), c:cadence(120), etourdit:5,  vers:['generateur','condensateur']},
   /* La Tour damnee lance « cripple » dans la map : un ralentissement, pas des
@@ -49,10 +55,10 @@ const TOURS = {
   damne:     {nom:'Tour damnée',    or:800, pv:1000, deg:250, p:portee(700), c:cadence(60),  ralentit:30, vers:['mort','fosse']},
   lanterne:  {nom:'Lanterne sacrée',or:800, pv:1000, deg:300, p:portee(600), c:cadence(60),  vulnerable:25, vers:['champignon','teleporteur']},
 
-  boom:        {nom:'Tour BOUM',    feuille:'feu', or:300, pv:5000, deg:1000,p:portee(150), c:cadence(60), zone:portee(220), usageUnique:true},
-  meteore:     {nom:'Attracteur',   feuille:'feu', or:4000,pv:3000, deg:1000,p:portee(1000),c:cadence(20), zone:portee(200)},
-  eauUltime:   {nom:'Eau ultime',   feuille:'froid', or:3000,pv:2000, deg:600, p:portee(700), c:cadence(60), zone:portee(70)},
-  glaceUltime: {nom:'Glace ultime', feuille:'froid', or:4000,pv:2500, deg:200, p:portee(700), c:cadence(60), zone:portee(150), ralentit:40},
+  boom:        {nom:'Tour BOUM',    feuille:'feu', or:300, pv:5000, deg:1000,p:portee(150), c:cadence(60), zone:portee(300), usageUnique:true},
+  meteore:     {nom:'Attracteur',   feuille:'feu', or:4000,pv:3000, deg:1000,p:portee(1000),c:cadence(20), zone:portee(400)},
+  eauUltime:   {nom:'Eau ultime',   feuille:'froid', or:3000,pv:2000, deg:600, p:portee(700), c:cadence(60), zone:portee(100)},
+  glaceUltime: {nom:'Glace ultime', feuille:'froid', or:4000,pv:2500, deg:200, p:portee(700), c:cadence(60), zone:portee(200), ralentit:40},
   generateur:  {nom:'Générateur',   feuille:'foudre', or:4000,pv:2500, deg:250, p:portee(700), c:cadence(300)},
   /* Le Condensateur multiplie la vie courante par 0,8 : il ne tue JAMAIS, il
      ne fait que ramener. La Mort, elle, tue net, quels que soient les points
@@ -61,9 +67,9 @@ const TOURS = {
   mort:        {nom:'La Mort',      feuille:'tenebres', or:300, pv:5000, tue:true, p:portee(700),c:cadence(60), usageUnique:true},
   /* La Fosse retire 5 % de la vie COURANTE toutes les 5 s pendant 30 s : un
      poison en pourcentage, donc redoutable sur les gros monstres. */
-  fosse:       {nom:'Fosse septique',feuille:'tenebres', or:4000,pv:3000,deg:350, p:portee(700), c:cadence(30), zone:portee(70),
+  fosse:       {nom:'Fosse septique',feuille:'tenebres', or:4000,pv:3000,deg:350, p:portee(700), c:cadence(30), zone:portee(100),
                 poisonPct:5, poisonDuree:300, poisonPas:50},
-  champignon:  {nom:'Champignon',   feuille:'lumiere', or:4000,pv:1800, deg:500, p:portee(700), c:cadence(30), zone:portee(150)},
+  champignon:  {nom:'Champignon',   feuille:'lumiere', or:4000,pv:1800, deg:500, p:portee(700), c:cadence(30), zone:portee(250)},
   teleporteur: {nom:'Téléporteur',  feuille:'lumiere', or:4000,pv:2500, deg:0,   p:portee(700), c:cadence(2),  teleporte:true}
 };
 

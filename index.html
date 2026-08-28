@@ -1339,6 +1339,12 @@ const BRANCHES = {
 };
 
 /* Tours. `vers` = les ameliorations proposees quand on appuie dessus. */
+/* Les rayons de zone viennent des champs d'arme de la map : `ua1f` est le
+   rayon a degats PLEINS, `ua1h` le rayon a degats moyens, `ua1q` le petit —
+   ils vont croissant. Notre moteur n'a qu'un rayon, on prend donc le rayon a
+   degats pleins : c'est le choix conservateur. Mes valeurs precedentes etaient
+   estimees et toutes trop petites (Attracteur 200 au lieu de 400, Champignon
+   150 au lieu de 250). */
 const TOURS = {
   //                       or    pv   deg  portee        cadence      vers
   guet:      {nom:'Guet',      or:10,  pv:100, deg:10,  p:portee(500), c:cadence(60),  vers:['pitie']},
@@ -1347,18 +1353,18 @@ const TOURS = {
   sang:      {nom:'Sang',      or:30,  pv:350, deg:35,  p:portee(150), c:cadence(100), vers:['broyeur','lame']},
   canon:     {nom:'Canon',     or:120, pv:200, deg:80,  p:portee(600), c:cadence(30),  zone:portee(90), vers:['ELEM']},
   socle:     {nom:'Socle',     or:120, pv:200, deg:25,  p:portee(700), c:cadence(200), vers:['ELEM']},
-  broyeur:   {nom:'Broyeur',   or:120, pv:200, deg:160, p:portee(150), c:cadence(12),  zone:portee(120), vers:['ELEM']},
+  broyeur:   {nom:'Broyeur',   or:120, pv:200, deg:160, p:portee(150), c:cadence(12),  zone:portee(200), vers:['ELEM']},
   lame:      {nom:'Lame',      or:120, pv:200, deg:50,  p:portee(150), c:cadence(200), vers:['ELEM']},
   elementaire:{nom:'Élémentaire',or:200,pv:250, deg:75,  p:portee(700), c:cadence(60),  vers:['ELEM']},
 
   /* Les cinq elementaires coutent 0 or : c'est le "premier upgrade gratuit". */
-  barbecue:    {nom:'Brasier',   branche:'feu',      or:0, pv:300, deg:100,p:portee(300), c:cadence(30), zone:portee(80), vers:['puits']},
+  barbecue:    {nom:'Brasier',   branche:'feu',      or:0, pv:300, deg:100,p:portee(300), c:cadence(30), zone:portee(100), vers:['puits']},
   glacier:     {nom:'Glacier',   branche:'froid',    or:0, pv:300, deg:75, p:portee(700), c:cadence(60), ralentit:35, vers:['eauBenite']},
   courtCircuit:{nom:'Arc',       branche:'foudre',   or:0, pv:300, deg:100,p:portee(300), c:cadence(60), vers:['canonElec']},
   cloaque:     {nom:'Cloaque',   branche:'tenebres', or:0, pv:300, deg:60, p:portee(700), c:cadence(60), poison:40, ralentit:25, vers:['damne']},
   oiseau:      {nom:'Rapace',    branche:'lumiere',  or:0, pv:300, deg:250,p:portee(500), c:cadence(24), vers:['lanterne']},
 
-  puits:     {nom:'Puits de magma', or:800, pv:1000, deg:250, p:portee(500), c:cadence(90),  zone:portee(80), etourdit:8,  vers:['boom','meteore']},
+  puits:     {nom:'Puits de magma', or:800, pv:1000, deg:250, p:portee(500), c:cadence(90),  zone:portee(100), etourdit:8,  vers:['boom','meteore']},
   eauBenite: {nom:'Eau bénite',     or:800, pv:1000, deg:300, p:portee(700), c:cadence(60),  vers:['eauUltime','glaceUltime']},
   canonElec: {nom:'Canon électrique',or:800,pv:1000, deg:150, p:portee(500), c:cadence(120), etourdit:5,  vers:['generateur','condensateur']},
   /* La Tour damnee lance « cripple » dans la map : un ralentissement, pas des
@@ -1367,10 +1373,10 @@ const TOURS = {
   damne:     {nom:'Tour damnée',    or:800, pv:1000, deg:250, p:portee(700), c:cadence(60),  ralentit:30, vers:['mort','fosse']},
   lanterne:  {nom:'Lanterne sacrée',or:800, pv:1000, deg:300, p:portee(600), c:cadence(60),  vulnerable:25, vers:['champignon','teleporteur']},
 
-  boom:        {nom:'Tour BOUM',    feuille:'feu', or:300, pv:5000, deg:1000,p:portee(150), c:cadence(60), zone:portee(220), usageUnique:true},
-  meteore:     {nom:'Attracteur',   feuille:'feu', or:4000,pv:3000, deg:1000,p:portee(1000),c:cadence(20), zone:portee(200)},
-  eauUltime:   {nom:'Eau ultime',   feuille:'froid', or:3000,pv:2000, deg:600, p:portee(700), c:cadence(60), zone:portee(70)},
-  glaceUltime: {nom:'Glace ultime', feuille:'froid', or:4000,pv:2500, deg:200, p:portee(700), c:cadence(60), zone:portee(150), ralentit:40},
+  boom:        {nom:'Tour BOUM',    feuille:'feu', or:300, pv:5000, deg:1000,p:portee(150), c:cadence(60), zone:portee(300), usageUnique:true},
+  meteore:     {nom:'Attracteur',   feuille:'feu', or:4000,pv:3000, deg:1000,p:portee(1000),c:cadence(20), zone:portee(400)},
+  eauUltime:   {nom:'Eau ultime',   feuille:'froid', or:3000,pv:2000, deg:600, p:portee(700), c:cadence(60), zone:portee(100)},
+  glaceUltime: {nom:'Glace ultime', feuille:'froid', or:4000,pv:2500, deg:200, p:portee(700), c:cadence(60), zone:portee(200), ralentit:40},
   generateur:  {nom:'Générateur',   feuille:'foudre', or:4000,pv:2500, deg:250, p:portee(700), c:cadence(300)},
   /* Le Condensateur multiplie la vie courante par 0,8 : il ne tue JAMAIS, il
      ne fait que ramener. La Mort, elle, tue net, quels que soient les points
@@ -1379,9 +1385,9 @@ const TOURS = {
   mort:        {nom:'La Mort',      feuille:'tenebres', or:300, pv:5000, tue:true, p:portee(700),c:cadence(60), usageUnique:true},
   /* La Fosse retire 5 % de la vie COURANTE toutes les 5 s pendant 30 s : un
      poison en pourcentage, donc redoutable sur les gros monstres. */
-  fosse:       {nom:'Fosse septique',feuille:'tenebres', or:4000,pv:3000,deg:350, p:portee(700), c:cadence(30), zone:portee(70),
+  fosse:       {nom:'Fosse septique',feuille:'tenebres', or:4000,pv:3000,deg:350, p:portee(700), c:cadence(30), zone:portee(100),
                 poisonPct:5, poisonDuree:300, poisonPas:50},
-  champignon:  {nom:'Champignon',   feuille:'lumiere', or:4000,pv:1800, deg:500, p:portee(700), c:cadence(30), zone:portee(150)},
+  champignon:  {nom:'Champignon',   feuille:'lumiere', or:4000,pv:1800, deg:500, p:portee(700), c:cadence(30), zone:portee(250)},
   teleporteur: {nom:'Téléporteur',  feuille:'lumiere', or:4000,pv:2500, deg:0,   p:portee(700), c:cadence(2),  teleporte:true}
 };
 
@@ -2948,6 +2954,17 @@ function ecartVisuel(m, l){
           dy: Math.round(long * ETAL * uy + trav * LARGE * ux)};
 }
 
+/* Les quatre etats, par ordre de priorite : un monstre etourdi ET gele se
+   dessine etourdi, c'est l'information la plus urgente pour le joueur. */
+const TEINTES_ETAT = {
+  etourdi:   {c:'#ffe14a', force:.50, pastille:'#ffe14a'},
+  lent:      {c:'#7fd8ff', force:.55, pastille:'#9fe4ff'},
+  poison:    {c:'#7ad04a', force:.45, pastille:'#8fd06a'},
+  vulnerable:{c:'#ff9a4a', force:.35, pastille:'#ff9a4a'}
+};
+const etatDominant = m => m.etourdi > 0 ? 'etourdi' : m.lent > 0 ? 'lent'
+                        : m.poisonReste > 0 ? 'poison' : m.vulnerable > 0 ? 'vulnerable' : null;
+
 /* ---- pre-rendu des sprites ---------------------------------------------- */
 function preparerSprites(){
   for (const cle of Object.keys(MONSTRES_ART)) for (const im of [0, 1]){
@@ -2959,6 +2976,21 @@ function preparerSprites(){
       const v = g[y][x]; if (!v) continue; c.fillStyle = v; c.fillRect(x, y, 1, 1);
     }
     cache['m:' + cle + ':' + im] = cv;
+    /* Une copie teintee par etat. Les pastilles disent QUELS effets portent,
+       mais de loin on ne les lit pas : c'est la couleur du monstre lui-meme
+       qui doit dire « celui-la est gele ». `source-atop` ne peint que les
+       pixels deja poses, donc la silhouette reste nette. */
+    for (const e in TEINTES_ETAT){
+      const tv = document.createElement('canvas');
+      tv.width = NM; tv.height = NM;
+      const tc = tv.getContext('2d');
+      tc.drawImage(cv, 0, 0);
+      tc.globalCompositeOperation = 'source-atop';
+      tc.globalAlpha = TEINTES_ETAT[e].force;
+      tc.fillStyle = TEINTES_ETAT[e].c;
+      tc.fillRect(0, 0, NM, NM);
+      cache['m:' + cle + ':' + im + ':' + e] = tv;
+    }
   }
   /* Une planche par tour ET par camp : 30 tours x 4 camps. Le pre-rendu se
      fait une fois au demarrage, le jeu ne dessine plus que des images. */
@@ -3123,7 +3155,14 @@ function dessinerJeu(){
        du haut de catalogue n'ont pas encore le leur — sans ce repli ils
        seraient purement invisibles. */
     const art = def.sprite || m.type;
-    const im = cache['m:' + art + ':' + (((etat.pas / 3) | 0) % 2)];
+    const gele = m.lent > 0 || m.etourdi > 0;
+    /* Un monstre ralenti marche moins vite : sa marche aussi. Un etourdi ne
+       marche plus du tout, son image se fige. */
+    const cadence = m.etourdi > 0 ? 0 : gele ? 6 : 3;
+    const image = cadence ? ((etat.pas / cadence) | 0) % 2 : 0;
+    const ec = etatDominant(m);
+    const im = cache['m:' + art + ':' + image + (ec ? ':' + ec : '')]
+            || cache['m:' + art + ':' + image];
     if (def.vol){                                   // ombre portee au sol, detachee
       c.fillStyle = 'rgba(0,0,0,.28)';
       c.beginPath(); c.ellipse(x, y + taille * .22, taille * .30, taille * .12, 0, 0, 7); c.fill();
@@ -3142,10 +3181,34 @@ function dessinerJeu(){
        etourdissement, vulnerabilite — qui n'apparaissaient nulle part : on
        voyait une tour tirer sans jamais savoir ce qu'elle faisait. */
     const etats = [];
-    if (m.etourdi > 0)   etats.push('#ffe14a');
-    if (m.lent > 0)      etats.push('#9fe4ff');
-    if (m.poisonReste>0) etats.push('#8fd06a');
-    if (m.vulnerable>0)  etats.push('#ff9a4a');
+    if (m.etourdi > 0)   etats.push(TEINTES_ETAT.etourdi.pastille);
+    if (m.lent > 0)      etats.push(TEINTES_ETAT.lent.pastille);
+    if (m.poisonReste>0) etats.push(TEINTES_ETAT.poison.pastille);
+    if (m.vulnerable>0)  etats.push(TEINTES_ETAT.vulnerable.pastille);
+    /* Des signes qui tournent : cristaux de givre au sol pour un ralenti,
+       etoiles au-dessus de la tete pour un etourdi. C'est ce qu'on voit du
+       coin de l'oeil quand on ne regarde pas le monstre en face. */
+    if (m.lent > 0){
+      c.fillStyle = TEINTES_ETAT.lent.pastille;
+      for (let k = 0; k < 3; k++){
+        const a = horloge / 620 + k * 2.094;
+        const cx = x + Math.cos(a) * taille * .40, cy = y + Math.sin(a) * taille * .17 + taille * .10;
+        const r = Math.max(2, taille * .09);
+        c.fillRect(Math.round(cx - r / 2), Math.round(cy - r), r, r * 2);
+        c.fillRect(Math.round(cx - r), Math.round(cy - r / 2), r * 2, r);
+      }
+    }
+    if (m.etourdi > 0){
+      c.fillStyle = TEINTES_ETAT.etourdi.pastille;
+      for (let k = 0; k < 3; k++){
+        const a = horloge / 260 + k * 2.094;
+        const cx = x + Math.cos(a) * taille * .32;
+        const cy = y - taille * .78 + vol + Math.sin(a) * taille * .10;
+        const r = Math.max(2, taille * .08);
+        c.fillRect(Math.round(cx - r / 2), Math.round(cy - r), r, r * 2);
+        c.fillRect(Math.round(cx - r), Math.round(cy - r / 2), r * 2, r);
+      }
+    }
     if (etats.length){
       const s = Math.max(3, Math.round(taille * .16));
       let px = x - (etats.length * (s + 1) - 1) / 2;

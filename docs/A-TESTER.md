@@ -8,6 +8,21 @@ Le prototype expose ses réglages derrière le **⚙**. L'écran de fin récapit
 configuration exacte de la partie — **c'est ce récapitulatif qu'il faut me
 recopier**, sinon « c'est trop dur » n'est pas exploitable.
 
+## Les effets des tours, et comment on les voit
+
+Cinq familles portent un effet en plus des dégâts, tous relevés dans les
+capacités de la map :
+
+| Effet | Qui le pose | Ce que tu vois |
+|---|---|---|
+| **Gel** | Glacier, Glace ultime, Cloaque, Tour damnée | le monstre vire au **bleu**, sa marche ralentit, des cristaux tournent à ses pieds |
+| **Étourdissement** | Puits de magma, Canon électrique | il vire au **jaune**, son image se **fige**, des étoiles tournent au-dessus |
+| **Poison** | Cloaque, Fosse septique | il vire au **vert** |
+| **Vulnérabilité** | Lanterne sacrée | il vire à l'**orange** et prend plus de dégâts |
+
+Les pastilles au-dessus de la barre de vie disent lesquels il porte quand il y
+en a plusieurs ; la teinte du monstre montre le plus urgent.
+
 ## Le son
 
 Tout est synthétisé — aucun fichier, rien de plus à télécharger. Une signature

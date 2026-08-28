@@ -189,6 +189,46 @@ de skill que le Contrôleur existe pour protéger.
 
 ---
 
+## 5 sexies. Les effets spéciaux et les rayons de zone, champ par champ
+
+Relevé dans `war3map.w3u`, pas dans les infobulles.
+
+**Les capacités** (`uabi`) :
+
+| Tour | Capacité | Ce que c'est | Chez nous |
+|---|---|---|---|
+| Ice Cream Merchant | `Afrb` | attaque de givre — ralentit | `ralentit:35` |
+| Ultimate Ice Tower | `Afrb` | idem | `ralentit:40` |
+| Electric Canon | `ACbh` | *Bash* — étourdissement | `etourdit:5` |
+| Lightning Generator | `Alit` | attaque de foudre | dégâts purs |
+| Magma Well | `Awfb` | projectile enflammé, étourdit | `etourdit:8` |
+| Never Been Cleaned WC | `Aspo` | poison | `poison:40` + `ralentit:25` |
+| Damned Tower | `Acri` | *Cripple* — affaiblissement | `ralentit:30` |
+| Holy Lantern | `Afae` | *Faerie Fire* — réduit l'armure | `vulnerable:25` |
+
+⚠️ Le `Acri` de la Tour damnée est un **ralentissement**, pas un surcroît de
+dégâts : c'est l'erreur que faisaient les guides.
+
+**Les rayons de zone** (champs d'arme). Trois rayons croissants : `ua1f` à
+dégâts pleins, `ua1h` à dégâts moyens, `ua1q` à petits dégâts.
+
+| Tour | Pleins | Moyens | Petits |
+|---|---:|---:|---:|
+| Crusher (Broyeur) | 200 | 200 | 200 |
+| Barbecue · Magma Well · Septic Tank | 100 | 125 | 150 |
+| Ultimate Water | 100 | 125 | 150 |
+| Ultimate Ice | 200 | 300 | 400 |
+| Enchanted Mushroom | 250 | 350 | 450 |
+| BOOM Tower | 300 | 450 | 600 |
+| Meteor Attractor | 400 | 600 | 800 |
+| Anti Wall Machine | 200 | 200 | 200 |
+
+> Notre moteur n'a qu'un rayon : on prend celui à **dégâts pleins**, le choix
+> conservateur. Mes valeurs précédentes étaient estimées et toutes trop
+> petites — Attracteur 200 au lieu de 400, Champignon 150 au lieu de 250.
+
+---
+
 ## 5 ter. Le catalogue n'est pas un menu, c'est une chronologie
 
 **La trouvaille la plus importante après l'Anti Wall Machine**, et elle était
