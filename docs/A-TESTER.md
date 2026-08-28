@@ -8,6 +8,17 @@ Le prototype expose ses réglages derrière le **⚙**. L'écran de fin récapit
 configuration exacte de la partie — **c'est ce récapitulatif qu'il faut me
 recopier**, sinon « c'est trop dur » n'est pas exploitable.
 
+## Le son
+
+Tout est synthétisé — aucun fichier, rien de plus à télécharger. Une signature
+par famille de tour : le sifflement de la flèche, le dard plus sec, le coup
+sourd du mortier, le souffle du feu, le cristal du givre, la décharge, l'accord
+du prisme. Le bouton **♪** du bandeau coupe le son, et ce choix est retenu.
+
+Le contexte audio ne peut naître que d'un geste : c'est **Jouer** qui l'allume.
+Si tu n'entends rien au premier chargement, c'est que tu as ouvert la page sans
+cliquer.
+
 ## Les commandes
 
 | Geste | Effet |
@@ -16,6 +27,8 @@ recopier**, sinon « c'est trop dur » n'est pas exploitable.
 | **Appui** sur une tour posée | la sélectionner : améliorations et revente |
 | **Glissement latéral** sur le plateau | passer à la ligne voisine, dans un sens ou dans l'autre |
 | Onglets du haut | même chose, en accès direct |
+| Chevron **▾** à droite des onglets | le tableau de bord : vies, revenu, tours, et ce que chacun t'a envoyé |
+| **♪** et **⚙** | couper le son · revenir aux réglages (la partie se met en pause) |
 
 Le glissement ne pose jamais rien : la pose part au relâchement du doigt, et
 seulement si le doigt n'a pas bougé.
