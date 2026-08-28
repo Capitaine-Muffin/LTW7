@@ -17,9 +17,10 @@ function effet(type, x, y, opts){                  // x, y en milli-cases
 function collecterEffets(etat, ligne){
   for (const e of etat.evenements){
     if (e.ligne !== ligne) continue;
-    if (e.t === 'mort')      effet('bouffee', e.x, e.y, {ech: e.ech, c: couleurJoueur(e.de)});
-    else if (e.t === 'vol')  effet('vol', 0, 0, {c: couleurJoueur(e.de)});
-    else if (e.t === 'vaporise') effet('vapeur', e.x, e.y, {zone: e.zone});
+    if (e.t === 'mort'){ effet('bouffee', e.x, e.y, {ech: e.ech, c: couleurJoueur(e.de)});
+                         jouerSon('mort'); }
+    else if (e.t === 'vol'){ effet('vol', 0, 0, {c: couleurJoueur(e.de)}); jouerSon('vol'); }
+    else if (e.t === 'vaporise'){ effet('vapeur', e.x, e.y, {zone: e.zone}); jouerSon('vaporise'); }
   }
 }
 

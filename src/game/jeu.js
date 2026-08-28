@@ -461,6 +461,7 @@ function finir(){
   if (!d.hidden) return;
   d.hidden = false;
   const gagne = etat.vainqueur === etat.moi;
+  jouerSon(gagne ? 'victoire' : 'defaite');
   const cfg = etat.cfg, prof = cfg.PROFILS[etat.profil], diff = cfg.DIFFICULTES[etat.difficulte];
   const mort = etat.journal.filter(e => e.type === 'mort');
   const premiere = mort.length ? Math.floor(mort[0].pas / 10) + ' s' : '—';
@@ -560,6 +561,7 @@ function brancher(){
     if (enMain){
       if (poserBatiment(etat, l, enMain, p.x, p.y)){
         effet('poussiere', (p.x + .5) * etat.cfg.MILLI, (p.y + .5) * etat.cfg.MILLI, {});
+        jouerSon('pose');
         if (l.or < etat.cfg.TOURS[enMain].or) enMain = null;   // plus les moyens : on lache
       }
       panneau(); return;
@@ -584,15 +586,17 @@ function brancher(){
     const p = e.target.closest('[data-poser]');
     if (p){ enMain = (enMain === p.dataset.poser) ? null : p.dataset.poser; panneau(); return; }
     const v = e.target.closest('[data-envoyer]');
-    if (v){ envoyer(etat, l, v.dataset.envoyer); panneau(); return; }
+    if (v){ if (envoyer(etat, l, v.dataset.envoyer)) jouerSon('envoi'); panneau(); return; }
     const t = e.target.closest('[data-branche]');
-    if (t){ acheterBranche(etat, l, t.dataset.branche); panneau(); return; }
+    if (t){ if (acheterBranche(etat, l, t.dataset.branche)) jouerSon('techno'); panneau(); return; }
     const f = e.target.closest('[data-feuille]');
-    if (f){ acheterFeuille(etat, l, f.dataset.feuille); panneau(); return; }
+    if (f){ if (acheterFeuille(etat, l, f.dataset.feuille)) jouerSon('techno'); panneau(); return; }
     const u = e.target.closest('[data-up]');
-    if (u && selection){ ameliorer(etat, l, selection, u.dataset.up); panneau(); return; }
+    if (u && selection){ if (ameliorer(etat, l, selection, u.dataset.up)) jouerSon('pose');
+      panneau(); return; }
     if (e.target.closest('[data-vendre]') && selection){
       effet('vente', (selection.x + .5) * etat.cfg.MILLI, (selection.y + .5) * etat.cfg.MILLI, {});
+      jouerSon('vente');
       vendre(etat, l, selection); selection = null; panneau(); }
   });
   document.getElementById('lignes').addEventListener('click', e => {
@@ -662,7 +666,13 @@ window.addEventListener('DOMContentLoaded', () => {
   preparerSprites();
   brancher();
   lireReglages();
-  document.getElementById('jouer').onclick = () => { demarrer(false); fermerAccueil(); };
+  /* Le contexte audio ne peut naitre que d'un geste : le bouton Jouer est le
+     premier, et c'est exactement le bon endroit. */
+  document.addEventListener('pointerdown', reveillerSon, {once: true});
+  const btnSon = document.getElementById('sonBtn');
+  btnSon.dataset.coupe = lireSon() ? '0' : '1';
+  btnSon.onclick = () => { btnSon.dataset.coupe = basculerSon() ? '0' : '1'; };
+  document.getElementById('jouer').onclick = () => { reveillerSon(); demarrer(false); fermerAccueil(); };
   document.getElementById('memeGraine').onclick = () => { demarrer(true); fermerAccueil(); };
   document.getElementById('reprendre').onclick = fermerAccueil;
   document.getElementById('ouvrirReglages').onclick = () =>

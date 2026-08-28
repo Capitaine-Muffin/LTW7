@@ -34,6 +34,7 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
 #jaugeRevenu{height:100%;background:var(--vert);width:0}
 #haut button{background:var(--bord);color:var(--encre);border:0;border-radius:7px;
   padding:8px 11px;font-size:14px;font-weight:700;cursor:pointer}
+#sonBtn[data-coupe="1"]{color:var(--doux);opacity:.55;text-decoration:line-through}
 #lignes{display:flex;gap:5px;overflow-x:auto;padding:6px 8px;background:#191627;
   border-bottom:1px solid var(--bord)}
 .ong{flex:0 0 auto;background:transparent;border:1px solid var(--bord);border-radius:8px;
@@ -146,6 +147,7 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   <div class="stat"><b id="minuteur">0 s</b><span>versement</span></div>
   <div id="jauge"><div id="jaugeRevenu"></div></div>
   <button id="vitesse">×1</button>
+  <button id="sonBtn" title="Couper le son">♪</button>
   <button id="ouvrirReglages" title="Réglages">⚙</button>
 </div>
 <div id="accueil">
