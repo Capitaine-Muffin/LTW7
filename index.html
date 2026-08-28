@@ -840,6 +840,19 @@ const MONSTRES = {
             dispo:330, stock:[15, 5], siege:{deg:47, portee:portee(150), cadence:cadence(60)}},
   banshee: {nom:'Banshee',  or:20000,revenu:1700,pv:60000,v:vitesse(300), vol:true, ech:0.76,
             dispo:390, stock:[20, 5]},
+  /* Le haut du catalogue. Il manquait, et c'est ce qui rendait la defense
+     imbattable en fin de partie : mes monstres plafonnaient a 60 000 PV alors
+     qu'une ligne bien montee inflige plus de 180 000 degats sur un trajet. */
+  infernal:{nom:'Infernal',  or:40000, revenu:3000, pv:350000, v:vitesse(270), ech:0.90,
+            dispo:450, stock:[10, 7], sprite:'golem'},
+  spectre: {nom:'Spectre de givre', or:50000, revenu:3300, pv:110000, v:vitesse(350), ech:0.78,
+            dispo:450, stock:[20, 5], sprite:'ombre'},
+  wyrm:    {nom:'Wyrm de givre', or:60000, revenu:4000, pv:120000, v:vitesse(300), vol:true,
+            ech:0.86, dispo:480, stock:[10, 10], sprite:'banshee'},
+  elementaire:{nom:'Élémentaire d\'eau', or:80000, revenu:4300, pv:150000, v:vitesse(270),
+            ech:0.94, dispo:510, stock:[10, 10], sprite:'golem'},
+  loupOmbre:{nom:'Loup d\'ombre', or:100000, revenu:6000, pv:200000, v:vitesse(300), ech:0.88,
+            dispo:700, stock:[10, 10], sprite:'loup'},
 
   /* --- Les briseurs ---------------------------------------------------------
      Ils ne cherchent pas a passer : ils viennent casser les tours. Ils ne
@@ -867,12 +880,23 @@ const MONSTRES = {
             siege:{deg:900, portee:portee(300), cadence:cadence(30), zone:portee(180)}}
 };
 
-/* `temps` comprime la chronologie de deblocage sans en changer la forme :
-   c'est le meme principe que pour la courbe de couts. Classique = la map. */
+/* Les profils raccourcissent la partie par les VIES et par la chronologie de
+   deblocage (`temps`), pas en gonflant l'economie.
+
+   Le versement est le battement du jeu : c'est le moment ou l'or tombe et ou il
+   faut choisir entre une tour et un envoi. Sous cinq secondes on n'a plus le
+   temps de regarder sa ligne, et raccourcir l'intervalle sans toucher aux couts
+   ne rend pas la partie plus courte — ca rend le joueur plus riche. Une
+   premiere version faisait d'Eclair une partie 4,8 fois plus riche par seconde
+   que Classique, ce qui changeait le sens de toute la grille de prix.
+
+   Ici l'intervalle ne descend jamais sous 5 s et l'or par seconde reste dans un
+   rapport de deux, au lieu de cinq. */
 const PROFILS = {
-  ECLAIR:    {nom:'Éclair',    vies:8,  or:150, revenu:30, tickRevenu:25,  bois:3, temps:0.20},
-  BLITZ:     {nom:'Blitz',     vies:12, or:120, revenu:25, tickRevenu:40,  bois:3, temps:0.32},
-  SOUTENU:   {nom:'Soutenu',   vies:18, or:120, revenu:25, tickRevenu:65,  bois:3, temps:0.55},
+  //                        vies  or   revenu tick  temps   -> or/s   x Classique
+  ECLAIR:    {nom:'Éclair',    vies:6,  or:140, revenu:25, tickRevenu:50,  bois:3, temps:0.18},
+  BLITZ:     {nom:'Blitz',     vies:10, or:130, revenu:24, tickRevenu:60,  bois:3, temps:0.30},
+  SOUTENU:   {nom:'Soutenu',   vies:16, or:120, revenu:25, tickRevenu:80,  bois:3, temps:0.55},
   CLASSIQUE: {nom:'Classique', vies:25, or:120, revenu:25, tickRevenu:100, bois:3, temps:1.00}
 };
 
@@ -1102,7 +1126,11 @@ function faireApparaitre(etat, ligne, type, proprietaire){
 function avancer(etat){
   const cfg = etat.cfg;
   etat.pas++;
-  if (etat.pas % etat.prof.tickRevenu === 0)
+  /* Versement. Trois details repris du JASS de la map :
+       - le premier tombe un intervalle complet apres le debut, pas au pas 0 ;
+       - les elimines ne touchent rien (ils sortent de la force ThePlayers) ;
+       - le versement s'arrete des qu'il ne reste qu'un joueur. */
+  if (etat.pas % etat.prof.tickRevenu === 0 && etat.lignes.filter(l => !l.mort).length > 1)
     for (const l of etat.lignes) if (!l.mort) l.or += l.revenu;
 
   /* Rechargement des stocks. */
@@ -1336,6 +1364,14 @@ function bots(etat){
       l.prochainBot = etat.pas + etat.rng.entre(d.intervalle[0], d.intervalle[1]);
       let budget = Math.floor(l.or * d.partEnvois);
       const cles = Object.keys(cfg.MONSTRES);
+      /* Ce qui est rare change au fil de la partie. Au debut c'est l'or, donc
+         le bon critere est le revenu par piece. Plus tard l'or ne manque plus
+         et ce qui est rare, c'est la PLACE : douze unites vivantes au maximum
+         par ligne, et une fenetre d'envoi toutes les quelques secondes. Le bon
+         critere devient alors le revenu par envoi. Trier par revenu decroissant
+         couvre les deux cas tout seul : au debut on ne peut de toute facon
+         s'offrir que les petits. */
+      const parRevenu = [...cles].sort((a, b) => cfg.MONSTRES[b].revenu - cfg.MONSTRES[a].revenu);
       const parRatio = [...cles].sort((a, b) =>
         (cfg.MONSTRES[b].revenu / cfg.MONSTRES[b].or) - (cfg.MONSTRES[a].revenu / cfg.MONSTRES[a].or));
       const parPrix = [...cles].sort((a, b) => cfg.MONSTRES[b].or - cfg.MONSTRES[a].or);
@@ -1362,7 +1398,7 @@ function bots(etat){
         } else if (percee && n === 0){
           cle = parPrix.find(abordable);
         } else {
-          cle = parRatio.find(abordable);
+          cle = parRevenu.find(abordable) || parRatio.find(abordable);
         }
         if (!cle || !envoyer(etat, l, cle)) break;
         budget -= cfg.MONSTRES[cle].or;
@@ -1778,7 +1814,11 @@ function dessinerJeu(){
     const taille = Math.round(T * (def.ech || 0.55));
     /* Les volants planent : on les remonte et on les fait osciller. */
     const vol = def.vol ? -taille * 0.30 + Math.sin((etat.pas + m.id * 7) / 6) * taille * 0.06 : 0;
-    const im = cache['m:' + m.type + ':' + (((etat.pas / 3) | 0) % 2)];
+    /* `sprite` permet a un monstre d'emprunter le dessin d'un autre. Les cinq
+       du haut de catalogue n'ont pas encore le leur — sans ce repli ils
+       seraient purement invisibles. */
+    const art = def.sprite || m.type;
+    const im = cache['m:' + art + ':' + (((etat.pas / 3) | 0) % 2)];
     if (def.vol){                                   // ombre portee au sol, detachee
       c.fillStyle = 'rgba(0,0,0,.28)';
       c.beginPath(); c.ellipse(x, y + taille * .22, taille * .30, taille * .12, 0, 0, 7); c.fill();

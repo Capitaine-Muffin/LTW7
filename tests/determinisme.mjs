@@ -112,6 +112,9 @@ dire(ls.batiments.length < avant, `le Controleur a demoli (${avant} -> ${ls.bati
 
 console.log('\nles briseurs cassent au lieu de passer');
 const br = M.creerPartie({graine: 5, joueurs: 3});
+/* On neutralise les autres bots : sinon leurs propres envois volent des vies
+   a la ligne observee et le test mesure autre chose que le Demolisseur. */
+for (const l of br.lignes) l.estJoueur = true;
 const cible = br.lignes[1];
 cible.or = 100000;
 for (const [x, y] of [[3,4],[5,4],[3,6],[5,6]]) M.poserBatiment(br, cible, 'guet', x, y);
@@ -122,12 +125,21 @@ br.lignes[0].or = 100000;
 /* Le Demolisseur n'est disponible qu'a 160 s : on avance jusque-la. */
 while (!M.envoyer(br, br.lignes[0], 'demolisseur')) M.avancer(br);
 const suivies = cible.batiments.map(b => b.id);
-for (let i = 0; i < 900; i++) M.avancer(br);
+/* On surveille pas a pas : tant qu'il reste une tour debout, le compteur de
+   vies ne doit pas bouger. Une fois la ligne rasee, il a le droit de sortir. */
+let volAvantRasage = false, viesAuRasage = viesAvant;
+for (let i = 0; i < 900; i++){
+  M.avancer(br);
+  if (cible.batiments.length > 0){
+    if (cible.vies < viesAuRasage) volAvantRasage = true;
+    viesAuRasage = cible.vies;
+  }
+}
 const restantes = suivies.filter(id => cible.batiments.some(b => b.id === id)).length;
 dire(restantes < suivies.length,
   `le Demolisseur a detruit des tours suivies (${suivies.length} -> ${restantes})`);
-dire(cible.vies === viesAvant,
-  `il n'a vole aucune vie tant qu'il restait a casser (${viesAvant} -> ${cible.vies})`);
+dire(!volAvantRasage && viesAuRasage === viesAvant,
+  `aucune vie volee tant qu'il restait une tour debout (${viesAvant} -> ${viesAuRasage})`);
 
 console.log('\nun briseur sort quand il n\'y a plus rien a casser');
 const br2 = M.creerPartie({graine: 6, joueurs: 3});

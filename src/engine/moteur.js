@@ -132,7 +132,11 @@ function faireApparaitre(etat, ligne, type, proprietaire){
 function avancer(etat){
   const cfg = etat.cfg;
   etat.pas++;
-  if (etat.pas % etat.prof.tickRevenu === 0)
+  /* Versement. Trois details repris du JASS de la map :
+       - le premier tombe un intervalle complet apres le debut, pas au pas 0 ;
+       - les elimines ne touchent rien (ils sortent de la force ThePlayers) ;
+       - le versement s'arrete des qu'il ne reste qu'un joueur. */
+  if (etat.pas % etat.prof.tickRevenu === 0 && etat.lignes.filter(l => !l.mort).length > 1)
     for (const l of etat.lignes) if (!l.mort) l.or += l.revenu;
 
   /* Rechargement des stocks. */
@@ -366,6 +370,14 @@ function bots(etat){
       l.prochainBot = etat.pas + etat.rng.entre(d.intervalle[0], d.intervalle[1]);
       let budget = Math.floor(l.or * d.partEnvois);
       const cles = Object.keys(cfg.MONSTRES);
+      /* Ce qui est rare change au fil de la partie. Au debut c'est l'or, donc
+         le bon critere est le revenu par piece. Plus tard l'or ne manque plus
+         et ce qui est rare, c'est la PLACE : douze unites vivantes au maximum
+         par ligne, et une fenetre d'envoi toutes les quelques secondes. Le bon
+         critere devient alors le revenu par envoi. Trier par revenu decroissant
+         couvre les deux cas tout seul : au debut on ne peut de toute facon
+         s'offrir que les petits. */
+      const parRevenu = [...cles].sort((a, b) => cfg.MONSTRES[b].revenu - cfg.MONSTRES[a].revenu);
       const parRatio = [...cles].sort((a, b) =>
         (cfg.MONSTRES[b].revenu / cfg.MONSTRES[b].or) - (cfg.MONSTRES[a].revenu / cfg.MONSTRES[a].or));
       const parPrix = [...cles].sort((a, b) => cfg.MONSTRES[b].or - cfg.MONSTRES[a].or);
@@ -392,7 +404,7 @@ function bots(etat){
         } else if (percee && n === 0){
           cle = parPrix.find(abordable);
         } else {
-          cle = parRatio.find(abordable);
+          cle = parRevenu.find(abordable) || parRatio.find(abordable);
         }
         if (!cle || !envoyer(etat, l, cle)) break;
         budget -= cfg.MONSTRES[cle].or;

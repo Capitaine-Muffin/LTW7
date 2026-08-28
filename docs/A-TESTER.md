@@ -14,8 +14,20 @@ recopier**, sinon « c'est trop dur » n'est pas exploitable.
 | **Camp** | 4 | purement cosmétique — bâtiments et biome |
 | **Graine** | 1 à 999999 | **rejouer exactement la même partie** |
 
-Rythmes : Éclair 8 vies / versement 2,5 s · Blitz 12 / 4 s · Soutenu 18 / 6,5 s ·
-Classique 25 / 10 s (les valeurs de la map d'origine).
+| Rythme | Vies | Versement | Or / seconde | × Classique |
+|---|---:|---:|---:|---:|
+| Éclair | 6 | 5 s | 5,00 | ×2,00 |
+| Blitz | 10 | 6 s | 4,00 | ×1,60 |
+| Soutenu | 16 | 8 s | 3,13 | ×1,25 |
+| **Classique** | 25 | **10 s** | 2,50 | ×1,00 (la map) |
+
+**Le versement est le battement du jeu** : c'est le moment où l'or tombe et où
+il faut choisir entre une tour et un envoi. Une première version descendait à
+2,5 s, ce qui ne raccourcissait pas la partie — ça rendait le joueur **4,8 fois
+plus riche par seconde** qu'en Classique, avec des coûts inchangés. Toute la
+grille de prix changeait de sens. Maintenant l'intervalle ne descend jamais sous
+5 s et l'écart d'économie tient dans un rapport de deux ; ce sont **les vies et
+la chronologie de déblocage** qui raccourcissent la partie.
 
 ## Ce que fait la difficulté
 
@@ -99,9 +111,29 @@ si un changement vient du réglage ou de la chance.
    avoir du bois au-delà des 3 du départ. Si les parties n'y arrivent jamais,
    toute une couche du jeu est morte.
 
+## Durées mesurées
+
+Simulation à 4 joueurs, **ligne du joueur passive** — c'est donc la borne basse :
+le temps de survie de quelqu'un qui ne fait absolument rien.
+
+| Rythme | Bots | Mort du passif | Fin de partie |
+|---|---|---:|---:|
+| Éclair | Normal | 53 s | 661 s |
+| Éclair | Impitoyable | 17 s | 279 s |
+| Blitz | Normal | 63 s | 1031 s |
+| Blitz | Impitoyable | 21 s | 488 s |
+| Classique | Normal | 110 s | — |
+| Classique | Impitoyable | 34 s | — |
+
+À lire ainsi : en Blitz/Normal tu as **une minute de marge** si tu ne fais rien,
+donc largement de quoi apprendre. En Impitoyable, vingt secondes.
+
 ## Ce que je sais déjà être bancal
 
-- À 7 joueurs en Agressif ou Impitoyable, **personne ne meurt** : six survivants
-  après 10 minutes de simulation. Les bots défendent mieux qu'ils n'attaquent.
+- **Le revenu des bots s'emballe** en fin de partie : plus de 300 000 sur les
+  longues parties. La défense monte plus vite que l'offense, et personne ne
+  meurt plus. Les parties Classique ne se terminent toujours pas.
+- **Cinq monstres empruntent le dessin d'un autre** (Infernal, Spectre, Wyrm,
+  Élémentaire, Loup d'ombre) : ils sont jouables mais pas encore dessinés.
 - Le Contrôleur n'entre en scène que si quelqu'un scelle son couloir. Pour le
   voir, ferme volontairement ta ligne avec une rangée complète.

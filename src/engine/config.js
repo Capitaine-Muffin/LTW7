@@ -77,6 +77,19 @@ const MONSTRES = {
             dispo:330, stock:[15, 5], siege:{deg:47, portee:portee(150), cadence:cadence(60)}},
   banshee: {nom:'Banshee',  or:20000,revenu:1700,pv:60000,v:vitesse(300), vol:true, ech:0.76,
             dispo:390, stock:[20, 5]},
+  /* Le haut du catalogue. Il manquait, et c'est ce qui rendait la defense
+     imbattable en fin de partie : mes monstres plafonnaient a 60 000 PV alors
+     qu'une ligne bien montee inflige plus de 180 000 degats sur un trajet. */
+  infernal:{nom:'Infernal',  or:40000, revenu:3000, pv:350000, v:vitesse(270), ech:0.90,
+            dispo:450, stock:[10, 7], sprite:'golem'},
+  spectre: {nom:'Spectre de givre', or:50000, revenu:3300, pv:110000, v:vitesse(350), ech:0.78,
+            dispo:450, stock:[20, 5], sprite:'ombre'},
+  wyrm:    {nom:'Wyrm de givre', or:60000, revenu:4000, pv:120000, v:vitesse(300), vol:true,
+            ech:0.86, dispo:480, stock:[10, 10], sprite:'banshee'},
+  elementaire:{nom:'Élémentaire d\'eau', or:80000, revenu:4300, pv:150000, v:vitesse(270),
+            ech:0.94, dispo:510, stock:[10, 10], sprite:'golem'},
+  loupOmbre:{nom:'Loup d\'ombre', or:100000, revenu:6000, pv:200000, v:vitesse(300), ech:0.88,
+            dispo:700, stock:[10, 10], sprite:'loup'},
 
   /* --- Les briseurs ---------------------------------------------------------
      Ils ne cherchent pas a passer : ils viennent casser les tours. Ils ne
@@ -104,12 +117,23 @@ const MONSTRES = {
             siege:{deg:900, portee:portee(300), cadence:cadence(30), zone:portee(180)}}
 };
 
-/* `temps` comprime la chronologie de deblocage sans en changer la forme :
-   c'est le meme principe que pour la courbe de couts. Classique = la map. */
+/* Les profils raccourcissent la partie par les VIES et par la chronologie de
+   deblocage (`temps`), pas en gonflant l'economie.
+
+   Le versement est le battement du jeu : c'est le moment ou l'or tombe et ou il
+   faut choisir entre une tour et un envoi. Sous cinq secondes on n'a plus le
+   temps de regarder sa ligne, et raccourcir l'intervalle sans toucher aux couts
+   ne rend pas la partie plus courte — ca rend le joueur plus riche. Une
+   premiere version faisait d'Eclair une partie 4,8 fois plus riche par seconde
+   que Classique, ce qui changeait le sens de toute la grille de prix.
+
+   Ici l'intervalle ne descend jamais sous 5 s et l'or par seconde reste dans un
+   rapport de deux, au lieu de cinq. */
 const PROFILS = {
-  ECLAIR:    {nom:'Éclair',    vies:8,  or:150, revenu:30, tickRevenu:25,  bois:3, temps:0.20},
-  BLITZ:     {nom:'Blitz',     vies:12, or:120, revenu:25, tickRevenu:40,  bois:3, temps:0.32},
-  SOUTENU:   {nom:'Soutenu',   vies:18, or:120, revenu:25, tickRevenu:65,  bois:3, temps:0.55},
+  //                        vies  or   revenu tick  temps   -> or/s   x Classique
+  ECLAIR:    {nom:'Éclair',    vies:6,  or:140, revenu:25, tickRevenu:50,  bois:3, temps:0.18},
+  BLITZ:     {nom:'Blitz',     vies:10, or:130, revenu:24, tickRevenu:60,  bois:3, temps:0.30},
+  SOUTENU:   {nom:'Soutenu',   vies:16, or:120, revenu:25, tickRevenu:80,  bois:3, temps:0.55},
   CLASSIQUE: {nom:'Classique', vies:25, or:120, revenu:25, tickRevenu:100, bois:3, temps:1.00}
 };
 

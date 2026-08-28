@@ -114,7 +114,11 @@ function dessinerJeu(){
     const taille = Math.round(T * (def.ech || 0.55));
     /* Les volants planent : on les remonte et on les fait osciller. */
     const vol = def.vol ? -taille * 0.30 + Math.sin((etat.pas + m.id * 7) / 6) * taille * 0.06 : 0;
-    const im = cache['m:' + m.type + ':' + (((etat.pas / 3) | 0) % 2)];
+    /* `sprite` permet a un monstre d'emprunter le dessin d'un autre. Les cinq
+       du haut de catalogue n'ont pas encore le leur — sans ce repli ils
+       seraient purement invisibles. */
+    const art = def.sprite || m.type;
+    const im = cache['m:' + art + ':' + (((etat.pas / 3) | 0) % 2)];
     if (def.vol){                                   // ombre portee au sol, detachee
       c.fillStyle = 'rgba(0,0,0,.28)';
       c.beginPath(); c.ellipse(x, y + taille * .22, taille * .30, taille * .12, 0, 0, 7); c.fill();
