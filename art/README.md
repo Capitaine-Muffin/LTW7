@@ -97,6 +97,15 @@ bandes de valeur — lumière à gauche, masse au centre, ombre à droite.
 | **Ombre** | volante. Silhouette effilochée qui ondule, capuche, pas de sol. |
 | **Troll** | brutal. Voûté, défenses, gourdin. |
 | **Banshee** | volante et chère. Voile déchiré, bras ouverts, turquoise lumineux. |
+| **Démolisseur** | chariot de siège à roues qui tournent, bélier, sapeur derrière. |
+| **Char à vapeur** | blindage, chenilles décalées entre les deux images, cheminée. |
+| **Broyeur gobelin** | la scie circulaire pivote d'un huitième de tour entre les images. |
+| **Infernal** | masse de roche en fusion, fissures ardentes, bras démesurés. |
+| **Spectre de givre** | décharné, arêtes de glace qui poussent sur les flancs. |
+| **Wyrm de givre** | ailes déployées qui battent, long cou, queue effilée. |
+| **Élémentaire d'eau** | masse translucide qui ondule, noyau lumineux, crête d'écume. |
+| **Loup d'ombre** | le loup en plus grand et plus noir, échine hirsute, regard violet. |
+| **Seigneur bandit** | épaulières, casque cornu, lame démesurée. Le sacrifice. |
 
 **Les volants sont dessinés plus haut que leur case, avec une ombre portée
 détachée au sol** — c'est ce qui dit « il ignore ton labyrinthe » sans une seule

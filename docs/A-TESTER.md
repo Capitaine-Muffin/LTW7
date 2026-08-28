@@ -41,12 +41,17 @@ change ce qu'ils *font*.
 | Achète des branches | non | non | oui | oui |
 | Part de l'or en envois | 30 % | 55 % | 70 % | 82 % |
 | Envoie toutes les | 15-23 s | 9,5-15 s | 6-10 s | 4,5-7 s |
-| Choisit ses monstres | au hasard | **au meilleur ratio** | ratio + percée | ratio + percée |
+| Choisit ses monstres | presque au hasard | souvent bien | bien | très bien |
+| Laisse passer un tour | 30 % | 16 % | 8 % | 3 % |
 
-Le dernier point est le plus important : un bot qui achète toujours le monstre
-le plus cher **joue mal**, parce que les gros monstres ont le pire ratio
-revenu/or (0,054 contre 0,200). Les bots à partir de Normal farment au ratio et
-ne payent la percée que ponctuellement — comme un bon joueur.
+**Aucun bot ne joue l'optimum.** Le choix passe par un tirage pondéré : le bon
+coup sort souvent, l'excellent parfois, et il leur arrive de se tromper ou de
+laisser passer une fenêtre d'envoi. Un bot qui joue parfaitement se lit en une
+partie et devient ennuyeux bien avant d'être difficile — la difficulté ne change
+que la **pente** de ce tirage.
+
+Mesuré sur 300 secondes, un bot Normal envoie **sept types de monstres
+différents**, dans des proportions qui changent à chaque graine.
 
 ## Les briseurs
 
@@ -133,7 +138,5 @@ donc largement de quoi apprendre. En Impitoyable, vingt secondes.
 - **Le revenu des bots s'emballe** en fin de partie : plus de 300 000 sur les
   longues parties. La défense monte plus vite que l'offense, et personne ne
   meurt plus. Les parties Classique ne se terminent toujours pas.
-- **Cinq monstres empruntent le dessin d'un autre** (Infernal, Spectre, Wyrm,
-  Élémentaire, Loup d'ombre) : ils sont jouables mais pas encore dessinés.
 - Le Contrôleur n'entre en scène que si quelqu'un scelle son couloir. Pour le
   voir, ferme volontairement ta ligne avec une rangée complète.

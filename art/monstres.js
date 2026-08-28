@@ -210,6 +210,107 @@ const MONSTRES_ART = {
         MP(t, 4 + Math.cos(a) * 3, 11 + Math.sin(a) * 3, p.metal);
       } });
   },
+  /* --- Infernal : masse de roche en fusion, cornes, fissures ardentes --- */
+  infernal(g, f, p){
+    MOMBRE(g, 12, 11, p);
+    MCOUCHE(g, p.d, t => { MR(t, 5, 17, 6, 4, p.c1); MR(t, 13, 17, 6, 4, p.c1);
+      MR(t, 5, 20, 6, 1, p.d); MR(t, 13, 20, 6, 1, p.d);
+      MR(t, 6, 18, 4, 1, p.lueur); });
+    MCOUCHE(g, p.d, t => { MCORPS(t, 4, 6, 16, 11, p);                          // torse
+      for (const [x, y, w] of [[6,8,4],[13,7,4],[8,13,6],[15,12,3]]){           // blocs de roche
+        MR(t, x, y, w, 3, p.c3); MR(t, x, y + 3, w, 1, p.c1); }
+      MR(t, 7, 11, 6, 1, p.lueur); MR(t, 12, 14, 4, 1, p.lueur);                // fissures
+      MR(t, 9, 9, 2, 1, p.lueurC); MP(t, 15, 15, p.lueur); });
+    MCOUCHE(g, p.d, t => {                                                       // bras enormes
+      const ga = 7 + (f?0:1), dr = 7 + (f?1:0);
+      MR(t, 0, ga, 6, 10, p.c2); MR(t, 0, ga, 2, 10, p.c3); MR(t, 0, ga + 8, 6, 2, p.c1);
+      MR(t, 18, dr, 6, 10, p.c2); MR(t, 18, dr, 2, 10, p.c3); MR(t, 18, dr + 8, 6, 2, p.c1);
+      MP(t, 2, ga + 4, p.lueur); MP(t, 21, dr + 4, p.lueur); });
+    MCOUCHE(g, p.d, t => { MR(t, 8, 1, 8, 6, p.c2); MR(t, 9, 0, 6, 1, p.c3);    // tete
+      MR(t, 9, 3, 3, 2, p.lueurC); MR(t, 13, 3, 3, 2, p.lueurC);
+      MR(t, 10, 6, 4, 1, p.lueur);
+      for (const [dx, dy] of [[7,0],[6,-1],[6,-2],[16,0],[17,-1],[17,-2]]) MP(t, dx, dy + 1, p.c1); });
+  },
+  /* --- Spectre de givre : decharne, arete de glace, marche --- */
+  spectre(g, f, p){
+    MOMBRE(g, 12, 7, p);
+    MCOUCHE(g, p.d, t => { MR(t, 9 - (f?1:0), 17, 2, 4, p.c1); MR(t, 14 + (f?0:1), 17, 2, 4, p.c1); });
+    MCOUCHE(g, p.d, t => {                                                       // corps effile
+      for (let j = 0; j < 12; j++){ const w = 8 - Math.abs(j - 4) / 2 | 0;
+        MCORPS(t, 12 - (w >> 1), 6 + j, w, 1, p); }
+      MR(t, 8, 10, 8, 1, p.c1); MR(t, 9, 13, 6, 1, p.c1);
+      MR(t, 11, 8, 2, 6, p.lueur); MP(t, 12, 9, p.lueurC); });
+    MCOUCHE(g, p.d, t => {                                                       // aretes de glace
+      for (const [x, y, h] of [[6,7,4],[17,8,3],[7,13,3],[16,13,2]]){
+        for (let k = 0; k < h; k++) MP(t, x + (k % 2), y - k, k > h - 2 ? p.lueurC : p.lueur); } });
+    MCOUCHE(g, p.d, t => { MR(t, 9, 1, 6, 5, p.c2); MR(t, 10, 0, 4, 1, p.c3);   // crane
+      MR(t, 10, 3, 5, 2, p.d);
+      MR(t, 10, 3, 2, 2, p.lueurC); MR(t, 13, 3, 2, 2, p.lueurC);
+      MP(t, 8, 2, p.c1); MP(t, 15, 2, p.c1); });
+    MCOUCHE(g, p.d, t => { MR(t, 4, 9 + (f?1:0), 5, 2, p.c2); MP(t, 3, 10 + (f?1:0), p.lueur);
+      MR(t, 15, 9 + (f?0:1), 5, 2, p.c2); MP(t, 20, 10 + (f?0:1), p.lueur); });
+  },
+  /* --- Wyrm de givre : ailes deployees, long cou, volant --- */
+  wyrm(g, f, p){
+    MCOUCHE(g, p.d, t => {                                                       // ailes
+      const b = f ? 0 : 2;
+      for (let k = 0; k < 8; k++){
+        const h = Math.round(k * 0.7);
+        MR(t, 6 - k, 8 - h + b, 1, 3 + h, p.c2);
+        MR(t, 17 + k, 8 - h + b, 1, 3 + h, p.c2);
+        if (k % 2 === 0){ MP(t, 6 - k, 8 - h + b, p.c3); MP(t, 17 + k, 8 - h + b, p.c3); }
+      } });
+    MCOUCHE(g, p.d, t => { MCORPS(t, 7, 8, 10, 7, p);                            // corps
+      MR(t, 8, 8, 8, 1, p.c3); MR(t, 8, 14, 8, 1, p.c1);
+      for (let i = 8; i < 16; i += 3) MP(t, i, 11, p.lueur); });
+    MCOUCHE(g, p.d, t => {                                                        // queue
+      for (let k = 0; k < 6; k++) MR(t, 11 + (f?1:0), 15 + k, 2 - (k > 3 ? 1 : 0), 1, p.c1);
+      MP(t, 11, 21, p.c2); });
+    MCOUCHE(g, p.d, t => { MR(t, 10, 3, 4, 5, p.c2);                              // cou et tete
+      MR(t, 9, 1, 7, 3, p.c2); MR(t, 10, 1, 5, 1, p.c3);
+      MR(t, 15, 2, 4, 2, p.c1); MP(t, 19, 3, p.d);
+      MR(t, 10, 2, 2, 1, p.lueurC); MP(t, 14, 2, p.lueurC);
+      MP(t, 9, 0, p.c1); MP(t, 12, 0, p.c1);                                      // cornes
+      MP(t, 16, 4, p.lueur); MP(t, 17, 4, p.lueur); });
+  },
+  /* --- Elementaire d'eau : masse translucide, noyau, crete --- */
+  elementaire(g, f, p){
+    MOMBRE(g, 12, 10, p);
+    MCOUCHE(g, p.d, t => {                                                        // masse ondulante
+      for (let j = 0; j < 16; j++){
+        const w = 14 - Math.abs(j - 9) - (j < 4 ? (4 - j) * 2 : 0);
+        const dec = Math.round(Math.sin((j + (f ? 2 : 0)) / 3.5) * 1.4);
+        MCORPS(t, 12 - (w >> 1) + dec, 5 + j, Math.max(3, w), 1, p);
+      }
+      for (let j = 6; j < 19; j += 4) MR(t, 7, j, 9, 1, p.c1); });
+    MCOUCHE(g, p.d, t => {                                                        // crete d'ecume
+      const b = f ? 0 : 1;
+      MR(t, 6, 3 + b, 3, 2, p.c3); MR(t, 10, 2 + b, 4, 2, p.c3); MR(t, 15, 3 + b, 3, 2, p.c3);
+      MP(t, 11, 1 + b, p.lueurC); MP(t, 16, 2 + b, p.lueurC); MP(t, 7, 2 + b, p.lueurC); });
+    MCOUCHE(g, p.d, t => { MR(t, 9, 9, 6, 6, p.lueur); MR(t, 10, 10, 4, 4, p.lueurC);
+      MR(t, 11, 11, 2, 2, p.c3); });                                              // noyau
+    MCOUCHE(g, p.d, t => { MR(t, 9, 7, 2, 2, p.d); MR(t, 13, 7, 2, 2, p.d);
+      MP(t, 9, 7, p.lueurC); MP(t, 14, 7, p.lueurC); });                          // yeux
+  },
+  /* --- Loup d'ombre : le loup, en plus grand et plus noir --- */
+  loupOmbre(g, f, p){
+    MOMBRE(g, 12, 10, p);
+    MCOUCHE(g, p.d, t => { for (const x of [3, 8, 14, 19]) MR(t, x, 15, 3, 6, p.c1);
+      MR(t, 3 + (f?0:1), 15, 3, 6, p.c1); MR(t, 19 - (f?1:0), 15, 3, 6, p.c1);
+      for (const x of [3, 8, 14, 19]) MR(t, x, 20, 3, 1, p.d); });
+    MCOUCHE(g, p.d, t => { MCORPS(t, 3, 7, 18, 9, p);
+      MR(t, 4, 7, 16, 1, p.c3);
+      for (let i = 5; i < 20; i += 3) MR(t, i, 5 + (i % 2), 2, 3, p.c2);          // echine hirsute
+      MR(t, 1, 8, 3, 2, p.c2); MP(t, 0, 7, p.c1); MP(t, 0, 6 - (f?1:0), p.c2); });
+    MCOUCHE(g, p.d, t => { MR(t, 14, 2, 9, 9, p.c2); MR(t, 15, 2, 7, 1, p.c3);   // tete
+      for (let k = 0; k < 5; k++) MR(t, 21 + k, 7 + k, 4 - k, 3, p.c1);
+      MR(t, 22, 9, 3, 1, p.d);
+      MR(t, 14, 0, 3, 3, p.c2); MP(t, 15, 0, p.c3);
+      MR(t, 19, 0, 3, 3, p.c2); MP(t, 20, 0, p.c3);
+      MR(t, 15, 5, 3, 3, p.lueur); MR(t, 19, 5, 3, 3, p.lueur);
+      MP(t, 16, 6, p.lueurC); MP(t, 20, 6, p.lueurC);
+      MR(t, 16, 10, 6, 1, p.c1); });
+  },
   /* --- Seigneur bandit : le sacrifice. Massif, cornu, lame demesuree --- */
   seigneur(g, f, p){
     MOMBRE(g, 12, 11, p);
@@ -271,6 +372,16 @@ const PAL_MONSTRES = {
                metal:'#7d8694', metalC:'#c0c8d4', lueur:'#ff9c3a', sol:'#1d262e'},
   broyeur:   {d:'#12130c', c1:'#3f4a26', c2:'#5c6b33', c3:'#7d8f46',
                metal:'#6b6f78', metalC:'#c8ccd6', lueur:'#ffcf3a', sol:'#232616'},
+  infernal:{d:'#160c08', c1:'#3d1e12', c2:'#5c2e18', c3:'#7d4522',
+            lueur:'#ff7a1a', lueurC:'#ffd07a', sol:'#2a1408'},
+  spectre: {d:'#0b1218', c1:'#25404f', c2:'#356075', c3:'#4d8199',
+            lueur:'#8fe0ff', lueurC:'#e0f8ff', sol:'#18262e'},
+  wyrm:    {d:'#0c1620', c1:'#264257', c2:'#376379', c3:'#4f8ba3',
+            lueur:'#a0e8ff', lueurC:'#e8faff', sol:'#182632'},
+  elementaire:{d:'#08151c', c1:'#1d5570', c2:'#2b7a9c', c3:'#45a3c4',
+            lueur:'#6fd8f5', lueurC:'#d0f6ff', sol:'#0f2a36'},
+  loupOmbre:{d:'#0a0810', c1:'#221c33', c2:'#332a4a', c3:'#4a3d66',
+            lueur:'#a86aff', lueurC:'#e2c4ff', sol:'#160f22'},
   seigneur:{d:'#140a12', c1:'#3d1f30', c2:'#5c2f44', c3:'#7d4258',
             metal:'#5c5560', metalC:'#a89fb0', os:'#e2d8c0',
             lueur:'#ff4a5a', lueurC:'#ffb0b8', sol:'#2a1420'},

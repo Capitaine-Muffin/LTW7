@@ -161,6 +161,21 @@ for (const d of ['facile','normal','agressif','impitoyable']){
   dire(!planté, `${d} : 600 s sans plantage${planté ? ' — ' + planté : ''} (${vivants} survivant(s))`);
 }
 
+console.log('\nles bots ne jouent pas deux fois la meme partie');
+function melange(graine, diff){
+  const e = M.creerPartie({graine, joueurs: 4, difficulte: diff, profil: 'BLITZ'});
+  for (let i = 0; i < 3000; i++) M.avancer(e);
+  return e.lignes[1].envoisParType;
+}
+const a1 = melange(111, 'normal'), a2 = melange(222, 'normal');
+dire(JSON.stringify(a1) !== JSON.stringify(a2),
+  `deux graines -> deux facons de jouer (${Object.keys(a1).length} et ${Object.keys(a2).length} types envoyes)`);
+dire(Object.keys(a1).length >= 2,
+  `un bot ne se contente pas d'un seul monstre (${Object.keys(a1).join(', ')})`);
+const dur = melange(111, 'impitoyable');
+dire(Object.keys(dur).length >= 2,
+  `meme le plus dur varie (${Object.keys(dur).join(', ')})`);
+
 console.log('\nla difficulte change vraiment le jeu');
 const envois = {};
 for (const d of ['facile','impitoyable']){

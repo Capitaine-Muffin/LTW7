@@ -81,15 +81,15 @@ const MONSTRES = {
      imbattable en fin de partie : mes monstres plafonnaient a 60 000 PV alors
      qu'une ligne bien montee inflige plus de 180 000 degats sur un trajet. */
   infernal:{nom:'Infernal',  or:40000, revenu:3000, pv:350000, v:vitesse(270), ech:0.90,
-            dispo:450, stock:[10, 7], sprite:'golem'},
+            dispo:450, stock:[10, 7]},
   spectre: {nom:'Spectre de givre', or:50000, revenu:3300, pv:110000, v:vitesse(350), ech:0.78,
-            dispo:450, stock:[20, 5], sprite:'ombre'},
+            dispo:450, stock:[20, 5]},
   wyrm:    {nom:'Wyrm de givre', or:60000, revenu:4000, pv:120000, v:vitesse(300), vol:true,
-            ech:0.86, dispo:480, stock:[10, 10], sprite:'banshee'},
+            ech:0.86, dispo:480, stock:[10, 10]},
   elementaire:{nom:'Élémentaire d\'eau', or:80000, revenu:4300, pv:150000, v:vitesse(270),
-            ech:0.94, dispo:510, stock:[10, 10], sprite:'golem'},
+            ech:0.94, dispo:510, stock:[10, 10]},
   loupOmbre:{nom:'Loup d\'ombre', or:100000, revenu:6000, pv:200000, v:vitesse(300), ech:0.88,
-            dispo:700, stock:[10, 10], sprite:'loup'},
+            dispo:700, stock:[10, 10]},
 
   /* --- Les briseurs ---------------------------------------------------------
      Ils ne cherchent pas a passer : ils viennent casser les tours. Ils ne
@@ -142,14 +142,25 @@ const PROFILS = {
    mal et envoie peu ; un bot impitoyable maze, ameliore, achete ses branches
    et reinvestit la quasi-totalite de son or. */
 const DIFFICULTES = {
+  /* `biais` : a quel point le bot choisit VRAIMENT le meilleur envoi.
+     1,0 = il tire au hasard parmi ce qu'il peut s'offrir. Plus on descend, plus
+     il privilegie le bon choix — mais jamais au point d'etre previsible. Un bot
+     qui joue toujours l'optimum se lit en une partie et devient ennuyeux bien
+     avant d'etre difficile.
+     `saute` : probabilite sur 100 de laisser passer une fenetre d'envoi, comme
+     un joueur qui hesite ou qui garde son or. */
   facile:      {nom:'Débutant',    intervalle:[150, 230], partEnvois:0.30,
-                maze:false, ameliore:false, branches:false, poseTous:11},
+                maze:false, ameliore:false, branches:false, poseTous:11,
+                biais:0.92, saute:30},
   normal:      {nom:'Normal',      intervalle:[95, 150],  partEnvois:0.55,
-                maze:true,  ameliore:false, branches:false, poseTous:8},
+                maze:true,  ameliore:false, branches:false, poseTous:8,
+                biais:0.62, saute:16},
   agressif:    {nom:'Agressif',    intervalle:[62, 100],  partEnvois:0.70,
-                maze:true,  ameliore:true,  branches:true,  poseTous:6, siege:false},
+                maze:true,  ameliore:true,  branches:true,  poseTous:6, siege:false,
+                biais:0.45, saute:8},
   impitoyable: {nom:'Impitoyable', intervalle:[45, 72],   partEnvois:0.82,
-                maze:true,  ameliore:true,  branches:true,  poseTous:4, siege:true}
+                maze:true,  ameliore:true,  branches:true,  poseTous:4, siege:true,
+                biais:0.33, saute:3}
 };
 
 const CONFIG = {

@@ -13,6 +13,7 @@ function creerLigne(cfg, prof, i, estJoueur){
     branches: {}, batiments: [], monstres: [],
     depenseTours: 0, depenseEnvois: 0,   // sert au partage or/envois des bots
     stock: {}, prochainStock: {},        // chronologie de deblocage (voir config)
+    envoisParType: {},                   // ce qu'on a envoye, et combien de fois
     occupe: new Int32Array(cfg.LARGEUR * cfg.HAUTEUR).fill(-1),
     chemin: null, scellee: false, mort: false,
     prochainBot: 60 + i * 17          // decale les bots pour qu'ils ne jouent pas a l'unisson
@@ -107,6 +108,7 @@ function envoyer(etat, l, type){
   if (cible.monstres.length >= etat.cfg.maxVivants) return false;
   l.or -= def.or; l.depenseEnvois += def.or;
   l.stock[type] -= 1;
+  l.envoisParType[type] = (l.envoisParType[type] || 0) + 1;
   if (l.prochainStock[type] <= etat.pas)
     l.prochainStock[type] = etat.pas + Math.max(1, Math.round(def.stock[1] * 10 * etat.prof.temps));
   l.revenu += def.revenu;                       // definitif : c'est tout le jeu
@@ -305,6 +307,23 @@ function tirer(etat, l){
 /* Bots. Deterministes, sans IA : des regles simples dont l'agressivite vient
    du profil de difficulte. Ils jouent avec les memes couts que le joueur. */
 
+/* Tirage pondere : le premier de la liste sort le plus souvent, les suivants
+   de moins en moins. `biais` regle la pente — 1,0 donne un tirage uniforme.
+   Tout passe par le RNG seme, donc la partie reste rejouable a l'identique. */
+function tirerPondere(rng, liste, biais){
+  if (liste.length <= 1) return liste[0];
+  const poids = [];
+  let total = 0, p = 1000;
+  for (let i = 0; i < liste.length; i++){
+    poids.push(Math.max(1, Math.round(p)));
+    total += poids[i];
+    p *= biais;
+  }
+  let n = rng.entre(1, total);
+  for (let i = 0; i < liste.length; i++){ n -= poids[i]; if (n <= 0) return liste[i]; }
+  return liste[liste.length - 1];
+}
+
 /* Serpentin : on laisse une case libre en bout de rangee, alternee, ce qui
    allonge le trajet sans jamais sceller le couloir. */
 function planMaze(cfg){
@@ -368,6 +387,9 @@ function bots(etat){
        Un bon bot farme au ratio et ne paye la percee que ponctuellement. */
     if (etat.pas >= l.prochainBot){
       l.prochainBot = etat.pas + etat.rng.entre(d.intervalle[0], d.intervalle[1]);
+      /* Il arrive qu'on laisse passer son tour : un joueur hesite, ou garde son
+         or pour la fenetre suivante. */
+      if (etat.rng.entre(1, 100) <= d.saute) continue;
       let budget = Math.floor(l.or * d.partEnvois);
       const cles = Object.keys(cfg.MONSTRES);
       /* Ce qui est rare change au fil de la partie. Au debut c'est l'or, donc
@@ -393,18 +415,21 @@ function bots(etat){
         if (briseurs.length && envoyer(etat, l, briseurs[0])) budget -= cfg.MONSTRES[briseurs[0]].or;
       }
 
-      for (let n = 0; n < 6; n++){
+      const combien = etat.rng.entre(2, 6);            // toutes les salves ne se valent pas
+      for (let n = 0; n < combien; n++){
         const abordable = k => cfg.MONSTRES[k].or <= budget && cfg.MONSTRES[k].or <= l.or
           && disponible(etat, l, k);
+        const dispo = cles.filter(abordable);
+        if (!dispo.length) break;
         let cle;
-        if (!d.maze){                                   // debutant : au hasard
-          const dispo = cles.filter(abordable);
-          if (!dispo.length) break;
-          cle = dispo[etat.rng.entre(0, dispo.length - 1)];
-        } else if (percee && n === 0){
-          cle = parPrix.find(abordable);
+        if (percee && n === 0){
+          cle = tirerPondere(etat.rng, parPrix.filter(abordable), d.biais);
         } else {
-          cle = parRevenu.find(abordable) || parRatio.find(abordable);
+          /* Le classement melange les deux criteres — revenu par envoi et
+             revenu par piece — puis on tire dedans. Le bot va souvent vers le
+             bon choix, rarement vers l'excellent, parfois a cote. */
+          const ordre = etat.rng.entre(0, 2) === 0 ? parRatio : parRevenu;
+          cle = tirerPondere(etat.rng, ordre.filter(abordable), d.biais);
         }
         if (!cle || !envoyer(etat, l, cle)) break;
         budget -= cfg.MONSTRES[cle].or;
