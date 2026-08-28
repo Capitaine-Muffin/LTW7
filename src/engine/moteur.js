@@ -14,6 +14,7 @@ function creerLigne(cfg, prof, i, estJoueur){
     depenseTours: 0, depenseEnvois: 0,   // sert au partage or/envois des bots
     stock: {}, prochainStock: {},        // chronologie de deblocage (voir config)
     envoisParType: {},                   // ce qu'on a envoye, et combien de fois
+    recuDe: {},                          // combien de monstres chaque ligne nous a envoyes
     occupe: new Int32Array(cfg.LARGEUR * cfg.HAUTEUR).fill(-1),
     chemin: null, scellee: false, mort: false,
     prochainBot: 60 + i * 17          // decale les bots pour qu'ils ne jouent pas a l'unisson
@@ -132,6 +133,7 @@ function envoyer(etat, l, type){
   faireApparaitre(etat, cible, type, l.i);
   /* L'anti-tortue : au-dela de douze batiments chez le defenseur, un monstre
      non mecanique arrive en double. Plus il se fortifie, plus il recoit. */
+  cible.recuDe[l.i] = (cible.recuDe[l.i] || 0) + 1;
   const double = !def.mecanique && cible.batiments.length >= etat.cfg.seuilDoublement;
   if (double) faireApparaitre(etat, cible, type, l.i);
   /* Le journal sert au fil d'evenements : sans lui, on ne sait meme pas qui

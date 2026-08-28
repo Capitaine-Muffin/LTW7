@@ -35,8 +35,33 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
 #haut button{background:var(--bord);color:var(--encre);border:0;border-radius:7px;
   padding:8px 10px;font-size:14px;font-weight:700;cursor:pointer;flex:0 0 auto}
 #sonBtn[data-coupe="1"]{color:var(--doux);opacity:.55;text-decoration:line-through}
-#lignes{display:flex;gap:5px;overflow-x:auto;padding:6px 8px;background:#191627;
+#bandeauLignes{display:flex;align-items:stretch;background:#191627;
   border-bottom:1px solid var(--bord)}
+#lignes{display:flex;gap:5px;overflow-x:auto;padding:6px 8px;flex:1;min-width:0}
+#ouvrirTableau{flex:0 0 auto;background:transparent;border:0;border-left:1px solid var(--bord);
+  color:var(--doux);font-size:15px;padding:0 12px;cursor:pointer;font-family:Oxanium;font-weight:700}
+#ouvrirTableau[aria-expanded="true"]{color:var(--or);background:rgba(240,196,81,.10)}
+/* Le tableau de bord. Le leaderboard de la map ne montre que « Joueur
+   (revenu) — vies » ; on garde cet ordre et on ajoute ce que notre version
+   sait dire de plus. */
+#tableau{display:none;background:#15121f;border-bottom:1px solid var(--bord);
+  padding:8px 8px 10px;overflow-x:auto}
+#tableau[data-ouvert="1"]{display:block}
+#tableau table{width:100%;border-collapse:collapse;font-size:12.5px;
+  font-variant-numeric:tabular-nums}
+#tableau th{font-family:Oxanium;font-size:9px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--doux);font-weight:600;text-align:right;padding:0 5px 5px;white-space:nowrap}
+#tableau th:first-child{text-align:left}
+#tableau td{padding:4px 5px;text-align:right;border-top:1px solid rgba(255,255,255,.05);
+  white-space:nowrap}
+#tableau td:first-child{text-align:left;font-weight:600}
+#tableau tr.moi td{background:rgba(240,196,81,.10)}
+#tableau tr.mort td{opacity:.38;text-decoration:line-through}
+#tableau .vies{color:var(--rouge);font-weight:700}
+#tableau .rev{color:var(--vert)}
+#tableau .pastille{display:inline-block;width:7px;height:7px;border-radius:2px;
+  margin-right:5px;vertical-align:1px}
+#tableau .pied{color:var(--doux);font-size:10.5px;margin:7px 2px 0;line-height:1.4}
 .ong{flex:0 0 auto;background:transparent;border:1px solid var(--bord);border-radius:8px;
   padding:5px 9px;color:var(--doux);display:flex;flex-direction:column;line-height:1.15;cursor:pointer}
 .ong b{font-size:14px;color:var(--encre)} .ong span{font-size:11.5px}
@@ -47,7 +72,7 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
    de ligne au doigt ne part jamais. */
 #scene{width:100%;height:100%;display:block;touch-action:none}
 #lecture{position:absolute;top:8px;left:50%;transform:translateX(-50%);white-space:nowrap;
-  background:rgba(20,18,32,.9);border:1px solid var(--or);color:var(--or);
+  background:rgba(20,18,32,.9);border:1px solid var(--or);color:var(--or);z-index:2;
   padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;font-family:Oxanium}
 /* Le fil d'evenements. Sans lui on ne sait pas qui nous envoie ce qui arrive,
    et la partie se joue chacun dans son coin. */
@@ -125,6 +150,7 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   justify-content:center;z-index:9;padding:24px;text-align:center}
 /* hidden pose display:none, mais display:flex le supplante : il faut le dire. */
 #fin[hidden],#lecture[hidden]{display:none}
+#lecture[data-mort="1"]{border-color:var(--rouge);color:var(--rouge)}
 /* Le bandeau porte cinq chiffres, une jauge et trois boutons : c'est la jauge
    qui saute en premier quand la place manque, le chiffre du versement dit deja
    la meme chose. Avec un or a six chiffres en fin de partie, le seuil arrive
@@ -184,7 +210,9 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
       La <b>graine</b> rejoue exactement la même partie.</p>
   </div>
 </div>
-<div id="lignes"></div>
+<div id="bandeauLignes"><div id="lignes"></div>
+  <button id="ouvrirTableau" aria-expanded="false" title="Tableau de bord">▾</button></div>
+<div id="tableau"></div>
 <div id="zone"><canvas id="scene"></canvas><div id="lecture" hidden>Lecture seule</div>
   <div id="fil"></div></div>
 <div id="bas"><div id="panneau"></div>

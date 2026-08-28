@@ -302,8 +302,14 @@ function majBandeau(){
   const badge = document.getElementById('lecture');
   /* Cache pendant le glissement : c'est un element du DOM, il ne glisse pas
      avec le plateau et arriverait donc avant lui. */
-  badge.hidden = (ligneVue === etat.moi) || !!transi;
-  badge.textContent = etat.lignes[ligneVue].nom + ' · lecture seule';
+  /* Etre elimine n'arrete pas la partie : on devient spectateur, comme dans la
+     map. Encore faut-il le dire, sinon on croit a un bug. */
+  const elimine = etat.lignes[etat.moi].mort && !etat.fini;
+  badge.hidden = (!elimine && ligneVue === etat.moi) || !!transi;
+  badge.dataset.mort = elimine ? '1' : '0';
+  badge.textContent = elimine
+    ? 'Éliminé · tu regardes la suite'
+    : etat.lignes[ligneVue].nom + ' · lecture seule';
 }
 
 /* Le panneau est reconstruit a chaque achat, ce qui remettait la rangee au
@@ -324,6 +330,9 @@ function panneau(){
 
 function remplirPanneau(d){
   const l = etat.lignes[etat.moi], cfg = etat.cfg;
+  if (l.mort){ d.innerHTML =
+    `<p class="vide">Tu es éliminé. La partie continue : glisse pour suivre les
+     survivants, ou ouvre le tableau de bord.</p>`; return; }
   if (ligneVue !== etat.moi){ d.innerHTML =
     `<p class="vide">Ligne de ${etat.lignes[ligneVue].nom} — lecture seule. Reviens sur la tienne pour jouer.</p>`; return; }
   if (selection){
@@ -394,6 +403,31 @@ function remplirPanneau(d){
       <p class="aide"><b>${l.bois} bois</b> · 1 par case, +1 par joueur éliminé.
        Trois racines, ou une racine et ses deux feuilles. <b>Choisis bien.</b></p>`;
   } else d.innerHTML = '';
+}
+
+/* ---- le tableau de bord -------------------------------------------------- */
+/* Le leaderboard de la map affiche exactement « Player (Income)  Lives » et
+   trie par vies. On garde cet ordre — c'est la lecture que l'original a
+   choisie — et on ajoute ce que notre version sait dire de plus : le nombre de
+   tours, et surtout combien de monstres chacun nous a deja envoyes. */
+function majTableau(){
+  const d = document.getElementById('tableau');
+  if (d.dataset.ouvert !== '1') return;
+  const moi = etat.lignes[etat.moi];
+  const rangs = [...etat.lignes].sort((a, z) =>
+    (a.mort - z.mort) || (z.vies - a.vies) || (z.revenu - a.revenu) || (a.i - z.i));
+  d.innerHTML = `<table><thead><tr>
+      <th>Joueur</th><th>Vies</th><th>Revenu</th><th>Tours</th><th>→ toi</th>
+    </tr></thead><tbody>` +
+    rangs.map(l => `<tr class="${l.i === etat.moi ? 'moi' : ''} ${l.mort ? 'mort' : ''}">
+      <td><i class="pastille" style="background:${couleurJoueur(l.i)}"></i>${l.nom}</td>
+      <td class="vies">${l.vies}</td>
+      <td class="rev">+${l.revenu}</td>
+      <td>${l.batiments.length}</td>
+      <td>${l.i === etat.moi ? '—' : (moi.recuDe[l.i] || 0)}</td></tr>`).join('') +
+    `</tbody></table>
+    <p class="pied"><b>→ toi</b> compte les monstres que ce joueur t'a envoyés
+     depuis le début. Le tableau se trie par vies, comme celui de la map.</p>`;
 }
 
 /* ---- le fil d'evenements ------------------------------------------------- */
@@ -478,6 +512,7 @@ function boucle(t){
   }
   geo = dessinerJeu();
   majBandeau();
+  majTableau();
   majFil(t);
   if (etat.fini) finir();
 }
@@ -702,6 +737,17 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('reprendre').onclick = fermerAccueil;
   document.getElementById('ouvrirReglages').onclick = () =>
     enPause() ? fermerAccueil() : ouvrirAccueil(!etat.fini);
+  document.getElementById('ouvrirTableau').onclick = e => {
+    const d = document.getElementById('tableau');
+    const ouvert = d.dataset.ouvert !== '1';
+    d.dataset.ouvert = ouvert ? '1' : '0';
+    e.currentTarget.setAttribute('aria-expanded', String(ouvert));
+    e.currentTarget.textContent = ouvert ? '▴' : '▾';
+    /* Le plateau change de hauteur : on force le recuit du terrain plutot que
+       de laisser une bande d'image morte en bas. */
+    terrain = null; sentier = null;
+    if (ouvert) majTableau();
+  };
   document.getElementById('camp').onchange = e => {
     camp = CAMPS[+e.target.value]; terrain = null; sentier = null; };
   demarrer(false);                            // une partie tourne sous le voile

@@ -35,8 +35,33 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
 #haut button{background:var(--bord);color:var(--encre);border:0;border-radius:7px;
   padding:8px 10px;font-size:14px;font-weight:700;cursor:pointer;flex:0 0 auto}
 #sonBtn[data-coupe="1"]{color:var(--doux);opacity:.55;text-decoration:line-through}
-#lignes{display:flex;gap:5px;overflow-x:auto;padding:6px 8px;background:#191627;
+#bandeauLignes{display:flex;align-items:stretch;background:#191627;
   border-bottom:1px solid var(--bord)}
+#lignes{display:flex;gap:5px;overflow-x:auto;padding:6px 8px;flex:1;min-width:0}
+#ouvrirTableau{flex:0 0 auto;background:transparent;border:0;border-left:1px solid var(--bord);
+  color:var(--doux);font-size:15px;padding:0 12px;cursor:pointer;font-family:Oxanium;font-weight:700}
+#ouvrirTableau[aria-expanded="true"]{color:var(--or);background:rgba(240,196,81,.10)}
+/* Le tableau de bord. Le leaderboard de la map ne montre que « Joueur
+   (revenu) — vies » ; on garde cet ordre et on ajoute ce que notre version
+   sait dire de plus. */
+#tableau{display:none;background:#15121f;border-bottom:1px solid var(--bord);
+  padding:8px 8px 10px;overflow-x:auto}
+#tableau[data-ouvert="1"]{display:block}
+#tableau table{width:100%;border-collapse:collapse;font-size:12.5px;
+  font-variant-numeric:tabular-nums}
+#tableau th{font-family:Oxanium;font-size:9px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--doux);font-weight:600;text-align:right;padding:0 5px 5px;white-space:nowrap}
+#tableau th:first-child{text-align:left}
+#tableau td{padding:4px 5px;text-align:right;border-top:1px solid rgba(255,255,255,.05);
+  white-space:nowrap}
+#tableau td:first-child{text-align:left;font-weight:600}
+#tableau tr.moi td{background:rgba(240,196,81,.10)}
+#tableau tr.mort td{opacity:.38;text-decoration:line-through}
+#tableau .vies{color:var(--rouge);font-weight:700}
+#tableau .rev{color:var(--vert)}
+#tableau .pastille{display:inline-block;width:7px;height:7px;border-radius:2px;
+  margin-right:5px;vertical-align:1px}
+#tableau .pied{color:var(--doux);font-size:10.5px;margin:7px 2px 0;line-height:1.4}
 .ong{flex:0 0 auto;background:transparent;border:1px solid var(--bord);border-radius:8px;
   padding:5px 9px;color:var(--doux);display:flex;flex-direction:column;line-height:1.15;cursor:pointer}
 .ong b{font-size:14px;color:var(--encre)} .ong span{font-size:11.5px}
@@ -47,7 +72,7 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
    de ligne au doigt ne part jamais. */
 #scene{width:100%;height:100%;display:block;touch-action:none}
 #lecture{position:absolute;top:8px;left:50%;transform:translateX(-50%);white-space:nowrap;
-  background:rgba(20,18,32,.9);border:1px solid var(--or);color:var(--or);
+  background:rgba(20,18,32,.9);border:1px solid var(--or);color:var(--or);z-index:2;
   padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;font-family:Oxanium}
 /* Le fil d'evenements. Sans lui on ne sait pas qui nous envoie ce qui arrive,
    et la partie se joue chacun dans son coin. */
@@ -125,6 +150,7 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   justify-content:center;z-index:9;padding:24px;text-align:center}
 /* hidden pose display:none, mais display:flex le supplante : il faut le dire. */
 #fin[hidden],#lecture[hidden]{display:none}
+#lecture[data-mort="1"]{border-color:var(--rouge);color:var(--rouge)}
 /* Le bandeau porte cinq chiffres, une jauge et trois boutons : c'est la jauge
    qui saute en premier quand la place manque, le chiffre du versement dit deja
    la meme chose. Avec un or a six chiffres en fin de partie, le seuil arrive
@@ -184,7 +210,9 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
       La <b>graine</b> rejoue exactement la même partie.</p>
   </div>
 </div>
-<div id="lignes"></div>
+<div id="bandeauLignes"><div id="lignes"></div>
+  <button id="ouvrirTableau" aria-expanded="false" title="Tableau de bord">▾</button></div>
+<div id="tableau"></div>
 <div id="zone"><canvas id="scene"></canvas><div id="lecture" hidden>Lecture seule</div>
   <div id="fil"></div></div>
 <div id="bas"><div id="panneau"></div>
@@ -1506,6 +1534,7 @@ function creerLigne(cfg, prof, i, estJoueur){
     depenseTours: 0, depenseEnvois: 0,   // sert au partage or/envois des bots
     stock: {}, prochainStock: {},        // chronologie de deblocage (voir config)
     envoisParType: {},                   // ce qu'on a envoye, et combien de fois
+    recuDe: {},                          // combien de monstres chaque ligne nous a envoyes
     occupe: new Int32Array(cfg.LARGEUR * cfg.HAUTEUR).fill(-1),
     chemin: null, scellee: false, mort: false,
     prochainBot: 60 + i * 17          // decale les bots pour qu'ils ne jouent pas a l'unisson
@@ -1624,6 +1653,7 @@ function envoyer(etat, l, type){
   faireApparaitre(etat, cible, type, l.i);
   /* L'anti-tortue : au-dela de douze batiments chez le defenseur, un monstre
      non mecanique arrive en double. Plus il se fortifie, plus il recoit. */
+  cible.recuDe[l.i] = (cible.recuDe[l.i] || 0) + 1;
   const double = !def.mecanique && cible.batiments.length >= etat.cfg.seuilDoublement;
   if (double) faireApparaitre(etat, cible, type, l.i);
   /* Le journal sert au fil d'evenements : sans lui, on ne sait meme pas qui
@@ -3093,8 +3123,14 @@ function majBandeau(){
   const badge = document.getElementById('lecture');
   /* Cache pendant le glissement : c'est un element du DOM, il ne glisse pas
      avec le plateau et arriverait donc avant lui. */
-  badge.hidden = (ligneVue === etat.moi) || !!transi;
-  badge.textContent = etat.lignes[ligneVue].nom + ' · lecture seule';
+  /* Etre elimine n'arrete pas la partie : on devient spectateur, comme dans la
+     map. Encore faut-il le dire, sinon on croit a un bug. */
+  const elimine = etat.lignes[etat.moi].mort && !etat.fini;
+  badge.hidden = (!elimine && ligneVue === etat.moi) || !!transi;
+  badge.dataset.mort = elimine ? '1' : '0';
+  badge.textContent = elimine
+    ? 'Éliminé · tu regardes la suite'
+    : etat.lignes[ligneVue].nom + ' · lecture seule';
 }
 
 /* Le panneau est reconstruit a chaque achat, ce qui remettait la rangee au
@@ -3115,6 +3151,9 @@ function panneau(){
 
 function remplirPanneau(d){
   const l = etat.lignes[etat.moi], cfg = etat.cfg;
+  if (l.mort){ d.innerHTML =
+    `<p class="vide">Tu es éliminé. La partie continue : glisse pour suivre les
+     survivants, ou ouvre le tableau de bord.</p>`; return; }
   if (ligneVue !== etat.moi){ d.innerHTML =
     `<p class="vide">Ligne de ${etat.lignes[ligneVue].nom} — lecture seule. Reviens sur la tienne pour jouer.</p>`; return; }
   if (selection){
@@ -3185,6 +3224,31 @@ function remplirPanneau(d){
       <p class="aide"><b>${l.bois} bois</b> · 1 par case, +1 par joueur éliminé.
        Trois racines, ou une racine et ses deux feuilles. <b>Choisis bien.</b></p>`;
   } else d.innerHTML = '';
+}
+
+/* ---- le tableau de bord -------------------------------------------------- */
+/* Le leaderboard de la map affiche exactement « Player (Income)  Lives » et
+   trie par vies. On garde cet ordre — c'est la lecture que l'original a
+   choisie — et on ajoute ce que notre version sait dire de plus : le nombre de
+   tours, et surtout combien de monstres chacun nous a deja envoyes. */
+function majTableau(){
+  const d = document.getElementById('tableau');
+  if (d.dataset.ouvert !== '1') return;
+  const moi = etat.lignes[etat.moi];
+  const rangs = [...etat.lignes].sort((a, z) =>
+    (a.mort - z.mort) || (z.vies - a.vies) || (z.revenu - a.revenu) || (a.i - z.i));
+  d.innerHTML = `<table><thead><tr>
+      <th>Joueur</th><th>Vies</th><th>Revenu</th><th>Tours</th><th>→ toi</th>
+    </tr></thead><tbody>` +
+    rangs.map(l => `<tr class="${l.i === etat.moi ? 'moi' : ''} ${l.mort ? 'mort' : ''}">
+      <td><i class="pastille" style="background:${couleurJoueur(l.i)}"></i>${l.nom}</td>
+      <td class="vies">${l.vies}</td>
+      <td class="rev">+${l.revenu}</td>
+      <td>${l.batiments.length}</td>
+      <td>${l.i === etat.moi ? '—' : (moi.recuDe[l.i] || 0)}</td></tr>`).join('') +
+    `</tbody></table>
+    <p class="pied"><b>→ toi</b> compte les monstres que ce joueur t'a envoyés
+     depuis le début. Le tableau se trie par vies, comme celui de la map.</p>`;
 }
 
 /* ---- le fil d'evenements ------------------------------------------------- */
@@ -3269,6 +3333,7 @@ function boucle(t){
   }
   geo = dessinerJeu();
   majBandeau();
+  majTableau();
   majFil(t);
   if (etat.fini) finir();
 }
@@ -3493,6 +3558,17 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('reprendre').onclick = fermerAccueil;
   document.getElementById('ouvrirReglages').onclick = () =>
     enPause() ? fermerAccueil() : ouvrirAccueil(!etat.fini);
+  document.getElementById('ouvrirTableau').onclick = e => {
+    const d = document.getElementById('tableau');
+    const ouvert = d.dataset.ouvert !== '1';
+    d.dataset.ouvert = ouvert ? '1' : '0';
+    e.currentTarget.setAttribute('aria-expanded', String(ouvert));
+    e.currentTarget.textContent = ouvert ? '▴' : '▾';
+    /* Le plateau change de hauteur : on force le recuit du terrain plutot que
+       de laisser une bande d'image morte en bas. */
+    terrain = null; sentier = null;
+    if (ouvert) majTableau();
+  };
   document.getElementById('camp').onchange = e => {
     camp = CAMPS[+e.target.value]; terrain = null; sentier = null; };
   demarrer(false);                            // une partie tourne sous le voile
