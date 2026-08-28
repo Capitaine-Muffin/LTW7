@@ -43,6 +43,24 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
 #lecture{position:absolute;top:8px;left:50%;transform:translateX(-50%);white-space:nowrap;
   background:rgba(20,18,32,.9);border:1px solid var(--or);color:var(--or);
   padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;font-family:Oxanium}
+/* Le fil d'evenements. Sans lui on ne sait pas qui nous envoie ce qui arrive,
+   et la partie se joue chacun dans son coin. */
+#fil{position:absolute;left:6px;right:6px;top:6px;display:flex;flex-direction:column;
+  gap:3px;pointer-events:none;align-items:flex-start}
+#fil div{background:rgba(12,10,20,.82);border-left:3px solid var(--bord);
+  border-radius:0 7px 7px 0;padding:4px 9px;font-size:12.5px;line-height:1.25;
+  max-width:100%;font-family:Oxanium,sans-serif;font-weight:600;
+  animation:entre .18s ease-out}
+#fil div.faible{opacity:.5;font-size:11.5px;font-weight:400}
+#fil b{font-weight:800}
+@keyframes entre{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
+.ong .chaine{font-size:9px;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
+.ong .pastille{display:inline-block;width:7px;height:7px;border-radius:2px;
+  margin-right:4px;vertical-align:1px}
+.ong .vagues{font-style:normal;background:rgba(224,90,90,.22);color:#ef8f8f;
+  border-radius:4px;padding:0 4px;margin-left:4px;font-size:10px;font-weight:700}
+.ong.menace{border-color:#e05a5a;background:rgba(224,90,90,.10)}
+.ong.menace.actif{border-color:var(--or)}
 #bas{background:var(--panneau);border-top:1px solid var(--bord)}
 /* Hauteur FIXE : sinon changer de menu redimensionne la zone de jeu, ce qui
    force un recuit du terrain et provoque un a-coup. */
@@ -125,7 +143,8 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   <button id="rejouerHaut">Nouvelle partie</button>
 </div>
 <div id="lignes"></div>
-<div id="zone"><canvas id="scene"></canvas><div id="lecture" hidden>Lecture seule</div></div>
+<div id="zone"><canvas id="scene"></canvas><div id="lecture" hidden>Lecture seule</div>
+  <div id="fil"></div></div>
 <div id="bas"><div id="panneau"></div>
   <div id="barre">
     <button data-menu="monstres">Monstres</button>

@@ -12,6 +12,11 @@ let etat, camp, cache = {}, enMain = null, selection = null, ligneVue = 0,
 let transi = null, photo = null;
 const DUREE_TRANSI = 260;
 
+/* Une couleur par joueur : c'est ce qui permet de reconnaitre d'ou vient un
+   monstre sans lire une seule ligne de texte. Le joueur est toujours l'or. */
+const COULEURS = ['#ffd24a','#e05a5a','#5ac8e0','#8fd06a','#c08aff','#ff9a4a','#7ad0b8'];
+const couleurJoueur = i => COULEURS[i % COULEURS.length];
+
 /* ---- pre-rendu des sprites ---------------------------------------------- */
 function preparerSprites(){
   for (const cle of Object.keys(MONSTRES_ART)) for (const im of [0, 1]){
@@ -137,6 +142,10 @@ function dessinerJeu(){
       c.fillStyle = 'rgba(0,0,0,.28)';
       c.beginPath(); c.ellipse(x, y + taille * .22, taille * .30, taille * .12, 0, 0, 7); c.fill();
     }
+    /* Anneau aux couleurs de l'expediteur. On voit d'un coup d'oeil que cette
+       vague vient de Bot 2 — et donc que c'est lui qui monte en puissance. */
+    c.strokeStyle = couleurJoueur(m.proprietaire); c.lineWidth = 2;
+    c.beginPath(); c.ellipse(x, y + taille * .16, taille * .34, taille * .14, 0, 0, 7); c.stroke();
     if (im) c.drawImage(im, Math.round(x - taille / 2), Math.round(y - taille * .62 + vol), taille, taille);
     if (m.pv < m.pvMax){                            // barre lisible meme sur un mouton
       const w = Math.max(10, taille * .7);
@@ -187,10 +196,24 @@ function majBandeau(){
   document.getElementById('jaugeRevenu').style.width =
     (100 - reste * 100 / etat.prof.tickRevenu) + '%';
 
+  /* La chaine. Un joueur nourrit son voisin et se fait nourrir par un autre :
+     tant qu'on ne sait pas LEQUEL, on ne sait pas d'ou vient le danger. */
+  const proie = voisin(etat, etat.moi);
+  let menace = etat.moi;
+  for (let k = 1; k <= etat.lignes.length; k++){
+    const j = (etat.moi - k + etat.lignes.length) % etat.lignes.length;
+    if (!etat.lignes[j].mort){ menace = j; break; }
+  }
   const onglets = document.getElementById('lignes');
-  onglets.innerHTML = etat.lignes.map((x, i) =>
-    `<button class="ong ${i === ligneVue ? 'actif' : ''} ${x.mort ? 'mort' : ''}" data-ligne="${i}">
-      <b>${i === etat.moi ? 'Toi' : 'Bot ' + i}</b><span>♥ ${x.vies} · +${x.revenu}</span></button>`).join('');
+  onglets.innerHTML = etat.lignes.map((x, i) => {
+    const role = i === etat.moi ? '' : i === menace ? 'te vise'
+               : i === proie ? 'tu vises' : '';
+    const vagues = x.monstres.length;
+    return `<button class="ong ${i === ligneVue ? 'actif' : ''} ${x.mort ? 'mort' : ''}
+        ${i === menace && !x.mort ? 'menace' : ''}" data-ligne="${i}">
+      <b><i class="pastille" style="background:${couleurJoueur(i)}"></i>${x.nom}</b>
+      <span>♥ ${x.vies} · +${x.revenu}${vagues ? `<i class="vagues">${vagues}</i>` : ''}</span>
+      ${role ? `<span class="chaine">${role}</span>` : ''}</button>`; }).join('');
   /* Le bandeau dit AUSSI quelle ligne on regarde : apres un glissement, les
      onglets du haut ne sont pas forcement dans le champ du regard. */
   const badge = document.getElementById('lecture');
@@ -290,6 +313,61 @@ function remplirPanneau(d){
   } else d.innerHTML = '';
 }
 
+/* ---- le fil d'evenements ------------------------------------------------- */
+/* Ce que le jeu ne disait pas : qui envoie quoi a qui, qui vole une vie a qui,
+   qui vient d'etre elimine. On ne montre que ce qui nous concerne en clair —
+   le reste, en gris et seulement si c'est marquant — sinon a sept joueurs le
+   fil defile trop vite pour etre lu. */
+let dernierVu = 0, lignesFil = [], filSignature = '';
+const DUREE_FIL = 4200;
+
+function nomDe(i){ return etat.lignes[i] ? etat.lignes[i].nom : '?'; }
+
+function texteEvenement(e){
+  const moi = etat.moi, cfg = etat.cfg;
+  if (e.type === 'envoi'){
+    const m = cfg.MONSTRES[e.monstre].nom;
+    if (e.vers === moi) return {t: `<b>${nomDe(e.de)}</b> t'envoie ${m}${e.double ? ' ×2' : ''}`,
+                                c: couleurJoueur(e.de), fort: true};
+    if (e.de === moi)   return {t: `Tu envoies ${m} à <b>${nomDe(e.vers)}</b>`,
+                                c: couleurJoueur(moi), fort: true};
+    return {t: `${nomDe(e.de)} → ${nomDe(e.vers)} : ${m}`, c: '#6b6480', fort: false};
+  }
+  if (e.type === 'vol'){
+    if (e.de === moi)   return {t: `<b>${nomDe(e.vers)}</b> te vole une vie`, c: '#e05a5a', fort: true};
+    if (e.vers === moi) return {t: `Tu voles une vie à <b>${nomDe(e.de)}</b>`, c: '#6fc46a', fort: true};
+    return null;                                   // deux bots entre eux : sans interet
+  }
+  if (e.type === 'mort')
+    return {t: `☠ <b>${nomDe(e.ligne)}</b> est éliminé` +
+               (e.par != null ? ` par ${nomDe(e.par)}` : ''), c: '#f0c451', fort: true};
+  if (e.type === 'controleur' && e.ligne === ligneVue)
+    return {t: `⚙ La machine anti-mur passe`, c: '#f0c451', fort: false};
+  return null;
+}
+
+function majFil(maintenant){
+  for (const e of etat.journal){
+    if (e.n <= dernierVu) continue;
+    dernierVu = e.n;
+    const v = texteEvenement(e);
+    if (!v) continue;
+    /* Les envois entre bots ne meritent pas de chasser un message qui nous
+       concerne : ils passent apres, et seulement s'il reste de la place. */
+    if (!v.fort && lignesFil.filter(x => !x.fort).length >= 1) continue;
+    lignesFil.push({...v, t0: maintenant});
+    if (lignesFil.length > 4) lignesFil.shift();
+  }
+  lignesFil = lignesFil.filter(x => maintenant - x.t0 < DUREE_FIL);
+  /* Ne rendre que si la liste a change : sinon l'animation d'entree redemarre
+     a chaque image et le fil clignote. */
+  const signature = lignesFil.map(x => x.t0).join(',');
+  if (signature === filSignature) return;
+  filSignature = signature;
+  document.getElementById('fil').innerHTML = lignesFil.map(x =>
+    `<div class="${x.fort ? '' : 'faible'}" style="border-left-color:${x.c}">${x.t}</div>`).join('');
+}
+
 /* ---- boucle -------------------------------------------------------------- */
 function boucle(t){
   requestAnimationFrame(boucle);
@@ -313,6 +391,7 @@ function boucle(t){
   }
   geo = dessinerJeu();
   majBandeau();
+  majFil(t);
   if (etat.fini) finir();
 }
 function finir(){
@@ -474,7 +553,8 @@ function demarrer(memeGraine){
   terrain = null; sentier = null;
   etat = creerPartie({graine, profil, joueurs, difficulte});
   ligneVue = etat.moi; selection = null; enMain = null; menu = 'batiments'; acceleration = 1;
-  tirs.length = 0;
+  tirs.length = 0; transi = null; dernierVu = 0; lignesFil = []; filSignature = '';
+  document.getElementById('fil').innerHTML = '';
   document.querySelectorAll('[data-menu]').forEach(x =>
     x.setAttribute('aria-pressed', String(x.dataset.menu === 'batiments')));
   document.getElementById('fin').hidden = true;

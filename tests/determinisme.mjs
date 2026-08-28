@@ -251,5 +251,21 @@ console.log('\nune tour riposte a qui la demolit');
   dire(touche === 'briseur', `la tour tire d'abord sur ${touche || 'personne'}`);
 }
 
+/* Le journal alimente le fil d'evenements. Il doit dire qui envoie quoi a qui,
+   et ne pas gonfler sans fin sur une partie longue. */
+console.log('\nle journal raconte la partie');
+{
+  const e = M.creerPartie({graine: 8, joueurs: 4, difficulte: 'agressif'});
+  for (let i = 0; i < 4000; i++) M.avancer(e);
+  const types = new Set(e.journal.map(x => x.type));
+  dire(types.has('envoi'), 'les envois sont notes');
+  dire(e.journal.every(x => x.n > 0), 'chaque entree porte un numero d\'ordre');
+  const croissant = e.journal.every((x, i, a) => i === 0 || a[i-1].n < x.n);
+  dire(croissant, 'les numeros sont strictement croissants');
+  dire(e.journal.length <= 400, `le journal reste borne (${e.journal.length} entrees sur 400 s)`);
+  const env = e.journal.find(x => x.type === 'envoi');
+  dire(env && env.de !== env.vers && env.monstre, 'un envoi dit qui, vers qui, et quoi');
+}
+
 console.log(echecs ? `\n${echecs} echec(s)\n` : '\ntout passe\n');
 process.exit(echecs ? 1 : 0);

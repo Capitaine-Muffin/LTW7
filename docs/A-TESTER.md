@@ -16,6 +16,25 @@ recopier**, sinon « c'est trop dur » n'est pas exploitable.
 Le glissement ne pose jamais rien : la pose part au relâchement du doigt, et
 seulement si le doigt n'a pas bougé.
 
+## Savoir ce que font les autres
+
+Le prototype se jouait chacun dans son coin. Trois repères ont été ajoutés :
+
+- **Une couleur par joueur.** Chaque monstre porte au sol un anneau à la couleur
+  de celui qui l'a envoyé. Une vague d'un seul et même adversaire se voit
+  immédiatement.
+- **Le fil d'événements**, en haut du plateau : qui t'envoie quoi, qui te vole
+  une vie, qui vient d'être éliminé. Ce qui te concerne est en clair, les
+  échanges entre bots en gris.
+- **La chaîne, sur les onglets** : celui qui te nourrit est marqué **te vise**
+  (bordure rouge), celui que tu nourris **tu vises**. Le badge rouge à droite
+  compte les monstres actuellement vivants sur cette ligne — un adversaire
+  submergé se repère sans changer d'écran.
+
+Ce qui manque encore, et sur quoi j'attends ton avis : un **tableau de bord**
+dépliable (or, revenu, nombre de tours, ce que chacun t'a envoyé depuis le
+début), à la manière du multiboard de la map d'origine.
+
 ## Le bois — la seule décision irréversible
 
 Tu commences avec **3 bois** et tu n'en regagnes qu'en **éliminant un joueur**.

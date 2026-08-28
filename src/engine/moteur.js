@@ -28,7 +28,7 @@ function creerPartie({graine = 12345, profil = 'BLITZ', joueurs = 4,
   const etat = {
     cfg, prof, diff, pas: 0, rng: creerRng(graine), graine, profil, difficulte,
     lignes: [], moi: 0, fini: false, vainqueur: null, journal: [],
-    controleur: null, prochainControleur: cfg.controleur.periode,
+    controleur: null, prochainControleur: cfg.controleur.periode, seq: 0,
     /* Trace des tirs du pas courant. Le moteur ne dessine rien : il note juste
        « cette tour a tire sur ce point », l'affichage en fait des projectiles.
        Vide a chaque pas, donc sans effet sur la simulation ni sur la rejouabilite. */
@@ -44,6 +44,15 @@ function creerPartie({graine = 12345, profil = 'BLITZ', joueurs = 4,
   }
   etat.lignes.forEach(l => recalculerChemin(etat, l));
   return etat;
+}
+
+/* Le journal. Chaque entree porte un numero d'ordre : l'affichage retient le
+   dernier numero lu, ce qui permet de tailler le journal sans lui casser sa
+   position. Une partie longue en produit des milliers. */
+function noter(etat, e){
+  e.pas = etat.pas; e.n = ++etat.seq;
+  etat.journal.push(e);
+  if (etat.journal.length > 400) etat.journal.splice(0, 200);
 }
 
 /* Le voisin a qui on envoie : le suivant encore en vie, en cercle. */
@@ -119,8 +128,11 @@ function envoyer(etat, l, type){
   faireApparaitre(etat, cible, type, l.i);
   /* L'anti-tortue : au-dela de douze batiments chez le defenseur, un monstre
      non mecanique arrive en double. Plus il se fortifie, plus il recoit. */
-  if (!def.mecanique && cible.batiments.length >= etat.cfg.seuilDoublement)
-    faireApparaitre(etat, cible, type, l.i);
+  const double = !def.mecanique && cible.batiments.length >= etat.cfg.seuilDoublement;
+  if (double) faireApparaitre(etat, cible, type, l.i);
+  /* Le journal sert au fil d'evenements : sans lui, on ne sait meme pas qui
+     nous envoie ce qui arrive, et la partie se joue chacun dans son coin. */
+  noter(etat, {type: 'envoi', de: l.i, vers: cible.i, monstre: type, double});
   return true;
 }
 /* Les deblocages en bois. La map en a quinze — cinq racines et dix feuilles —
@@ -281,12 +293,12 @@ function sortie(etat, l, m, k){
   if (l.vies > 0){
     l.vies -= 1;
     if (envoyeur && !envoyeur.mort) envoyeur.vies += 1;
-    etat.journal.push({pas: etat.pas, type: 'vol', de: l.i, vers: m.proprietaire});
+    noter(etat, {type: 'vol', de: l.i, vers: m.proprietaire});
   }
   if (l.vies <= 0 && !l.mort){
     l.mort = true; l.monstres = [];
     if (envoyeur && !envoyeur.mort) envoyeur.bois += etat.cfg.boisParKill;
-    etat.journal.push({pas: etat.pas, type: 'mort', ligne: l.i, par: m.proprietaire});
+    noter(etat, {type: 'mort', ligne: l.i, par: m.proprietaire});
     return;
   }
   const suivante = etat.lignes[voisin(etat, l.i)];
@@ -537,7 +549,7 @@ function controleur(etat){
         if (b.pv <= 0) retirerBatiment(etat, l, b);
       }
     }
-    etat.journal.push({pas: etat.pas, type: 'controleur', ligne: l.i});
+    noter(etat, {type: 'controleur', ligne: l.i});
     c.chemin = null;
     return;
   }
