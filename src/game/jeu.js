@@ -70,7 +70,7 @@ function dessinerJeu(){
   c.drawImage(terrain.img, ox, oy);
   c.drawImage(sentier.img, ox, oy);
 
-  c.strokeStyle = 'rgba(0,0,0,.10)'; c.lineWidth = 1;
+  c.strokeStyle = 'rgba(0,0,0,.07)'; c.lineWidth = 1;
   for (let x = 1; x < cfg.LARGEUR; x++){ c.beginPath();
     c.moveTo(ox + x * T + .5, oy); c.lineTo(ox + x * T + .5, oy + T * cfg.HAUTEUR); c.stroke(); }
   for (let y = 1; y < cfg.HAUTEUR; y++){ c.beginPath();
@@ -81,7 +81,7 @@ function dessinerJeu(){
   dessinerEntree(c, cfg, T, ox, oy, B);
   dessinerSortie(c, cfg, T, ox, oy, B);
   c.restore();
-  c.strokeStyle = 'rgba(10,9,16,.55)'; c.lineWidth = 2;   // cadre du plateau
+  c.strokeStyle = 'rgba(10,9,16,.40)'; c.lineWidth = 2;   // cadre du plateau
   c.strokeRect(ox + 1, oy + 1, T * cfg.LARGEUR - 2, T * cfg.HAUTEUR - 2);
 
   if (!l.chemin){                                   // couloir scelle : on le dit
@@ -216,11 +216,14 @@ function panneau(){
 function boucle(t){
   requestAnimationFrame(boucle);
   if (!dernier) dernier = t;
-  let dt = Math.min(250, t - dernier); dernier = t;
+  let dt = Math.min(120, t - dernier); dernier = t;
   if (!etat.fini){
-    accum += dt * acceleration;
-    let garde = 0;
-    while (accum >= etat.cfg.PAS_MS && garde++ < 40){ avancer(etat); accum -= etat.cfg.PAS_MS; }
+    /* On plafonne le retard AVANT de le rattraper. Sans ca, une image longue
+       (changement de menu, onglet en arriere-plan) faisait avancer la partie
+       de plusieurs secondes d'un coup : les monstres semblaient se teleporter.
+       Mieux vaut perdre un peu de temps de jeu qu'un saut visible. */
+    accum = Math.min(accum + dt * acceleration, etat.cfg.PAS_MS * 4);
+    while (accum >= etat.cfg.PAS_MS){ avancer(etat); accum -= etat.cfg.PAS_MS; }
   }
   geo = dessinerJeu();
   majBandeau();

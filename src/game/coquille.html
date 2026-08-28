@@ -35,7 +35,9 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
   background:rgba(20,18,32,.9);border:1px solid var(--or);color:var(--or);
   padding:5px 12px;border-radius:20px;font-size:11.5px;font-weight:700;font-family:Oxanium}
 #bas{background:var(--panneau);border-top:1px solid var(--bord)}
-#panneau{min-height:82px;padding:8px 8px 4px}
+/* Hauteur FIXE : sinon changer de menu redimensionne la zone de jeu, ce qui
+   force un recuit du terrain et provoque un a-coup. */
+#panneau{height:104px;padding:8px 8px 4px;overflow-y:auto;overscroll-behavior:contain}
 .rangee{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
 .art{flex:0 0 auto;background:var(--bord);border:1px solid #3b3552;border-radius:9px;
   padding:7px 10px;color:var(--encre);display:flex;flex-direction:column;align-items:flex-start;
@@ -46,7 +48,8 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
 .art.acquis{border-color:var(--vert);color:var(--vert)} .art.vente{border-color:#6b3a3a}
 .tete{font-family:Oxanium;font-weight:800;font-size:14px;padding:0 2px 6px;display:flex;
   flex-direction:column} .tete span{font-family:"Source Sans 3";font-weight:400;font-size:11px;color:var(--doux)}
-.aide{margin:5px 2px 0;font-size:11px;color:var(--doux);line-height:1.35}
+.aide{margin:5px 2px 0;font-size:11px;color:var(--doux);line-height:1.35;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .vide{margin:14px 2px;font-size:12.5px;color:var(--doux)}
 #barre{display:flex;gap:6px;padding:6px 8px 10px}
 #barre button{flex:1;background:var(--bord);color:var(--encre);border:1px solid #3b3552;

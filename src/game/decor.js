@@ -12,45 +12,46 @@
 const BIOMES = {
   humain: {
     cle:'humain', nom:'Prairie',
-    sol:['#4a7c42','#48793f','#4d7f45','#477740'],
-    brin:['#568a49','#3f6d38'],
-    terre:['#7a5a38','#6b4d2e','#8a6a44'], orniere:['#5c4028','#95784f'],
-    pierre:['#6b6a72','#83828c','#54535c'],
-    petales:['#dcd6b4','#cf8496','#e6c96e'],
-    bois:['#5c4028','#6b4d2e','#8a6a44','#4a3220'],
-    portail:'rgba(210,70,60,.30)', caverne:'rgba(150,120,190,.22)'
+    sol:['#5d9351','#5a8f4d','#619754','#588d4b'],
+    brin:['#72ab60','#4c8044'],
+    terre:['#9a7a52','#8a6c42','#a98d62'], orniere:['#785c3c','#b89d71'],
+    pierre:['#87868f','#a09fa9','#6e6d75'],
+    petales:['#f2eece','#e29caa','#f7de88'],
+    bois:['#6e4d33','#7d5a3c','#9a7350','#57402b'],
+    portail:'rgba(225,95,80,.34)', caverne:'rgba(178,150,215,.26)'
   },
   orc: {
     cle:'orc', nom:'Terres rouges',
-    sol:['#8a6136','#856035','#916838','#7f5a32'],
-    brin:['#9c7742','#6b4a26'],
-    terre:['#a8814c','#96703f','#b8925c'], orniere:['#7a5730','#c9a878'],
-    pierre:['#7d5340','#966850','#5e3e2f'],
-    petales:['#d8c07a','#c98a5a','#e8d8a0'],
-    bois:['#5e3a22','#6e472a','#8a5e3a','#472b18'],
-    portail:'rgba(220,90,50,.32)', caverne:'rgba(255,150,80,.20)'
+    sol:['#a4784c','#9f754a','#ab7e4e','#997247'],
+    brin:['#b79158','#85623b'],
+    terre:['#c39d66','#b18a55','#d3af7a'], orniere:['#977342','#e2c799'],
+    pierre:['#9d6e57','#b7876b','#7d5643'],
+    petales:['#f0dc98','#dfa273','#f7eaba'],
+    bois:['#7a5030','#8a5e3a','#a5764c','#5e3d24'],
+    portail:'rgba(240,115,70,.36)', caverne:'rgba(255,175,105,.26)'
   },
   mortvivant: {
     cle:'mortvivant', nom:'Terre gâtée',
-    sol:['#4a4658','#474354','#4e4a5e','#443f52'],
-    brin:['#5c5568','#38334a'],
-    terre:['#5e5768','#544d5e','#6b6478'], orniere:['#433d50','#7d768c'],
-    pierre:['#6b6478','#847d92','#544e60'],
-    petales:['#8dff8a','#ded6bc','#6fbf6a'],
-    bois:['#4a4438','#564e40','#6b6152','#3a352c'],
-    portail:'rgba(120,210,110,.26)', caverne:'rgba(120,255,130,.20)'
+    sol:['#716d83','#6d697f','#767289','#69657b'],
+    brin:['#847e96','#59536b'],
+    terre:['#867f95','#7b728b','#948da3'], orniere:['#686177','#a79fb7'],
+    pierre:['#928ba1','#aca5bb','#7a7389'],
+    petales:['#adffa7','#f2ebd3','#94dd8f'],
+    bois:['#665e50','#726957','#8a7f6a','#4f4840'],
+    portail:'rgba(140,235,130,.30)', caverne:'rgba(150,255,160,.26)'
   },
   elfe: {
     cle:'elfe', nom:'Sous-bois',
-    sol:['#31524f','#2e4f4c','#355754','#2c4a48'],
-    brin:['#3f6b62','#25423f'],
-    terre:['#4a6b56','#42604d','#557a62'], orniere:['#35503f','#6f9a80'],
-    pierre:['#4a5f66','#5f7880','#3a4c52'],
-    petales:['#7ffff0','#c4a8ff','#a8e0d0'],
-    bois:['#3a3a2c','#47472f','#5f6140','#2c2c22'],
-    portail:'rgba(120,200,255,.26)', caverne:'rgba(111,230,221,.24)'
+    sol:['#4d7b76','#4a7873','#51827c','#48746f'],
+    brin:['#619791','#3b5f5b'],
+    terre:['#67917a','#5e856f','#749f87'], orniere:['#507260','#94bfa7'],
+    pierre:['#6a848d','#8299a3','#566e75'],
+    petales:['#adfff4','#d9c1ff','#c7f1e5'],
+    bois:['#4c4c3a','#59593d','#71734f','#38382c'],
+    portail:'rgba(140,215,255,.30)', caverne:'rgba(140,240,232,.28)'
   }
 };
+
 /* Le bord du sentier reprend le sol du biome, a moitie transparent. */
 for (const b of Object.values(BIOMES)){
   const [r, v, bl] = [1, 3, 5].map(i => parseInt(b.sol[0].slice(i, i + 2), 16));
@@ -160,8 +161,8 @@ function cuireTerrain(cfg, T, B){
   }
   /* Assombrissement des bords : donne du relief sans rien cacher. */
   const d = c.createLinearGradient(0, 0, 0, cv.height);
-  d.addColorStop(0, 'rgba(0,0,0,.20)'); d.addColorStop(.16, 'rgba(0,0,0,0)');
-  d.addColorStop(.84, 'rgba(0,0,0,0)'); d.addColorStop(1, 'rgba(0,0,0,.20)');
+  d.addColorStop(0, 'rgba(0,0,0,.10)'); d.addColorStop(.13, 'rgba(0,0,0,0)');
+  d.addColorStop(.87, 'rgba(0,0,0,0)'); d.addColorStop(1, 'rgba(0,0,0,.10)');
   c.fillStyle = d; c.fillRect(0, 0, cv.width, cv.height);
   return cv;
 }
