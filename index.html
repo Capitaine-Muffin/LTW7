@@ -891,6 +891,9 @@ const portee = u => Math.round(u * MILLI / CASE);        // unites WC3 -> milli-
 const cadence = parMin => Math.max(1, Math.round(600 / parMin)); // tirs/min -> pas entre deux tirs
 const vitesse = v => Math.round(v * 100 / CASE);         // unites/s -> milli-cases par pas
 
+/* Les quinze deblocages en bois de la map — cinq racines et dix feuilles, un
+   bois chacun (`ulum:1` dans war3map.w3u). Avec trois bois au depart, on ne
+   peut PAS tout ouvrir : c'est ca, le choix de debut de partie. */
 const BRANCHES = {
   feu:     {nom:'Feu',      elementaire:'barbecue',   feuilles:['boom','meteore']},
   froid:   {nom:'Froid',    elementaire:'glacier',    feuilles:['eauUltime','glaceUltime']},
@@ -928,22 +931,22 @@ const TOURS = {
   damne:     {nom:'Tour damnée',    or:800, pv:1000, deg:250, p:portee(700), c:cadence(60),  ralentit:30, vers:['mort','fosse']},
   lanterne:  {nom:'Lanterne sacrée',or:800, pv:1000, deg:300, p:portee(600), c:cadence(60),  vulnerable:25, vers:['champignon','teleporteur']},
 
-  boom:        {nom:'Tour BOUM',    or:300, pv:5000, deg:1000,p:portee(150), c:cadence(60), zone:portee(220), usageUnique:true},
-  meteore:     {nom:'Attracteur',   or:4000,pv:3000, deg:1000,p:portee(1000),c:cadence(20), zone:portee(200)},
-  eauUltime:   {nom:'Eau ultime',   or:3000,pv:2000, deg:600, p:portee(700), c:cadence(60), zone:portee(70)},
-  glaceUltime: {nom:'Glace ultime', or:4000,pv:2500, deg:200, p:portee(700), c:cadence(60), zone:portee(150), ralentit:40},
-  generateur:  {nom:'Générateur',   or:4000,pv:2500, deg:250, p:portee(700), c:cadence(300)},
+  boom:        {nom:'Tour BOUM',    feuille:'feu', or:300, pv:5000, deg:1000,p:portee(150), c:cadence(60), zone:portee(220), usageUnique:true},
+  meteore:     {nom:'Attracteur',   feuille:'feu', or:4000,pv:3000, deg:1000,p:portee(1000),c:cadence(20), zone:portee(200)},
+  eauUltime:   {nom:'Eau ultime',   feuille:'froid', or:3000,pv:2000, deg:600, p:portee(700), c:cadence(60), zone:portee(70)},
+  glaceUltime: {nom:'Glace ultime', feuille:'froid', or:4000,pv:2500, deg:200, p:portee(700), c:cadence(60), zone:portee(150), ralentit:40},
+  generateur:  {nom:'Générateur',   feuille:'foudre', or:4000,pv:2500, deg:250, p:portee(700), c:cadence(300)},
   /* Le Condensateur multiplie la vie courante par 0,8 : il ne tue JAMAIS, il
      ne fait que ramener. La Mort, elle, tue net, quels que soient les points
      de vie — et se detruit apres son unique tir. */
-  condensateur:{nom:'Condensateur', or:3000,pv:1500, degPct:20,p:portee(500),c:cadence(12)},
-  mort:        {nom:'La Mort',      or:300, pv:5000, tue:true, p:portee(700),c:cadence(60), usageUnique:true},
+  condensateur:{nom:'Condensateur', feuille:'foudre', or:3000,pv:1500, degPct:20,p:portee(500),c:cadence(12)},
+  mort:        {nom:'La Mort',      feuille:'tenebres', or:300, pv:5000, tue:true, p:portee(700),c:cadence(60), usageUnique:true},
   /* La Fosse retire 5 % de la vie COURANTE toutes les 5 s pendant 30 s : un
      poison en pourcentage, donc redoutable sur les gros monstres. */
-  fosse:       {nom:'Fosse septique',or:4000,pv:3000,deg:350, p:portee(700), c:cadence(30), zone:portee(70),
+  fosse:       {nom:'Fosse septique',feuille:'tenebres', or:4000,pv:3000,deg:350, p:portee(700), c:cadence(30), zone:portee(70),
                 poisonPct:5, poisonDuree:300, poisonPas:50},
-  champignon:  {nom:'Champignon',   or:4000,pv:1800, deg:500, p:portee(700), c:cadence(30), zone:portee(150)},
-  teleporteur: {nom:'Téléporteur',  or:4000,pv:2500, deg:0,   p:portee(700), c:cadence(2),  teleporte:true}
+  champignon:  {nom:'Champignon',   feuille:'lumiere', or:4000,pv:1800, deg:500, p:portee(700), c:cadence(30), zone:portee(150)},
+  teleporteur: {nom:'Téléporteur',  feuille:'lumiere', or:4000,pv:2500, deg:0,   p:portee(700), c:cadence(2),  teleporte:true}
 };
 
 /* Monstres envoyables. Le ratio revenu/or decroit strictement : c'est le
@@ -1036,10 +1039,13 @@ const MONSTRES = {
    rapport de deux, au lieu de cinq. */
 const PROFILS = {
   //                        vies  or   revenu tick  temps   -> or/s   x Classique
-  ECLAIR:    {nom:'Éclair',    vies:6,  or:140, revenu:25, tickRevenu:50,  bois:3, temps:0.18},
-  BLITZ:     {nom:'Blitz',     vies:10, or:130, revenu:24, tickRevenu:60,  bois:3, temps:0.30},
-  SOUTENU:   {nom:'Soutenu',   vies:16, or:120, revenu:25, tickRevenu:80,  bois:3, temps:0.55},
-  CLASSIQUE: {nom:'Classique', vies:25, or:120, revenu:25, tickRevenu:100, bois:3, temps:1.00}
+  /* Classique = la map, chiffre pour chiffre : 25 vies, 100 or, revenu 25,
+     versement toutes les 10 s, 3 bois. Les autres rythmes s'en ecartent d'un
+     cran chacun — jamais plus, pour ne pas changer le sens des prix. */
+  ECLAIR:    {nom:'Éclair',    vies:6,  or:130, revenu:25, tickRevenu:50,  bois:3, temps:0.18},
+  BLITZ:     {nom:'Blitz',     vies:10, or:120, revenu:24, tickRevenu:60,  bois:3, temps:0.30},
+  SOUTENU:   {nom:'Soutenu',   vies:16, or:110, revenu:25, tickRevenu:80,  bois:3, temps:0.55},
+  CLASSIQUE: {nom:'Classique', vies:25, or:100, revenu:25, tickRevenu:100, bois:3, temps:1.00}
 };
 
 /* La difficulte change ce que les bots FONT, pas leurs statistiques : ils
@@ -1165,7 +1171,7 @@ function creerLigne(cfg, prof, i, estJoueur){
   return {
     i, estJoueur, nom: estJoueur ? 'Toi' : 'Bot ' + i,
     or: prof.or, revenu: prof.revenu, vies: prof.vies, bois: prof.bois,
-    branches: {}, batiments: [], monstres: [],
+    branches: {}, feuilles: {}, batiments: [], monstres: [],
     depenseTours: 0, depenseEnvois: 0,   // sert au partage or/envois des bots
     stock: {}, prochainStock: {},        // chronologie de deblocage (voir config)
     envoisParType: {},                   // ce qu'on a envoye, et combien de fois
@@ -1234,6 +1240,7 @@ function ameliorer(etat, l, b, vers){
   const cfg = etat.cfg, def = cfg.TOURS[vers];
   if (!def) return false;
   if (def.branche && !l.branches[def.branche]) return false;
+  if (def.feuille && !l.feuilles[vers]) return false;
   if (l.or < def.or) return false;
   l.or -= def.or; l.depenseTours += def.or;
   b.type = vers; b.pvMax = def.pv; b.pv = def.pv; b.recharge = 0;
@@ -1277,9 +1284,19 @@ function envoyer(etat, l, type){
     faireApparaitre(etat, cible, type, l.i);
   return true;
 }
+/* Les deblocages en bois. La map en a quinze — cinq racines et dix feuilles —
+   a un bois chacun, et n'en donne que trois au depart : ouvrir trois racines
+   ou une racine et ses deux feuilles ne mene pas au meme jeu. C'est la seule
+   decision de debut de partie qu'on ne peut pas defaire. */
 function acheterBranche(etat, l, cle){
   if (l.branches[cle] || l.bois < 1) return false;
   l.bois -= 1; l.branches[cle] = true; return true;
+}
+function acheterFeuille(etat, l, type){
+  const def = etat.cfg.TOURS[type];
+  if (!def || !def.feuille) return false;
+  if (l.feuilles[type] || !l.branches[def.feuille] || l.bois < 1) return false;
+  l.bois -= 1; l.feuilles[type] = true; return true;
 }
 
 function faireApparaitre(etat, ligne, type, proprietaire){
@@ -1560,7 +1577,8 @@ function bots(etat){
               ? Object.keys(cfg.TOURS).filter(k => cfg.TOURS[k].branche && l.branches[cfg.TOURS[k].branche])
               : [v])
             .filter(v => { const t2 = cfg.TOURS[v];
-              return (!t2.branche || l.branches[t2.branche]) && t2.or <= l.or; });
+              return (!t2.branche || l.branches[t2.branche])
+                  && (!t2.feuille || l.feuilles[v]) && t2.or <= l.or; });
           if (!vers.length) break;
           if (!ameliorer(etat, l, b, vers[etat.rng.entre(0, vers.length - 1)])) break;
         }
@@ -1570,7 +1588,14 @@ function bots(etat){
     /* Se specialiser */
     if (d.branches && l.bois >= 1){
       const libres = Object.keys(cfg.BRANCHES).filter(k => !l.branches[k]);
-      if (libres.length) acheterBranche(etat, l, libres[etat.rng.entre(0, libres.length - 1)]);
+      /* Une fois une racine ouverte, un bot sur deux approfondit au lieu
+         d'elargir — sinon aucun bot n'atteindrait jamais une tour de fin. */
+      const feuilles = Object.keys(cfg.TOURS).filter(k => cfg.TOURS[k].feuille &&
+        !l.feuilles[k] && l.branches[cfg.TOURS[k].feuille]);
+      if (feuilles.length && (!libres.length || etat.rng.entre(0, 1) === 0))
+        acheterFeuille(etat, l, feuilles[etat.rng.entre(0, feuilles.length - 1)]);
+      else if (libres.length)
+        acheterBranche(etat, l, libres[etat.rng.entre(0, libres.length - 1)]);
     }
 
     /* Envoyer. Le choix du monstre est LA decision economique du jeu, et un
@@ -2293,10 +2318,11 @@ function panneau(){
         portée ${(def.p / cfg.MILLI).toFixed(1)} · ${(600 / def.c).toFixed(0)}/min</span></div>
       <div class="rangee">` +
       vers.map(v => { const t = cfg.TOURS[v];
-        const bloque = t.branche && !l.branches[t.branche];
+        const bloque = (t.branche && !l.branches[t.branche]) || (t.feuille && !l.feuilles[v]);
         const cher = l.or < t.or;
+        const raison = t.branche ? cfg.BRANCHES[t.branche].nom : t.nom + ' (1 bois)';
         return `<button class="art ${bloque || cher ? 'off' : ''}" data-up="${v}">
-          <b>${t.nom}</b><span>${bloque ? '🔒 ' + cfg.BRANCHES[t.branche].nom : t.or + ' or'}</span></button>`;
+          <b>${t.nom}</b><span>${bloque ? '🔒 ' + raison : t.or + ' or'}</span></button>`;
       }).join('') +
       `<button class="art vente" data-vendre="1"><b>Vendre</b><span>+${Math.floor(def.or * cfg.remboursement / 100)} or</span></button>
       </div>`;
@@ -2330,11 +2356,25 @@ function panneau(){
        <b>brise</b> démolit les tours au lieu de passer · <b>vole</b> ignore le labyrinthe ·
        <b>sacrifice</b> ne rapporte presque rien mais efface une ligne.</p>`;
   } else if (menu === 'techno'){
-    d.innerHTML = `<div class="rangee">` + Object.keys(cfg.BRANCHES).map(k => { const b = cfg.BRANCHES[k];
-      const pris = l.branches[k];
-      return `<button class="art ${pris ? 'acquis' : (l.bois < 1 ? 'off' : '')}" data-branche="${k}">
-        <b>${b.nom}</b><span>${pris ? 'acquise' : '1 bois'}</span></button>`; }).join('') +
-      `</div><p class="aide">3 bois au départ, +1 par joueur éliminé. Une branche débloque sa tour élémentaire — qui, elle, est gratuite.</p>`;
+    /* Quinze deblocages a un bois : la racine, puis ses deux feuilles une fois
+       la racine ouverte. Trois bois au depart — il faut choisir. */
+    const cases = [];
+    for (const k in cfg.BRANCHES){
+      const b = cfg.BRANCHES[k], pris = !!l.branches[k];
+      cases.push(`<button class="art ${pris ? 'acquis' : (l.bois < 1 ? 'off' : '')}" data-branche="${k}">
+        <b>${b.nom}</b><span>${pris ? 'acquise' : '1 bois'}</span>
+        <i>${cfg.TOURS[b.elementaire].nom}</i></button>`);
+      for (const f of b.feuilles){
+        const t = cfg.TOURS[f], eue = !!l.feuilles[f];
+        const off = !pris || l.bois < 1;
+        cases.push(`<button class="art ${eue ? 'acquis' : (off ? 'off' : '')}" data-feuille="${f}">
+          <b>${t.nom}</b><span>${eue ? 'acquise' : pris ? '1 bois' : '🔒 ' + b.nom}</span>
+          <i>${t.or.toLocaleString('fr')} or</i></button>`);
+      }
+    }
+    d.innerHTML = `<div class="rangee">${cases.join('')}</div>
+      <p class="aide"><b>${l.bois} bois</b> · 1 par case, +1 par joueur éliminé.
+       Trois racines, ou une racine et ses deux feuilles. <b>Choisis bien.</b></p>`;
   } else d.innerHTML = '';
 }
 
@@ -2450,6 +2490,8 @@ function brancher(){
     if (v){ envoyer(etat, l, v.dataset.envoyer); panneau(); return; }
     const t = e.target.closest('[data-branche]');
     if (t){ acheterBranche(etat, l, t.dataset.branche); panneau(); return; }
+    const f = e.target.closest('[data-feuille]');
+    if (f){ acheterFeuille(etat, l, f.dataset.feuille); panneau(); return; }
     const u = e.target.closest('[data-up]');
     if (u && selection){ ameliorer(etat, l, selection, u.dataset.up); panneau(); return; }
     if (e.target.closest('[data-vendre]') && selection){

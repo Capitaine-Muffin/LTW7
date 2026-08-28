@@ -199,10 +199,11 @@ function panneau(){
         portée ${(def.p / cfg.MILLI).toFixed(1)} · ${(600 / def.c).toFixed(0)}/min</span></div>
       <div class="rangee">` +
       vers.map(v => { const t = cfg.TOURS[v];
-        const bloque = t.branche && !l.branches[t.branche];
+        const bloque = (t.branche && !l.branches[t.branche]) || (t.feuille && !l.feuilles[v]);
         const cher = l.or < t.or;
+        const raison = t.branche ? cfg.BRANCHES[t.branche].nom : t.nom + ' (1 bois)';
         return `<button class="art ${bloque || cher ? 'off' : ''}" data-up="${v}">
-          <b>${t.nom}</b><span>${bloque ? '🔒 ' + cfg.BRANCHES[t.branche].nom : t.or + ' or'}</span></button>`;
+          <b>${t.nom}</b><span>${bloque ? '🔒 ' + raison : t.or + ' or'}</span></button>`;
       }).join('') +
       `<button class="art vente" data-vendre="1"><b>Vendre</b><span>+${Math.floor(def.or * cfg.remboursement / 100)} or</span></button>
       </div>`;
@@ -236,11 +237,25 @@ function panneau(){
        <b>brise</b> démolit les tours au lieu de passer · <b>vole</b> ignore le labyrinthe ·
        <b>sacrifice</b> ne rapporte presque rien mais efface une ligne.</p>`;
   } else if (menu === 'techno'){
-    d.innerHTML = `<div class="rangee">` + Object.keys(cfg.BRANCHES).map(k => { const b = cfg.BRANCHES[k];
-      const pris = l.branches[k];
-      return `<button class="art ${pris ? 'acquis' : (l.bois < 1 ? 'off' : '')}" data-branche="${k}">
-        <b>${b.nom}</b><span>${pris ? 'acquise' : '1 bois'}</span></button>`; }).join('') +
-      `</div><p class="aide">3 bois au départ, +1 par joueur éliminé. Une branche débloque sa tour élémentaire — qui, elle, est gratuite.</p>`;
+    /* Quinze deblocages a un bois : la racine, puis ses deux feuilles une fois
+       la racine ouverte. Trois bois au depart — il faut choisir. */
+    const cases = [];
+    for (const k in cfg.BRANCHES){
+      const b = cfg.BRANCHES[k], pris = !!l.branches[k];
+      cases.push(`<button class="art ${pris ? 'acquis' : (l.bois < 1 ? 'off' : '')}" data-branche="${k}">
+        <b>${b.nom}</b><span>${pris ? 'acquise' : '1 bois'}</span>
+        <i>${cfg.TOURS[b.elementaire].nom}</i></button>`);
+      for (const f of b.feuilles){
+        const t = cfg.TOURS[f], eue = !!l.feuilles[f];
+        const off = !pris || l.bois < 1;
+        cases.push(`<button class="art ${eue ? 'acquis' : (off ? 'off' : '')}" data-feuille="${f}">
+          <b>${t.nom}</b><span>${eue ? 'acquise' : pris ? '1 bois' : '🔒 ' + b.nom}</span>
+          <i>${t.or.toLocaleString('fr')} or</i></button>`);
+      }
+    }
+    d.innerHTML = `<div class="rangee">${cases.join('')}</div>
+      <p class="aide"><b>${l.bois} bois</b> · 1 par case, +1 par joueur éliminé.
+       Trois racines, ou une racine et ses deux feuilles. <b>Choisis bien.</b></p>`;
   } else d.innerHTML = '';
 }
 
@@ -356,6 +371,8 @@ function brancher(){
     if (v){ envoyer(etat, l, v.dataset.envoyer); panneau(); return; }
     const t = e.target.closest('[data-branche]');
     if (t){ acheterBranche(etat, l, t.dataset.branche); panneau(); return; }
+    const f = e.target.closest('[data-feuille]');
+    if (f){ acheterFeuille(etat, l, f.dataset.feuille); panneau(); return; }
     const u = e.target.closest('[data-up]');
     if (u && selection){ ameliorer(etat, l, selection, u.dataset.up); panneau(); return; }
     if (e.target.closest('[data-vendre]') && selection){

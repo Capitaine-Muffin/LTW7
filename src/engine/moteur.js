@@ -10,7 +10,7 @@ function creerLigne(cfg, prof, i, estJoueur){
   return {
     i, estJoueur, nom: estJoueur ? 'Toi' : 'Bot ' + i,
     or: prof.or, revenu: prof.revenu, vies: prof.vies, bois: prof.bois,
-    branches: {}, batiments: [], monstres: [],
+    branches: {}, feuilles: {}, batiments: [], monstres: [],
     depenseTours: 0, depenseEnvois: 0,   // sert au partage or/envois des bots
     stock: {}, prochainStock: {},        // chronologie de deblocage (voir config)
     envoisParType: {},                   // ce qu'on a envoye, et combien de fois
@@ -79,6 +79,7 @@ function ameliorer(etat, l, b, vers){
   const cfg = etat.cfg, def = cfg.TOURS[vers];
   if (!def) return false;
   if (def.branche && !l.branches[def.branche]) return false;
+  if (def.feuille && !l.feuilles[vers]) return false;
   if (l.or < def.or) return false;
   l.or -= def.or; l.depenseTours += def.or;
   b.type = vers; b.pvMax = def.pv; b.pv = def.pv; b.recharge = 0;
@@ -122,9 +123,19 @@ function envoyer(etat, l, type){
     faireApparaitre(etat, cible, type, l.i);
   return true;
 }
+/* Les deblocages en bois. La map en a quinze — cinq racines et dix feuilles —
+   a un bois chacun, et n'en donne que trois au depart : ouvrir trois racines
+   ou une racine et ses deux feuilles ne mene pas au meme jeu. C'est la seule
+   decision de debut de partie qu'on ne peut pas defaire. */
 function acheterBranche(etat, l, cle){
   if (l.branches[cle] || l.bois < 1) return false;
   l.bois -= 1; l.branches[cle] = true; return true;
+}
+function acheterFeuille(etat, l, type){
+  const def = etat.cfg.TOURS[type];
+  if (!def || !def.feuille) return false;
+  if (l.feuilles[type] || !l.branches[def.feuille] || l.bois < 1) return false;
+  l.bois -= 1; l.feuilles[type] = true; return true;
 }
 
 function faireApparaitre(etat, ligne, type, proprietaire){
@@ -405,7 +416,8 @@ function bots(etat){
               ? Object.keys(cfg.TOURS).filter(k => cfg.TOURS[k].branche && l.branches[cfg.TOURS[k].branche])
               : [v])
             .filter(v => { const t2 = cfg.TOURS[v];
-              return (!t2.branche || l.branches[t2.branche]) && t2.or <= l.or; });
+              return (!t2.branche || l.branches[t2.branche])
+                  && (!t2.feuille || l.feuilles[v]) && t2.or <= l.or; });
           if (!vers.length) break;
           if (!ameliorer(etat, l, b, vers[etat.rng.entre(0, vers.length - 1)])) break;
         }
@@ -415,7 +427,14 @@ function bots(etat){
     /* Se specialiser */
     if (d.branches && l.bois >= 1){
       const libres = Object.keys(cfg.BRANCHES).filter(k => !l.branches[k]);
-      if (libres.length) acheterBranche(etat, l, libres[etat.rng.entre(0, libres.length - 1)]);
+      /* Une fois une racine ouverte, un bot sur deux approfondit au lieu
+         d'elargir — sinon aucun bot n'atteindrait jamais une tour de fin. */
+      const feuilles = Object.keys(cfg.TOURS).filter(k => cfg.TOURS[k].feuille &&
+        !l.feuilles[k] && l.branches[cfg.TOURS[k].feuille]);
+      if (feuilles.length && (!libres.length || etat.rng.entre(0, 1) === 0))
+        acheterFeuille(etat, l, feuilles[etat.rng.entre(0, feuilles.length - 1)]);
+      else if (libres.length)
+        acheterBranche(etat, l, libres[etat.rng.entre(0, libres.length - 1)]);
     }
 
     /* Envoyer. Le choix du monstre est LA decision economique du jeu, et un

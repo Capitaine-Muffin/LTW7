@@ -9,6 +9,9 @@ const portee = u => Math.round(u * MILLI / CASE);        // unites WC3 -> milli-
 const cadence = parMin => Math.max(1, Math.round(600 / parMin)); // tirs/min -> pas entre deux tirs
 const vitesse = v => Math.round(v * 100 / CASE);         // unites/s -> milli-cases par pas
 
+/* Les quinze deblocages en bois de la map — cinq racines et dix feuilles, un
+   bois chacun (`ulum:1` dans war3map.w3u). Avec trois bois au depart, on ne
+   peut PAS tout ouvrir : c'est ca, le choix de debut de partie. */
 const BRANCHES = {
   feu:     {nom:'Feu',      elementaire:'barbecue',   feuilles:['boom','meteore']},
   froid:   {nom:'Froid',    elementaire:'glacier',    feuilles:['eauUltime','glaceUltime']},
@@ -46,22 +49,22 @@ const TOURS = {
   damne:     {nom:'Tour damnée',    or:800, pv:1000, deg:250, p:portee(700), c:cadence(60),  ralentit:30, vers:['mort','fosse']},
   lanterne:  {nom:'Lanterne sacrée',or:800, pv:1000, deg:300, p:portee(600), c:cadence(60),  vulnerable:25, vers:['champignon','teleporteur']},
 
-  boom:        {nom:'Tour BOUM',    or:300, pv:5000, deg:1000,p:portee(150), c:cadence(60), zone:portee(220), usageUnique:true},
-  meteore:     {nom:'Attracteur',   or:4000,pv:3000, deg:1000,p:portee(1000),c:cadence(20), zone:portee(200)},
-  eauUltime:   {nom:'Eau ultime',   or:3000,pv:2000, deg:600, p:portee(700), c:cadence(60), zone:portee(70)},
-  glaceUltime: {nom:'Glace ultime', or:4000,pv:2500, deg:200, p:portee(700), c:cadence(60), zone:portee(150), ralentit:40},
-  generateur:  {nom:'Générateur',   or:4000,pv:2500, deg:250, p:portee(700), c:cadence(300)},
+  boom:        {nom:'Tour BOUM',    feuille:'feu', or:300, pv:5000, deg:1000,p:portee(150), c:cadence(60), zone:portee(220), usageUnique:true},
+  meteore:     {nom:'Attracteur',   feuille:'feu', or:4000,pv:3000, deg:1000,p:portee(1000),c:cadence(20), zone:portee(200)},
+  eauUltime:   {nom:'Eau ultime',   feuille:'froid', or:3000,pv:2000, deg:600, p:portee(700), c:cadence(60), zone:portee(70)},
+  glaceUltime: {nom:'Glace ultime', feuille:'froid', or:4000,pv:2500, deg:200, p:portee(700), c:cadence(60), zone:portee(150), ralentit:40},
+  generateur:  {nom:'Générateur',   feuille:'foudre', or:4000,pv:2500, deg:250, p:portee(700), c:cadence(300)},
   /* Le Condensateur multiplie la vie courante par 0,8 : il ne tue JAMAIS, il
      ne fait que ramener. La Mort, elle, tue net, quels que soient les points
      de vie — et se detruit apres son unique tir. */
-  condensateur:{nom:'Condensateur', or:3000,pv:1500, degPct:20,p:portee(500),c:cadence(12)},
-  mort:        {nom:'La Mort',      or:300, pv:5000, tue:true, p:portee(700),c:cadence(60), usageUnique:true},
+  condensateur:{nom:'Condensateur', feuille:'foudre', or:3000,pv:1500, degPct:20,p:portee(500),c:cadence(12)},
+  mort:        {nom:'La Mort',      feuille:'tenebres', or:300, pv:5000, tue:true, p:portee(700),c:cadence(60), usageUnique:true},
   /* La Fosse retire 5 % de la vie COURANTE toutes les 5 s pendant 30 s : un
      poison en pourcentage, donc redoutable sur les gros monstres. */
-  fosse:       {nom:'Fosse septique',or:4000,pv:3000,deg:350, p:portee(700), c:cadence(30), zone:portee(70),
+  fosse:       {nom:'Fosse septique',feuille:'tenebres', or:4000,pv:3000,deg:350, p:portee(700), c:cadence(30), zone:portee(70),
                 poisonPct:5, poisonDuree:300, poisonPas:50},
-  champignon:  {nom:'Champignon',   or:4000,pv:1800, deg:500, p:portee(700), c:cadence(30), zone:portee(150)},
-  teleporteur: {nom:'Téléporteur',  or:4000,pv:2500, deg:0,   p:portee(700), c:cadence(2),  teleporte:true}
+  champignon:  {nom:'Champignon',   feuille:'lumiere', or:4000,pv:1800, deg:500, p:portee(700), c:cadence(30), zone:portee(150)},
+  teleporteur: {nom:'Téléporteur',  feuille:'lumiere', or:4000,pv:2500, deg:0,   p:portee(700), c:cadence(2),  teleporte:true}
 };
 
 /* Monstres envoyables. Le ratio revenu/or decroit strictement : c'est le
@@ -154,10 +157,13 @@ const MONSTRES = {
    rapport de deux, au lieu de cinq. */
 const PROFILS = {
   //                        vies  or   revenu tick  temps   -> or/s   x Classique
-  ECLAIR:    {nom:'Éclair',    vies:6,  or:140, revenu:25, tickRevenu:50,  bois:3, temps:0.18},
-  BLITZ:     {nom:'Blitz',     vies:10, or:130, revenu:24, tickRevenu:60,  bois:3, temps:0.30},
-  SOUTENU:   {nom:'Soutenu',   vies:16, or:120, revenu:25, tickRevenu:80,  bois:3, temps:0.55},
-  CLASSIQUE: {nom:'Classique', vies:25, or:120, revenu:25, tickRevenu:100, bois:3, temps:1.00}
+  /* Classique = la map, chiffre pour chiffre : 25 vies, 100 or, revenu 25,
+     versement toutes les 10 s, 3 bois. Les autres rythmes s'en ecartent d'un
+     cran chacun — jamais plus, pour ne pas changer le sens des prix. */
+  ECLAIR:    {nom:'Éclair',    vies:6,  or:130, revenu:25, tickRevenu:50,  bois:3, temps:0.18},
+  BLITZ:     {nom:'Blitz',     vies:10, or:120, revenu:24, tickRevenu:60,  bois:3, temps:0.30},
+  SOUTENU:   {nom:'Soutenu',   vies:16, or:110, revenu:25, tickRevenu:80,  bois:3, temps:0.55},
+  CLASSIQUE: {nom:'Classique', vies:25, or:100, revenu:25, tickRevenu:100, bois:3, temps:1.00}
 };
 
 /* La difficulte change ce que les bots FONT, pas leurs statistiques : ils

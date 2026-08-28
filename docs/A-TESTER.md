@@ -16,6 +16,22 @@ recopier**, sinon « c'est trop dur » n'est pas exploitable.
 Le glissement ne pose jamais rien : la pose part au relâchement du doigt, et
 seulement si le doigt n'a pas bougé.
 
+## Le bois — la seule décision irréversible
+
+Tu commences avec **3 bois** et tu n'en regagnes qu'en **éliminant un joueur**.
+L'onglet Technologies contient **15 cases à 1 bois** : les 5 racines, et les 2
+feuilles de chaque racine (fermées tant que leur racine ne l'est pas).
+
+| Ce que tu fais de tes 3 bois | Ce que ça donne |
+|---|---|
+| 3 racines | trois tours élémentaires gratuites, **aucune** tour de fin de partie |
+| 1 racine + ses 2 feuilles | une branche complète, deux tours de fin de partie |
+| 2 racines + 1 feuille | l'entre-deux |
+
+C'est exactement le choix de la map (*« Choose wisely! Make sure you get an Uber
+tower! »*). **À tester en priorité** : est-ce que la partie se joue assez
+longtemps pour que ce choix compte, ou est-ce qu'elle est pliée avant ?
+
 ## Les réglages
 
 | Réglage | Valeurs | Ce que ça change |
@@ -26,12 +42,12 @@ seulement si le doigt n'a pas bougé.
 | **Camp** | 4 | purement cosmétique — bâtiments et biome |
 | **Graine** | 1 à 999999 | **rejouer exactement la même partie** |
 
-| Rythme | Vies | Versement | Or / seconde | × Classique |
-|---|---:|---:|---:|---:|
-| Éclair | 6 | 5 s | 5,00 | ×2,00 |
-| Blitz | 10 | 6 s | 4,00 | ×1,60 |
-| Soutenu | 16 | 8 s | 3,13 | ×1,25 |
-| **Classique** | 25 | **10 s** | 2,50 | ×1,00 (la map) |
+| Rythme | Vies | Or de départ | Versement | Or / seconde | × Classique |
+|---|---:|---:|---:|---:|---:|
+| Éclair | 6 | 130 | 5 s | 5,00 | ×2,00 |
+| Blitz | 10 | 120 | 6 s | 4,00 | ×1,60 |
+| Soutenu | 16 | 110 | 8 s | 3,13 | ×1,25 |
+| **Classique** | 25 | **100** | **10 s** | 2,50 | ×1,00 (la map) |
 
 **Le versement est le battement du jeu** : c'est le moment où l'or tombe et où
 il faut choisir entre une tour et un envoi. Une première version descendait à

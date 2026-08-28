@@ -6,7 +6,7 @@ import {readFileSync} from 'fs';
 const src = ['rng','config','grille','moteur'].map(f =>
   readFileSync(`src/engine/${f}.js`, 'utf8')).join('\n');
 const M = {};
-new Function('X', src + '\nObject.assign(X,{creerPartie,avancer,poserBatiment,envoyer,faireApparaitre,CONFIG});')(M);
+new Function('X', src + '\nObject.assign(X,{creerPartie,avancer,poserBatiment,ameliorer,envoyer,faireApparaitre,acheterBranche,acheterFeuille,CONFIG});')(M);
 
 function empreinte(e){
   const p = [e.pas, e.fini, e.vainqueur];
@@ -203,6 +203,33 @@ console.log('\nle moteur laisse une trace de chaque tir');
     'le tir porte le type de la tour et un point d\'impact entier');
   const avant = e.tirs.length; M.avancer(e);
   dire(e.tirs.length <= Math.max(1, avant + 2), 'la trace est videe a chaque pas, elle ne s\'accumule pas');
+}
+
+/* Le budget en bois est LA decision de debut de partie : quinze deblocages a
+   un bois, trois bois au depart. Si les feuilles redeviennent gratuites, le
+   choix disparait et tout le monde finit avec le meme arbre complet. */
+console.log('\nles quinze deblocages coutent un bois chacun');
+{
+  const e = M.creerPartie({graine: 3, joueurs: 3});
+  const l = e.lignes[0];
+  dire(l.bois === 3, `trois bois au depart (${l.bois})`);
+  dire(!M.acheterFeuille(e, l, 'boom'), 'une feuille se refuse tant que sa racine n\'est pas ouverte');
+  dire(M.acheterBranche(e, l, 'feu') && l.bois === 2, 'la racine Feu coute 1 bois');
+  dire(M.acheterFeuille(e, l, 'boom') && l.bois === 1, 'la feuille BOUM coute 1 bois');
+  dire(M.acheterFeuille(e, l, 'meteore') && l.bois === 0, 'la seconde feuille aussi');
+  dire(!M.acheterBranche(e, l, 'froid'), 'a zero bois, plus rien ne s\'ouvre');
+
+  /* Et l'or seul ne suffit pas : sans le bois, la tour de fin reste fermee. */
+  const e2 = M.creerPartie({graine: 3, joueurs: 3});
+  const l2 = e2.lignes[0];
+  M.acheterBranche(e2, l2, 'feu');
+  M.poserBatiment(e2, l2, 'guet', 2, 2);
+  const b2 = l2.batiments[0];
+  l2.or = 99999;
+  b2.type = 'puits';
+  dire(!M.ameliorer(e2, l2, b2, 'boom'), 'riche mais sans bois : la tour BOUM reste fermee');
+  M.acheterFeuille(e2, l2, 'boom');
+  dire(M.ameliorer(e2, l2, b2, 'boom'), 'le bois depense, elle s\'ouvre');
 }
 
 console.log(echecs ? `\n${echecs} echec(s)\n` : '\ntout passe\n');

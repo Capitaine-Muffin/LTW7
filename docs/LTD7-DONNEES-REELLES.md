@@ -18,12 +18,14 @@
 | Paramètre | Valeur | Où c'est écrit |
 |---|---|---|
 | **Vies** | **25** | `udg_Lives[i] = 25` |
+| **Or de départ** | **100** | `SetPlayerStateBJ(…, RESOURCE_GOLD, 100)` |
 | **Revenu de départ** | **25** | `udg_Income[i] = 25` |
 | **Intervalle de revenu** | **10 secondes** | `StartTimerBJ(udg_Timer, true, 10.00)`, périodique |
-| **Bois de départ** | **3** | *« You start the game with 3 lumber, which you may use to purchase advanced towers »* |
+| **Bois de départ** | **3** | `SetPlayerStateBJ(…, RESOURCE_LUMBER, 3)` — et le texte d'aide le répète |
+| **Coût d'un déblocage** | **1 bois** | `ulum:1` sur les 15 unités d'achat (5 racines + 10 feuilles) |
 | **Bois par joueur tué** | **+1** | `AdjustPlayerStateBJ(1, …, PLAYER_STATE_RESOURCE_LUMBER)` |
 | **Lignes** | **7** | `gg_rct_Start_1` … `_7` |
-| **Unités vivantes max par ligne** | **12** | `CountUnitsInGroup(…) < 12` |
+| **Seuil anti-tortue** | **12 bâtiments** | `CountUnitsInGroup(…) < 12` — voir §5 quinquies, ce n'est **pas** un plafond d'unités |
 
 ⚠️ **Le tick est de 10 secondes, pas 15.** Les forums disaient 15 ; le code dit
 10. Notre `CONCEPTION-JEU.md` partait sur 5 s pour des parties de 6 min — le
