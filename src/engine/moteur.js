@@ -305,11 +305,21 @@ function tirer(etat, l){
     if (!def.deg && !def.degPct && !def.teleporte) continue;
     if (b.recharge > 0){ b.recharge--; continue; }
     const bx = b.x * cfg.MILLI + cfg.MILLI / 2, by = b.y * cfg.MILLI + cfg.MILLI / 2;
-    let cible = null, meilleure = -1;
-    for (const m of l.monstres){                    // le plus avance d'abord
+    /* Ordre de priorite, du plus urgent au moins :
+         2 — celui qui demolit CETTE tour (la riposte, comportement WC3) ;
+         1 — n'importe quel briseur a portee, meme s'il tape la tour d'a cote ;
+         0 — sinon le monstre le plus avance sur le chemin.
+       Sans le rang 2, une tour tirait sur les moutons qui passaient pendant
+       qu'un demolisseur la mettait en pieces a bout portant. */
+    let cible = null, meilleurRang = -1, meilleure = -1;
+    for (const m of l.monstres){
       const dx = m.x - bx, dy = m.y - by;
       if (dx * dx + dy * dy > def.p * def.p) continue;
-      if (m.etape > meilleure){ meilleure = m.etape; cible = m; }
+      const rang = m.cible === b.id ? 2 : m.cible != null ? 1 : 0;
+      if (rang < meilleurRang) continue;
+      if (rang > meilleurRang || m.etape > meilleure){
+        meilleurRang = rang; meilleure = m.etape; cible = m;
+      }
     }
     if (!cible) continue;
     b.recharge = def.c;

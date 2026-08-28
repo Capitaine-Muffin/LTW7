@@ -232,5 +232,24 @@ console.log('\nles quinze deblocages coutent un bois chacun');
   dire(M.ameliorer(e2, l2, b2, 'boom'), 'le bois depense, elle s\'ouvre');
 }
 
+/* Une tour qui se fait demolir doit riposter, pas continuer a tirer sur les
+   moutons qui passent. C'est ce qui rend les briseurs jouables des deux cotes. */
+console.log('\nune tour riposte a qui la demolit');
+{
+  const e = M.creerPartie({graine: 5, joueurs: 3});
+  const l = e.lignes[0];
+  M.poserBatiment(e, l, 'guet', 4, 6);
+  M.faireApparaitre(e, l, 'demolisseur', 1);   // vient casser
+  M.faireApparaitre(e, l, 'mouton', 1);        // passe devant, plus avance
+  const brise = l.monstres[0], mouton = l.monstres[1];
+  let touche = null;
+  for (let i = 0; i < 200 && !touche; i++){
+    M.avancer(e);
+    if (brise.pv < brise.pvMax) touche = 'briseur';
+    else if (mouton.pv < mouton.pvMax) touche = 'mouton';
+  }
+  dire(touche === 'briseur', `la tour tire d'abord sur ${touche || 'personne'}`);
+}
+
 console.log(echecs ? `\n${echecs} echec(s)\n` : '\ntout passe\n');
 process.exit(echecs ? 1 : 0);

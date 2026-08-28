@@ -15,6 +15,12 @@ const SPRITE = {                    // quelle planche de sprite pour quelle tour
 
 let etat, camp, cache = {}, enMain = null, selection = null, ligneVue = 0,
     menu = null, acceleration = 1, dernier = 0, accum = 0, tirs = [];
+/* Le glissement d'ecran entre deux lignes. On photographie le plateau qu'on
+   quitte, puis on fait entrer le nouveau par le cote pendant 260 ms. Sans ca,
+   changer de ligne se voyait a peine — le decor et la grille se ressemblent
+   trop d'une ligne a l'autre. */
+let transi = null, photo = null;
+const DUREE_TRANSI = 260;
 
 /* ---- pre-rendu des sprites ---------------------------------------------- */
 function preparerSprites(){
@@ -54,6 +60,15 @@ function dessinerJeu(){
   }
   c.setTransform(dpr, 0, 0, dpr, 0, 0);
   c.imageSmoothingEnabled = false;
+  /* Decalage du glissement : le nouveau plateau arrive du cote d'ou vient le
+     doigt, l'ancien sort de l'autre. Rien d'autre dans la page ne bouge. */
+  let dxN = 0;
+  if (transi){
+    const e = 1 - Math.pow(1 - transi.u, 3);        // depart franc, arrivee douce
+    dxN = transi.sens * larg * (1 - e);
+  }
+  c.save();
+  c.translate(dxN, 0);
 
   const T = Math.floor(Math.min(larg / cfg.LARGEUR, haut / cfg.HAUTEUR));
   const ox = Math.floor((larg - T * cfg.LARGEUR) / 2);
@@ -147,7 +162,7 @@ function dessinerJeu(){
     c.fillRect(x - r * .5, y - r * .3, r, r * .25);
   }
 
-  if (enMain){                                      // apercu de pose
+  if (enMain && !transi){                           // apercu de pose
     const p = survol;
     if (p && p.x >= 0){
       const libre = l.occupe[p.y * cfg.LARGEUR + p.x] < 0 &&
@@ -156,6 +171,10 @@ function dessinerJeu(){
       c.fillStyle = libre ? 'rgba(255,255,255,.35)' : 'rgba(230,70,60,.5)';
       c.fillRect(ox + p.x * T, oy + p.y * T, T, T);
     }
+  }
+  c.restore();
+  if (transi && photo){
+    c.drawImage(photo, dxN - transi.sens * larg, 0, larg, haut);
   }
   return {T, ox, oy};
 }
@@ -180,12 +199,29 @@ function majBandeau(){
   /* Le bandeau dit AUSSI quelle ligne on regarde : apres un glissement, les
      onglets du haut ne sont pas forcement dans le champ du regard. */
   const badge = document.getElementById('lecture');
-  badge.hidden = (ligneVue === etat.moi);
+  /* Cache pendant le glissement : c'est un element du DOM, il ne glisse pas
+     avec le plateau et arriverait donc avant lui. */
+  badge.hidden = (ligneVue === etat.moi) || !!transi;
   badge.textContent = etat.lignes[ligneVue].nom + ' · lecture seule';
 }
 
+/* Le panneau est reconstruit a chaque achat, ce qui remettait la rangee au
+   debut : impossible d'enchainer les envois d'un gros monstre sans refaire
+   defiler toute la liste. On retient donc le defilement par menu et on le
+   repose apres la reconstruction. */
+const defilements = {};
 function panneau(){
   const d = document.getElementById('panneau');
+  const rangee0 = d.querySelector('.rangee');
+  if (rangee0 && d.dataset.cle != null) defilements[d.dataset.cle] = rangee0.scrollLeft;
+  remplirPanneau(d);
+  const cle = selection ? 'tour' : (menu || '');
+  d.dataset.cle = cle;
+  const rangee = d.querySelector('.rangee');
+  if (rangee && defilements[cle]) rangee.scrollLeft = defilements[cle];
+}
+
+function remplirPanneau(d){
   const l = etat.lignes[etat.moi], cfg = etat.cfg;
   if (ligneVue !== etat.moi){ d.innerHTML =
     `<p class="vide">Ligne de ${etat.lignes[ligneVue].nom} — lecture seule. Reviens sur la tienne pour jouer.</p>`; return; }
@@ -276,6 +312,10 @@ function boucle(t){
     }
   }
   avancerTirs(tirs, dt * acceleration);
+  if (transi){                                      // en temps reel, pas en temps de jeu
+    transi.u += dt / DUREE_TRANSI;
+    if (transi.u >= 1) transi = null;
+  }
   geo = dessinerJeu();
   majBandeau();
   if (etat.fini) finir();
@@ -303,11 +343,32 @@ function caseSous(ev){
 }
 /* Changer de ligne. Le glisser fait la meme chose que les onglets du haut,
    au pouce : c'est le geste attendu sur telephone pour « la ligne d'a cote ». */
-function allerLigne(i){
+function allerLigne(i, sens){
   const n = etat.lignes.length;
-  ligneVue = ((i % n) + n) % n;
+  const cible = ((i % n) + n) % n;
+  if (cible === ligneVue) return;
+  if (sens == null){                      // par les onglets : on prend le chemin le plus court
+    const droite = (cible - ligneVue + n) % n;
+    sens = droite <= n - droite ? 1 : -1;
+  }
+  photographier();
+  transi = {sens, u: 0};
+  ligneVue = cible;
   selection = null; enMain = null; sentier = null; tirs.length = 0;
   panneau();
+}
+
+/* Copie du plateau tel qu'il est a l'instant du changement. */
+function photographier(){
+  const cv = document.getElementById('scene');
+  if (!cv.width || !cv.height) return;
+  if (!photo) photo = document.createElement('canvas');
+  if (photo.width !== cv.width || photo.height !== cv.height){
+    photo.width = cv.width; photo.height = cv.height;
+  }
+  const pc = photo.getContext('2d');
+  pc.clearRect(0, 0, photo.width, photo.height);
+  pc.drawImage(cv, 0, 0);
 }
 
 function brancher(){
@@ -335,7 +396,8 @@ function brancher(){
     const g = geste; geste = null;
     if (!g) return;
     if (g.glisse){                                    // gauche = ligne suivante
-      allerLigne(ligneVue + (e.clientX < g.x ? 1 : -1));
+      const pas = e.clientX < g.x ? 1 : -1;
+      allerLigne(ligneVue + pas, pas);
       return;
     }
     if (g.annule) return;
