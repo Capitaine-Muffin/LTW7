@@ -180,7 +180,9 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 6px 18px rgba(240,196,81,.24)}
 #accueil button.doux{background:var(--bord);color:var(--encre);font-size:15px;flex:0 0 auto;
   padding:14px 16px}
-#accueil .note{color:var(--doux);font-size:11.5px;line-height:1.45;margin:14px 0 0}
+#accueil .version{color:var(--doux);opacity:.55;font-size:10px;margin:12px 0 0;
+  text-align:center;font-family:"IBM Plex Mono",ui-monospace,monospace}
+#accueil .note{color:var(--doux);font-size:11.5px;line-height:1.45;margin:8px 0 0}
 #accueil .note b{color:var(--encre)}
 #fin{position:fixed;inset:0;background:rgba(10,9,16,.88);display:flex;align-items:center;
   justify-content:center;z-index:9;padding:24px;text-align:center}
@@ -199,6 +201,13 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   display:inline-block;text-align:left;line-height:1.6}
 #fin .cfg b{color:var(--encre);font-family:"IBM Plex Mono",monospace}
 #fin .duo{display:flex;gap:8px;justify-content:center}
+#fin button.large{margin:10px auto 0;display:block;background:var(--bord);
+  color:var(--encre);font-size:13.5px;padding:10px 16px;font-weight:700}
+#fin #apercuRapport{max-width:340px;max-height:34vh;overflow:auto;text-align:left;
+  margin:10px auto 0;padding:10px;background:rgba(0,0,0,.45);border-radius:9px;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10px;line-height:1.45;
+  color:var(--doux);white-space:pre-wrap;user-select:text;-webkit-user-select:text}
+#fin #apercuRapport[hidden]{display:none}
 #fin .duo button:last-child{background:var(--bord);color:var(--encre)}
 #fin button{background:var(--or);color:#1a1408;border:0;border-radius:9px;padding:11px 22px;
   font-size:15px;font-weight:800;cursor:pointer}
@@ -263,6 +272,9 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   </select></label>
   <label>Camp<select id="camp"><option value="0">Humain</option><option value="1">Orc</option>
     <option value="2">Mort-vivant</option><option value="3">Elfe</option></select></label>
+  <label>Son<select id="sonReglage">
+    <option value="1">Activé</option><option value="0">Coupé</option>
+  </select></label>
   <label>Graine<input id="graine" type="number" min="1" max="999999" value="1"></label>
   </div>
     <div class="duo">
@@ -270,6 +282,7 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
       <button id="memeGraine" class="doux" title="Rejouer exactement la même partie">↻</button>
       <button id="reprendre" class="doux" hidden>Reprendre</button>
     </div>
+    <p class="version" id="version"></p>
     <p class="note"><b>Un appui</b> pour prendre une tour, <b>un appui</b> sur la grille
       pour la poser. <b>Glisse sur le côté</b> pour voir la ligne d'à côté.
       La <b>graine</b> rejoue exactement la même partie.</p>
@@ -288,6 +301,9 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   </div></div>
 <div id="fin" hidden></div>
 <script>
+
+/* ===== version ===== */
+const VERSION = "2026-08-28 aa4163d";
 
 /* ===== art/sprites.js ===== */
 const N=48;
@@ -1716,6 +1732,10 @@ function creerLigne(cfg, prof, i, estJoueur){
     stock: {}, prochainStock: {},        // chronologie de deblocage (voir config)
     envoisParType: {},                   // ce qu'on a envoye, et combien de fois
     recuDe: {},                          // combien de monstres chaque ligne nous a envoyes
+    /* De quoi ecrire un rapport de fin de partie. Les batiments presents a la
+       fin ne racontent pas la partie : il faut savoir ce qui a ete bati, monte,
+       vendu et surtout DETRUIT. */
+    construits: {}, montees: {}, vendues: 0, detruites: 0,
     occupe: new Int32Array(cfg.LARGEUR * cfg.HAUTEUR).fill(-1),
     chemin: null, scellee: false, mort: false,
     prochainBot: 60 + i * 17          // decale les bots pour qu'ils ne jouent pas a l'unisson
@@ -1731,6 +1751,7 @@ function creerPartie({graine = 12345, profil = 'BLITZ', joueurs = 4,
     cfg, prof, diff, pas: 0, rng: creerRng(graine), graine, profil, difficulte,
     lignes: [], moi: 0, fini: false, vainqueur: null, journal: [],
     controleur: null, prochainControleur: cfg.controleur.periode, seq: 0,
+    eliminations: [],                    // {pas, ligne, par} — jamais taille
     /* Trace des tirs du pas courant. Le moteur ne dessine rien : il note juste
        « cette tour a tire sur ce point », l'affichage en fait des projectiles.
        Vide a chaque pas, donc sans effet sur la simulation ni sur la rejouabilite. */
@@ -1784,6 +1805,7 @@ function poserBatiment(etat, l, type, x, y){
   if (x === cfg.entree.x && y === cfg.entree.y) return false;
   if (x === cfg.exit.x && y === cfg.exit.y) return false;
   l.or -= def.or; l.depenseTours += def.or;
+  l.construits[type] = (l.construits[type] || 0) + 1;
   const b = {id: nouvelId(), type, x, y, pv: def.pv, pvMax: def.pv, recharge: 0};
   l.batiments.push(b);
   l.occupe[i] = b.id;
@@ -1797,16 +1819,21 @@ function ameliorer(etat, l, b, vers){
   if (def.feuille && !l.feuilles[vers]) return false;
   if (l.or < def.or) return false;
   l.or -= def.or; l.depenseTours += def.or;
+  l.montees[vers] = (l.montees[vers] || 0) + 1;
   b.type = vers; b.pvMax = def.pv; b.pv = def.pv; b.recharge = 0;
   return true;
 }
 function vendre(etat, l, b){
   const def = etat.cfg.TOURS[b.type];
   l.or += Math.floor(def.or * etat.cfg.remboursement / 100);
+  l.vendues += 1;
   retirerBatiment(etat, l, b);
   return true;
 }
-function retirerBatiment(etat, l, b){
+/* `detruite` distingue ce qu'on a vendu de ce qu'on nous a casse — c'est la
+   difference entre une partie maitrisee et une partie subie. */
+function retirerBatiment(etat, l, b, detruite){
+  if (detruite) l.detruites += 1;
   l.occupe[b.y * etat.cfg.LARGEUR + b.x] = -1;
   l.batiments.splice(l.batiments.indexOf(b), 1);
   recalculerChemin(etat, l);
@@ -1971,7 +1998,7 @@ function deplacerMonstres(etat, l){
                 })
               : [cible];
             for (const b of touches) b.pv -= def.siege.deg;
-            for (const b of [...touches]) if (b.pv <= 0) retirerBatiment(etat, l, b);
+            for (const b of [...touches]) if (b.pv <= 0) retirerBatiment(etat, l, b, true);
             if (cible.pv <= 0) m.cible = null;
           }
         }
@@ -2013,6 +2040,7 @@ function sortie(etat, l, m, k){
     l.mort = true; l.monstres = [];
     if (envoyeur && !envoyeur.mort) envoyeur.bois += etat.cfg.boisParKill;
     noter(etat, {type: 'mort', ligne: l.i, par: m.proprietaire});
+    etat.eliminations.push({pas: etat.pas, ligne: l.i, par: m.proprietaire});
     return;
   }
   const suivante = etat.lignes[voisin(etat, l.i)];
@@ -2274,7 +2302,7 @@ function controleur(etat){
       const dx = bx - cx, dy = by - cy;
       if (dx * dx + dy * dy <= cfg.controleur.zone * cfg.controleur.zone){
         b.pv -= cfg.controleur.deg;
-        if (b.pv <= 0) retirerBatiment(etat, l, b);
+        if (b.pv <= 0) retirerBatiment(etat, l, b, true);
       }
     }
     noter(etat, {type: 'controleur', ligne: l.i});
@@ -3107,6 +3135,15 @@ function jouerSon(nom){
   catch (e){ /* un navigateur qui refuse : le jeu continue sans le son */ }
 }
 
+/* Le meme reglage est offert a deux endroits — le bouton du bandeau et
+   l'ecran des reglages — donc il passe par une seule fonction et les deux
+   commandes se resynchronisent. */
+function reglerSon(actif){
+  sonActif = !!actif;
+  if (sonActif) reveillerSon();
+  try { localStorage.setItem(CLE_SON, sonActif ? '1' : '0'); } catch (e){}
+  return sonActif;
+}
 function basculerSon(){
   sonActif = !sonActif;
   if (sonActif) reveillerSon();
@@ -3116,6 +3153,85 @@ function basculerSon(){
 function lireSon(){
   try { sonActif = localStorage.getItem(CLE_SON) !== '0'; } catch (e){}
   return sonActif;
+}
+
+
+/* ===== src/game/rapport.js ===== */
+/* Le rapport de fin de partie. Un ecran de fin dit qui a gagne ; il ne dit pas
+   POURQUOI. Ce texte-la se copie en un appui et se colle dans une
+   conversation : c'est le seul moyen pour moi de voir ce qui a ete bati, ce
+   qui a ete envoye, et qui a tue qui — sans etre devant l'ecran. */
+
+function listeNommee(cfg, table, compteur){
+  const cles = Object.keys(compteur || {}).filter(k => compteur[k] > 0);
+  if (!cles.length) return 'rien';
+  cles.sort((a, z) => compteur[z] - compteur[a]);
+  return cles.map(k => `${(table[k] || {nom: k}).nom} x${compteur[k]}`).join(', ');
+}
+
+function rapport(etat, camp){
+  const cfg = etat.cfg, prof = cfg.PROFILS[etat.profil], diff = cfg.DIFFICULTES[etat.difficulte];
+  const s = p => (p / 10).toFixed(0) + ' s';
+  const nom = i => etat.lignes[i] ? etat.lignes[i].nom : '?';
+  const L = [];
+
+  L.push(`LTW7 — rapport de partie · version ${typeof VERSION === 'string' ? VERSION : '?'}`);
+  L.push(`${etat.lignes.length} joueurs · bots ${diff.nom || etat.difficulte}` +
+         ` · rythme ${prof.nom} · graine ${etat.graine} · camp ${camp.nom}`);
+  L.push(`durée ${s(etat.pas)}` +
+         (etat.eliminations.length ? ` · 1re élimination ${s(etat.eliminations[0].pas)}` : '') +
+         ` · vainqueur ${etat.vainqueur == null ? 'personne' : nom(etat.vainqueur)}`);
+  L.push('');
+
+  for (const l of etat.lignes){
+    const fin = etat.eliminations.find(e => e.ligne === l.i);
+    L.push(`${l.nom.toUpperCase()} — ${l.mort
+      ? `éliminé à ${s(fin ? fin.pas : etat.pas)}${fin && fin.par != null ? ' par ' + nom(fin.par) : ''}`
+      : `${l.vies} vies`} · revenu +${l.revenu}`);
+    L.push(`  défense  : ${l.batiments.length} tours debout` +
+           `, ${l.detruites} détruites, ${l.vendues} vendues` +
+           ` — ${l.depenseTours} or`);
+    L.push(`  bâti     : ${listeNommee(cfg, cfg.TOURS, l.construits)}`);
+    L.push(`  monté    : ${listeNommee(cfg, cfg.TOURS, l.montees)}`);
+    const tech = Object.keys(l.branches).filter(k => l.branches[k])
+      .map(k => cfg.BRANCHES[k].nom)
+      .concat(Object.keys(l.feuilles).filter(k => l.feuilles[k]).map(k => cfg.TOURS[k].nom));
+    L.push(`  techno   : ${tech.length ? tech.join(', ') : 'aucune'} (${l.bois} bois restant)`);
+    L.push(`  envoyé   : ${listeNommee(cfg, cfg.MONSTRES, l.envoisParType)} — ${l.depenseEnvois} or`);
+    const recu = Object.keys(l.recuDe).filter(k => l.recuDe[k] > 0)
+      .map(k => `${nom(+k)} x${l.recuDe[k]}`);
+    L.push(`  reçu de  : ${recu.length ? recu.join(', ') : 'personne'}`);
+    L.push('');
+  }
+
+  if (etat.eliminations.length){
+    L.push('CHRONO');
+    for (const e of etat.eliminations)
+      L.push(`  ${s(e.pas).padStart(6)}  ${nom(e.ligne)} éliminé` +
+             (e.par != null ? ` par ${nom(e.par)}` : ''));
+  }
+  return L.join('\n');
+}
+
+/* La copie doit marcher sur un telephone hors ligne : `navigator.clipboard`
+   n'existe pas partout, d'ou le repli par zone de texte. */
+async function copierRapport(texte){
+  try {
+    if (navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(texte);
+      return true;
+    }
+  } catch (e){ /* refuse par le navigateur : on tente le repli */ }
+  try {
+    const z = document.createElement('textarea');
+    z.value = texte;
+    z.style.cssText = 'position:fixed;top:-1000px;opacity:0';
+    document.body.appendChild(z);
+    z.select(); z.setSelectionRange(0, texte.length);
+    const ok = document.execCommand('copy');
+    document.body.removeChild(z);
+    return ok;
+  } catch (e){ return false; }
 }
 
 
@@ -3751,10 +3867,24 @@ function finir(){
     <div class="duo">
       <button id="rejouer">Rejouer</button>
       <button id="versMenu">Réglages</button>
-    </div></div>`;
+    </div>
+    <button id="copierRapport" class="large">Copier le rapport de partie</button>
+    <pre id="apercuRapport" hidden></pre></div>`;
   document.getElementById('rejouer').onclick = () => { demarrer(true); fermerAccueil(); };
   document.getElementById('versMenu').onclick = () => {
     document.getElementById('fin').hidden = true; ouvrirAccueil(false); };
+  /* Le rapport complet : ce que chacun a bati, monte, envoye, et qui a tue qui.
+     Copiable en un appui — c'est ce qu'on colle dans une conversation pour
+     faire analyser une partie sans etre devant l'ecran. */
+  const btn = document.getElementById('copierRapport');
+  btn.onclick = async () => {
+    const texte = rapport(etat, camp);
+    const ok = await copierRapport(texte);
+    btn.textContent = ok ? '✓ Copié — colle-le où tu veux'
+                         : 'Sélectionne le texte ci-dessous et copie-le';
+    const ap = document.getElementById('apercuRapport');
+    ap.textContent = texte; ap.hidden = false;
+  };
 }
 
 /* ---- entrees ------------------------------------------------------------- */
@@ -3942,8 +4072,16 @@ window.addEventListener('DOMContentLoaded', () => {
      premier, et c'est exactement le bon endroit. */
   document.addEventListener('pointerdown', reveillerSon, {once: true});
   const btnSon = document.getElementById('sonBtn');
-  btnSon.dataset.coupe = lireSon() ? '0' : '1';
-  btnSon.onclick = () => { btnSon.dataset.coupe = basculerSon() ? '0' : '1'; };
+  const champSon = document.getElementById('sonReglage');
+  const majSon = actif => {
+    btnSon.dataset.coupe = actif ? '0' : '1';
+    champSon.value = actif ? '1' : '0';
+  };
+  majSon(lireSon());
+  btnSon.onclick = () => majSon(basculerSon());
+  champSon.onchange = e => majSon(reglerSon(e.target.value === '1'));
+  document.getElementById('version').textContent =
+    'version ' + (typeof VERSION === 'string' ? VERSION : 'inconnue');
   document.getElementById('jouer').onclick = () => { reveillerSon(); demarrer(false); fermerAccueil(); };
   document.getElementById('memeGraine').onclick = () => { demarrer(true); fermerAccueil(); };
   document.getElementById('reprendre').onclick = fermerAccueil;

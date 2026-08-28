@@ -150,6 +150,15 @@ function jouerSon(nom){
   catch (e){ /* un navigateur qui refuse : le jeu continue sans le son */ }
 }
 
+/* Le meme reglage est offert a deux endroits — le bouton du bandeau et
+   l'ecran des reglages — donc il passe par une seule fonction et les deux
+   commandes se resynchronisent. */
+function reglerSon(actif){
+  sonActif = !!actif;
+  if (sonActif) reveillerSon();
+  try { localStorage.setItem(CLE_SON, sonActif ? '1' : '0'); } catch (e){}
+  return sonActif;
+}
 function basculerSon(){
   sonActif = !sonActif;
   if (sonActif) reveillerSon();

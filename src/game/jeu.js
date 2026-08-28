@@ -629,10 +629,24 @@ function finir(){
     <div class="duo">
       <button id="rejouer">Rejouer</button>
       <button id="versMenu">Réglages</button>
-    </div></div>`;
+    </div>
+    <button id="copierRapport" class="large">Copier le rapport de partie</button>
+    <pre id="apercuRapport" hidden></pre></div>`;
   document.getElementById('rejouer').onclick = () => { demarrer(true); fermerAccueil(); };
   document.getElementById('versMenu').onclick = () => {
     document.getElementById('fin').hidden = true; ouvrirAccueil(false); };
+  /* Le rapport complet : ce que chacun a bati, monte, envoye, et qui a tue qui.
+     Copiable en un appui — c'est ce qu'on colle dans une conversation pour
+     faire analyser une partie sans etre devant l'ecran. */
+  const btn = document.getElementById('copierRapport');
+  btn.onclick = async () => {
+    const texte = rapport(etat, camp);
+    const ok = await copierRapport(texte);
+    btn.textContent = ok ? '✓ Copié — colle-le où tu veux'
+                         : 'Sélectionne le texte ci-dessous et copie-le';
+    const ap = document.getElementById('apercuRapport');
+    ap.textContent = texte; ap.hidden = false;
+  };
 }
 
 /* ---- entrees ------------------------------------------------------------- */
@@ -820,8 +834,16 @@ window.addEventListener('DOMContentLoaded', () => {
      premier, et c'est exactement le bon endroit. */
   document.addEventListener('pointerdown', reveillerSon, {once: true});
   const btnSon = document.getElementById('sonBtn');
-  btnSon.dataset.coupe = lireSon() ? '0' : '1';
-  btnSon.onclick = () => { btnSon.dataset.coupe = basculerSon() ? '0' : '1'; };
+  const champSon = document.getElementById('sonReglage');
+  const majSon = actif => {
+    btnSon.dataset.coupe = actif ? '0' : '1';
+    champSon.value = actif ? '1' : '0';
+  };
+  majSon(lireSon());
+  btnSon.onclick = () => majSon(basculerSon());
+  champSon.onchange = e => majSon(reglerSon(e.target.value === '1'));
+  document.getElementById('version').textContent =
+    'version ' + (typeof VERSION === 'string' ? VERSION : 'inconnue');
   document.getElementById('jouer').onclick = () => { reveillerSon(); demarrer(false); fermerAccueil(); };
   document.getElementById('memeGraine').onclick = () => { demarrer(true); fermerAccueil(); };
   document.getElementById('reprendre').onclick = fermerAccueil;

@@ -1,5 +1,14 @@
 # Ce qu'il y a à tester
 
+**Le rapport de partie.** À la fin d'une partie, le bouton
+« Copier le rapport de partie » met dans le presse-papier ce que chacun a bâti,
+monté, envoyé, reçu, et qui a éliminé qui, avec la chronologie. **C'est ça qu'il
+faut me coller** — une capture d'écran ne montre que le score final.
+
+**La version.** L'écran-titre et le rapport affichent la date et le numéro de
+build. Si tu me signales un défaut, ce numéro me dit tout de suite si tu jouais
+la version corrigée ou une page restée en cache.
+
 **Installer le jeu sur le téléphone** : ouvre
 `https://capitaine-muffin.github.io/ltw7/`, puis « Ajouter à l'écran d'accueil ».
 Il s'ouvre alors en plein écran, sans barre d'adresse, avec son icône.

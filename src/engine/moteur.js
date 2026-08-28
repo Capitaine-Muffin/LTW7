@@ -15,6 +15,10 @@ function creerLigne(cfg, prof, i, estJoueur){
     stock: {}, prochainStock: {},        // chronologie de deblocage (voir config)
     envoisParType: {},                   // ce qu'on a envoye, et combien de fois
     recuDe: {},                          // combien de monstres chaque ligne nous a envoyes
+    /* De quoi ecrire un rapport de fin de partie. Les batiments presents a la
+       fin ne racontent pas la partie : il faut savoir ce qui a ete bati, monte,
+       vendu et surtout DETRUIT. */
+    construits: {}, montees: {}, vendues: 0, detruites: 0,
     occupe: new Int32Array(cfg.LARGEUR * cfg.HAUTEUR).fill(-1),
     chemin: null, scellee: false, mort: false,
     prochainBot: 60 + i * 17          // decale les bots pour qu'ils ne jouent pas a l'unisson
@@ -30,6 +34,7 @@ function creerPartie({graine = 12345, profil = 'BLITZ', joueurs = 4,
     cfg, prof, diff, pas: 0, rng: creerRng(graine), graine, profil, difficulte,
     lignes: [], moi: 0, fini: false, vainqueur: null, journal: [],
     controleur: null, prochainControleur: cfg.controleur.periode, seq: 0,
+    eliminations: [],                    // {pas, ligne, par} — jamais taille
     /* Trace des tirs du pas courant. Le moteur ne dessine rien : il note juste
        « cette tour a tire sur ce point », l'affichage en fait des projectiles.
        Vide a chaque pas, donc sans effet sur la simulation ni sur la rejouabilite. */
@@ -83,6 +88,7 @@ function poserBatiment(etat, l, type, x, y){
   if (x === cfg.entree.x && y === cfg.entree.y) return false;
   if (x === cfg.exit.x && y === cfg.exit.y) return false;
   l.or -= def.or; l.depenseTours += def.or;
+  l.construits[type] = (l.construits[type] || 0) + 1;
   const b = {id: nouvelId(), type, x, y, pv: def.pv, pvMax: def.pv, recharge: 0};
   l.batiments.push(b);
   l.occupe[i] = b.id;
@@ -96,16 +102,21 @@ function ameliorer(etat, l, b, vers){
   if (def.feuille && !l.feuilles[vers]) return false;
   if (l.or < def.or) return false;
   l.or -= def.or; l.depenseTours += def.or;
+  l.montees[vers] = (l.montees[vers] || 0) + 1;
   b.type = vers; b.pvMax = def.pv; b.pv = def.pv; b.recharge = 0;
   return true;
 }
 function vendre(etat, l, b){
   const def = etat.cfg.TOURS[b.type];
   l.or += Math.floor(def.or * etat.cfg.remboursement / 100);
+  l.vendues += 1;
   retirerBatiment(etat, l, b);
   return true;
 }
-function retirerBatiment(etat, l, b){
+/* `detruite` distingue ce qu'on a vendu de ce qu'on nous a casse — c'est la
+   difference entre une partie maitrisee et une partie subie. */
+function retirerBatiment(etat, l, b, detruite){
+  if (detruite) l.detruites += 1;
   l.occupe[b.y * etat.cfg.LARGEUR + b.x] = -1;
   l.batiments.splice(l.batiments.indexOf(b), 1);
   recalculerChemin(etat, l);
@@ -270,7 +281,7 @@ function deplacerMonstres(etat, l){
                 })
               : [cible];
             for (const b of touches) b.pv -= def.siege.deg;
-            for (const b of [...touches]) if (b.pv <= 0) retirerBatiment(etat, l, b);
+            for (const b of [...touches]) if (b.pv <= 0) retirerBatiment(etat, l, b, true);
             if (cible.pv <= 0) m.cible = null;
           }
         }
@@ -312,6 +323,7 @@ function sortie(etat, l, m, k){
     l.mort = true; l.monstres = [];
     if (envoyeur && !envoyeur.mort) envoyeur.bois += etat.cfg.boisParKill;
     noter(etat, {type: 'mort', ligne: l.i, par: m.proprietaire});
+    etat.eliminations.push({pas: etat.pas, ligne: l.i, par: m.proprietaire});
     return;
   }
   const suivante = etat.lignes[voisin(etat, l.i)];
@@ -573,7 +585,7 @@ function controleur(etat){
       const dx = bx - cx, dy = by - cy;
       if (dx * dx + dy * dy <= cfg.controleur.zone * cfg.controleur.zone){
         b.pv -= cfg.controleur.deg;
-        if (b.pv <= 0) retirerBatiment(etat, l, b);
+        if (b.pv <= 0) retirerBatiment(etat, l, b, true);
       }
     }
     noter(etat, {type: 'controleur', ligne: l.i});

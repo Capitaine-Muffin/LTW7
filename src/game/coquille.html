@@ -180,7 +180,9 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 6px 18px rgba(240,196,81,.24)}
 #accueil button.doux{background:var(--bord);color:var(--encre);font-size:15px;flex:0 0 auto;
   padding:14px 16px}
-#accueil .note{color:var(--doux);font-size:11.5px;line-height:1.45;margin:14px 0 0}
+#accueil .version{color:var(--doux);opacity:.55;font-size:10px;margin:12px 0 0;
+  text-align:center;font-family:"IBM Plex Mono",ui-monospace,monospace}
+#accueil .note{color:var(--doux);font-size:11.5px;line-height:1.45;margin:8px 0 0}
 #accueil .note b{color:var(--encre)}
 #fin{position:fixed;inset:0;background:rgba(10,9,16,.88);display:flex;align-items:center;
   justify-content:center;z-index:9;padding:24px;text-align:center}
@@ -199,6 +201,13 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   display:inline-block;text-align:left;line-height:1.6}
 #fin .cfg b{color:var(--encre);font-family:"IBM Plex Mono",monospace}
 #fin .duo{display:flex;gap:8px;justify-content:center}
+#fin button.large{margin:10px auto 0;display:block;background:var(--bord);
+  color:var(--encre);font-size:13.5px;padding:10px 16px;font-weight:700}
+#fin #apercuRapport{max-width:340px;max-height:34vh;overflow:auto;text-align:left;
+  margin:10px auto 0;padding:10px;background:rgba(0,0,0,.45);border-radius:9px;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10px;line-height:1.45;
+  color:var(--doux);white-space:pre-wrap;user-select:text;-webkit-user-select:text}
+#fin #apercuRapport[hidden]{display:none}
 #fin .duo button:last-child{background:var(--bord);color:var(--encre)}
 #fin button{background:var(--or);color:#1a1408;border:0;border-radius:9px;padding:11px 22px;
   font-size:15px;font-weight:800;cursor:pointer}
@@ -263,6 +272,9 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   </select></label>
   <label>Camp<select id="camp"><option value="0">Humain</option><option value="1">Orc</option>
     <option value="2">Mort-vivant</option><option value="3">Elfe</option></select></label>
+  <label>Son<select id="sonReglage">
+    <option value="1">Activé</option><option value="0">Coupé</option>
+  </select></label>
   <label>Graine<input id="graine" type="number" min="1" max="999999" value="1"></label>
   </div>
     <div class="duo">
@@ -270,6 +282,7 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
       <button id="memeGraine" class="doux" title="Rejouer exactement la même partie">↻</button>
       <button id="reprendre" class="doux" hidden>Reprendre</button>
     </div>
+    <p class="version" id="version"></p>
     <p class="note"><b>Un appui</b> pour prendre une tour, <b>un appui</b> sur la grille
       pour la poser. <b>Glisse sur le côté</b> pour voir la ligne d'à côté.
       La <b>graine</b> rejoue exactement la même partie.</p>
