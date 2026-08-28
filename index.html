@@ -1746,7 +1746,7 @@ function tirer(etat, l){
     }
     if (!cible) continue;
     b.recharge = def.c;
-    etat.tirs.push({ligne: l.i, type: b.type, x: bx, y: by,
+    etat.tirs.push({ligne: l.i, type: b.type, x: bx, y: by, cibleId: cible.id,
                     cx: cible.x, cy: cible.y, zone: def.zone || 0});
     if (def.teleporte){ cible.etape = 0;
       cible.x = cfg.entree.x * cfg.MILLI + cfg.MILLI / 2;
@@ -2239,10 +2239,15 @@ const DUREE_ECLAT = 130;                   // ms de flash a l'impact
 
 /* Ramasse les tirs du pas qui vient d'etre simule, pour la ligne regardee. */
 function collecterTirs(etat, ligne, liste){
-  for (const t of etat.tirs){
+  for (let t of etat.tirs){
     if (t.ligne !== ligne) continue;
     const genre = t.monstre ? 'siege' : ((TOURS_ART[t.type] || {}).k || 'fleche');
     const p = PROJ[genre] || PROJ.fleche;
+    /* Le tir vise le monstre TEL QU'IL EST DESSINE, pas sa position dans la
+       simulation : sans ca les fleches tombent a cote de la troupe. */
+    const l = etat.lignes[t.ligne];
+    const vise = t.cibleId != null && l.monstres.find(m => m.id === t.cibleId);
+    if (vise){ const e = ecartVisuel(vise, l); t = {...t, cx: t.cx + e.dx, cy: t.cy + e.dy}; }
     const dx = t.cx - t.x, dy = t.cy - t.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
     liste.push({
@@ -2408,6 +2413,36 @@ const DUREE_TRANSI = 260;
 const COULEURS = ['#ffd24a','#e05a5a','#5ac8e0','#8fd06a','#c08aff','#ff9a4a','#7ad0b8'];
 const couleurJoueur = i => COULEURS[i % COULEURS.length];
 
+/* L'ecart de foule. Dans la map d'origine les creeps ont `ucol = 1.0`, c'est
+   a dire aucune collision : ils se traversent et un envoi simultane se
+   superpose au pixel pres. On garde cette regle — elle decide de la longueur
+   du chemin et donc de tout l'equilibrage — mais on decale le DESSIN d'un
+   monstre a l'autre. Une vague ressemble alors a une troupe, pas a un seul
+   monstre plus opaque que les autres. Le decalage ne depend que de l'identifiant :
+   il est stable dans le temps, et le tir qui vise ce monstre applique le meme,
+   sinon les fleches tomberaient a cote. */
+/* Etale le long du chemin, serre en travers : une troupe en marche forme une
+   colonne, pas une flaque. En milli-cases. */
+const ETAL = 560, LARGE = 230;
+function ecartVisuel(m, l){
+  let h = Math.imul(m.id ^ 0x9e3779b9, 0x85ebca6b);
+  h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; h >>>= 0;
+  const long = (h % 1000) / 500 - 1;               // -1 a 1, le long du chemin
+  const trav = ((h >>> 10) % 1000) / 500 - 1;      // -1 a 1, en travers
+  /* Direction locale du chemin : dans un labyrinthe le couloir tourne, et une
+     colonne orientee au petit bonheur traverserait les murs. */
+  let ux = 0, uy = 1;
+  if (l.chemin && l.chemin.length > 1){
+    const L = etat.cfg.LARGEUR;
+    const a = l.chemin[Math.min(m.etape, l.chemin.length - 1)];
+    const b = l.chemin[Math.min(m.etape + 1, l.chemin.length - 1)];
+    const vx = (b % L) - (a % L), vy = ((b / L) | 0) - ((a / L) | 0);
+    if (vx || vy){ ux = vx; uy = vy; }
+  }
+  return {dx: Math.round(long * ETAL * ux - trav * LARGE * uy),
+          dy: Math.round(long * ETAL * uy + trav * LARGE * ux)};
+}
+
 /* ---- pre-rendu des sprites ---------------------------------------------- */
 function preparerSprites(){
   for (const cle of Object.keys(MONSTRES_ART)) for (const im of [0, 1]){
@@ -2518,8 +2553,14 @@ function dessinerJeu(){
     }
   }
 
-  for (const m of [...l.monstres].sort((a, z) => a.y - z.y)){
-    const x = ox + m.x * T / cfg.MILLI, y = oy + m.y * T / cfg.MILLI;
+  /* Tri par ordonnee ECRAN, ecart compris : sinon un monstre decale vers le
+     haut se retrouve dessine par-dessus celui qui est devant lui. */
+  const troupe = l.monstres.map(m => {
+    const e = ecartVisuel(m, l);
+    return {m, mx: m.x + e.dx, my: m.y + e.dy};
+  }).sort((a, z) => a.my - z.my);
+  for (const {m, mx, my} of troupe){
+    const x = ox + mx * T / cfg.MILLI, y = oy + my * T / cfg.MILLI;
     const def = cfg.MONSTRES[m.type];
     const taille = Math.round(T * (def.ech || 0.55));
     /* Les volants planent : on les remonte et on les fait osciller. */

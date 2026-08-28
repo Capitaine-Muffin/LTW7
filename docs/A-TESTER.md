@@ -16,6 +16,18 @@ recopier**, sinon « c'est trop dur » n'est pas exploitable.
 Le glissement ne pose jamais rien : la pose part au relâchement du doigt, et
 seulement si le doigt n'a pas bougé.
 
+## Les monstres se traversent — mais ne se dessinent plus l'un sur l'autre
+
+Dans la map, toutes les créatures ont une collision de 1.0, c'est-à-dire aucune :
+elles se traversent et se faufilent partout. C'est ce qui rend le maze en
+serpentin intéressant, donc **la règle est gardée telle quelle**.
+
+Ce qui change est purement visuel : chaque monstre est dessiné avec un décalage
+stable, étalé le long du couloir et serré en travers. Une vague forme une
+colonne en marche au lieu d'un seul sprite plus opaque. Les tirs visent la
+position dessinée, pas celle de la simulation, donc les flèches tombent bien sur
+la cible.
+
 ## Savoir ce que font les autres
 
 Le prototype se jouait chacun dans son coin. Trois repères ont été ajoutés :

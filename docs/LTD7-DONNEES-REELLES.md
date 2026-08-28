@@ -160,9 +160,16 @@ tuile de terrain complète**. Les quatre bâtiments de menu de la map le
 surchargent explicitement avec la même valeur, ce qui confirme la lecture.
 
 **Un monstre, lui, n'a quasiment pas d'emprise** : `ucol = 1.0` pour toutes les
-créatures envoyables. C'est un point. Les creeps se traversent entre eux et se
-faufilent dans le moindre interstice — d'où le maze en serpentin plutôt qu'en
-bouchon.
+créatures envoyables — 19 unités sur 20 dans `war3map.w3u`, la vingtième étant
+un mannequin de déblocage à 0. C'est un point. Les creeps se traversent entre
+eux et se faufilent dans le moindre interstice — d'où le maze en serpentin
+plutôt qu'en bouchon.
+
+> **Conséquence pour nous :** on garde la règle telle quelle, parce qu'elle
+> décide de la longueur du chemin et donc de tout l'équilibrage. Deux monstres
+> envoyés au même pas occupent la même position dans la simulation. En revanche
+> le **dessin** les décale — voir `ecartVisuel` — sinon une vague de vingt
+> ressemble à un seul monstre un peu plus opaque que les autres.
 
 | | Emprise au sol | Échelle du modèle |
 |---|---|---|

@@ -19,10 +19,15 @@ const DUREE_ECLAT = 130;                   // ms de flash a l'impact
 
 /* Ramasse les tirs du pas qui vient d'etre simule, pour la ligne regardee. */
 function collecterTirs(etat, ligne, liste){
-  for (const t of etat.tirs){
+  for (let t of etat.tirs){
     if (t.ligne !== ligne) continue;
     const genre = t.monstre ? 'siege' : ((TOURS_ART[t.type] || {}).k || 'fleche');
     const p = PROJ[genre] || PROJ.fleche;
+    /* Le tir vise le monstre TEL QU'IL EST DESSINE, pas sa position dans la
+       simulation : sans ca les fleches tombent a cote de la troupe. */
+    const l = etat.lignes[t.ligne];
+    const vise = t.cibleId != null && l.monstres.find(m => m.id === t.cibleId);
+    if (vise){ const e = ecartVisuel(vise, l); t = {...t, cx: t.cx + e.dx, cy: t.cy + e.dy}; }
     const dx = t.cx - t.x, dy = t.cy - t.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
     liste.push({
