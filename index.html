@@ -47,7 +47,13 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
   padding:7px 10px;color:var(--encre);display:flex;flex-direction:column;align-items:flex-start;
   line-height:1.2;cursor:pointer;min-width:74px}
 .art b{font-size:12.5px} .art span{font-size:10.5px;color:var(--doux)}
-.art i{font-size:10px;color:var(--vert);font-style:normal;font-variant-numeric:tabular-nums}
+.art i{font-size:10px;color:var(--vert);font-style:normal;font-variant-numeric:tabular-nums;
+  display:flex;gap:5px;align-items:center}
+.art u{text-decoration:none;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;
+  background:rgba(224,90,90,.22);color:#ef8f8f;border-radius:4px;padding:1px 4px}
+.art u.air{background:rgba(127,208,200,.2);color:#8fdcd4}
+.art.siege{border-color:#7d4444}
+.aide b{color:var(--encre)}
 .art.off{opacity:.4} .art.pris{border-color:var(--or);background:rgba(240,196,81,.16)}
 .art.acquis{border-color:var(--vert);color:var(--vert)} .art.vente{border-color:#6b3a3a}
 .tete{font-family:Oxanium;font-weight:800;font-size:14px;padding:0 2px 6px;display:flex;
@@ -594,6 +600,71 @@ const MONSTRES_ART = {
     MCOUCHE(g, p.d, t => { MR(t, 19, 1 + (f?0:1), 4, 6, p.bois);                  // gourdin
       MR(t, 20, 6 + (f?0:1), 2, 8, p.bois2); MP(t, 19, 2 + (f?0:1), p.c3); });
   },
+  /* --- Demolisseur : chariot de siege pousse par un sapeur --- */
+  demolisseur(g, f, p){
+    MOMBRE(g, 12, 8, p);
+    MCOUCHE(g, p.d, t => {                                                      // roues
+      for (const cx of [7, 17]){
+        for (let y = -3; y <= 3; y++) for (let x = -3; x <= 3; x++){
+          const d = Math.hypot(x, y); if (d > 3.3) continue;
+          MP(t, cx + x, 17 + y, d > 2 ? p.c1 : p.d);
+        }
+        for (let k = 0; k < 4; k++){                                            // rayons tournants
+          const a = k * Math.PI / 2 + (f ? 0.8 : 0);
+          MP(t, cx + Math.cos(a) * 2, 17 + Math.sin(a) * 2, p.c3);
+        }
+        MP(t, cx, 17, p.c3);
+      } });
+    MCOUCHE(g, p.d, t => { MCORPS(t, 4, 10, 16, 6, p);                          // chassis
+      MR(t, 5, 10, 14, 1, p.c3); MR(t, 5, 15, 14, 1, p.c1);
+      for (let i = 6; i < 19; i += 4) MR(t, i, 11, 1, 4, p.c1); });
+    MCOUCHE(g, p.d, t => { MR(t, 1, 11, 5, 4, p.metal); MR(t, 1, 11, 5, 1, p.metalC);
+      MR(t, 0, 12, 2, 2, p.metalC); });                                          // belier
+    MCOUCHE(g, p.d, t => { MR(t, 19, 5 + (f?0:1), 4, 6, p.t1);                   // sapeur
+      MR(t, 20, 4 + (f?0:1), 2, 2, p.t2); MP(t, 20, 5 + (f?0:1), p.oeil); });
+  },
+  /* --- Char a vapeur : blindage, chenilles, cheminee --- */
+  char(g, f, p){
+    MOMBRE(g, 12, 10, p);
+    MCOUCHE(g, p.d, t => { MR(t, 2, 16, 20, 5, p.c1);                            // chenilles
+      for (let i = 2; i < 22; i += 3) MR(t, i + (f?1:0), 16, 2, 5, p.c2);
+      MR(t, 2, 16, 20, 1, p.c3); });
+    MCOUCHE(g, p.d, t => { MCORPS(t, 3, 7, 18, 9, p);                            // caisse
+      MR(t, 4, 7, 16, 1, p.c3);
+      MR(t, 4, 10, 16, 1, p.c1); MR(t, 4, 13, 16, 1, p.c1);
+      for (let i = 5; i < 20; i += 4){ MP(t, i, 8, p.metalC); MP(t, i, 15, p.metal); } });
+    MCOUCHE(g, p.d, t => { MR(t, 0, 9, 4, 5, p.metal); MR(t, 0, 9, 4, 1, p.metalC);
+      MR(t, 0, 11, 3, 1, p.lueur); });                                           // soc avant
+    MCOUCHE(g, p.d, t => { MR(t, 15, 2, 4, 6, p.metal); MR(t, 15, 2, 4, 1, p.metalC);
+      MR(t, 16, 0, 2, 2, p.c3); MP(t, 15, 1, p.c2); MP(t, 18, 0 + (f?1:0), p.c2); });
+    MCOUCHE(g, p.d, t => { MR(t, 6, 4, 6, 4, p.c2); MR(t, 7, 3, 4, 1, p.c3);     // tourelle
+      MR(t, 7, 5, 2, 2, p.lueur); });
+  },
+  /* --- Broyeur gobelin : la scie qui tourne --- */
+  broyeur(g, f, p){
+    MOMBRE(g, 13, 9, p);
+    MCOUCHE(g, p.d, t => { MR(t, 8, 15, 4, 6, p.c1); MR(t, 15, 15, 4, 6, p.c1);  // pattes
+      MR(t, 8, 20, 4, 1, p.d); MR(t, 15, 20, 4, 1, p.d); });
+    MCOUCHE(g, p.d, t => { MCORPS(t, 7, 6, 13, 10, p);                           // carcasse
+      MR(t, 8, 6, 11, 1, p.c3); MR(t, 8, 11, 11, 1, p.c1);
+      MR(t, 9, 8, 3, 2, p.lueur); MR(t, 14, 8, 3, 2, p.lueur); });
+    MCOUCHE(g, p.d, t => { MR(t, 18, 3, 3, 5, p.metal); MP(t, 19, 2, p.c3);      // cheminee
+      MP(t, 19, 1 - (f?1:0), p.c2); });
+    MCOUCHE(g, p.d, t => {                                                       // scie circulaire
+      const R = 6;
+      for (let y = -R; y <= R; y++) for (let x = -R; x <= R; x++){
+        const d = Math.hypot(x, y); if (d > R + .3) continue;
+        MP(t, 4 + x, 11 + y, d > R - 1.6 ? p.metalC : (d < 1.6 ? p.metal : p.d));
+      }
+      for (let k = 0; k < 8; k++){                                               // dents
+        const a = k * Math.PI / 4 + (f ? Math.PI / 8 : 0);
+        MP(t, 4 + Math.cos(a) * (R + .6), 11 + Math.sin(a) * (R + .6), p.metalC);
+      }
+      for (let k = 0; k < 4; k++){
+        const a = k * Math.PI / 2 + (f ? 0.7 : 0);
+        MP(t, 4 + Math.cos(a) * 3, 11 + Math.sin(a) * 3, p.metal);
+      } });
+  },
   /* --- Banshee : volante, voile en lambeaux, bras ouverts --- */
   banshee(g, f, p){
     MCOUCHE(g, p.d, t => {
@@ -622,6 +693,13 @@ const PAL_MONSTRES = {
   ombre:   {d:'#0c0a14', c1:'#2a2140', c2:'#3f3160', c3:'#584585', lueur:'#a678ff', lueurC:'#e0c8ff', sol:'#1a1526'},
   troll:   {d:'#0d1410', c1:'#2f5238', c2:'#437a4e', c3:'#5c9668', oeil:'#141a14', lueur:'#ffe07a',
             os:'#e8e2c8', bois:'#5c4028', bois2:'#3f2c1c', sol:'#1c2a1e'},
+  demolisseur:{d:'#140f0c', c1:'#4a3520', c2:'#6b4d2e', c3:'#8f6c44',
+               metal:'#7d7a72', metalC:'#b8b4a8', t1:'#5c6b3a', t2:'#7d8a4e',
+               oeil:'#e8d060', sol:'#2a2016'},
+  char:      {d:'#101418', c1:'#33404a', c2:'#4a5b68', c3:'#6b8090',
+               metal:'#7d8694', metalC:'#c0c8d4', lueur:'#ff9c3a', sol:'#1d262e'},
+  broyeur:   {d:'#12130c', c1:'#3f4a26', c2:'#5c6b33', c3:'#7d8f46',
+               metal:'#6b6f78', metalC:'#c8ccd6', lueur:'#ffcf3a', sol:'#232616'},
   banshee: {d:'#0a1416', c1:'#1f4a4e', c2:'#2f6f72', c3:'#4a9a9a', lueur:'#7ffff0', lueurC:'#d4fffa', sol:'#16282a'}
 };
 
@@ -720,8 +798,22 @@ const MONSTRES = {
   fantassin:{nom:'Fantassin',or:75, revenu:12, pv:250,   v:vitesse(370), ech:0.54},
   golem:   {nom:'Golem',    or:350, revenu:37, pv:1400,  v:vitesse(300), ech:0.72},
   ombre:   {nom:'Ombre',    or:200, revenu:22, pv:600,   v:vitesse(300), vol:true, ech:0.58},
-  troll:   {nom:'Troll',    or:5000,revenu:450,pv:5000,  v:vitesse(350), ech:0.80},
-  banshee: {nom:'Banshee',  or:20000,revenu:1700,pv:60000,v:vitesse(300), vol:true, ech:0.76}
+  troll:   {nom:'Troll berserk', or:5000, revenu:450, pv:5000, v:vitesse(350), ech:0.80,
+            siege:{deg:47, portee:portee(150), cadence:cadence(60)}},
+  banshee: {nom:'Banshee',  or:20000,revenu:1700,pv:60000,v:vitesse(300), vol:true, ech:0.76},
+
+  /* --- Les briseurs ---------------------------------------------------------
+     Ils ne cherchent pas a passer : ils viennent casser les tours. Ils ne
+     volent donc aucune vie tant qu'il reste quelque chose a demolir. C'est
+     l'autre facon de gagner une ligne — on ne perce pas la defense, on la
+     supprime. Les quatre existent dans la map d'origine, reperables a leur
+     nom qui contient « ATTAK ». */
+  demolisseur:{nom:'Démolisseur', or:500,   revenu:50,   pv:1000,   v:vitesse(270), ech:0.62,
+               siege:{deg:60,  portee:portee(120), cadence:cadence(45)}},
+  char:      {nom:'Char à vapeur', or:30000, revenu:2500, pv:100000, v:vitesse(270), ech:0.88,
+               siege:{deg:400, portee:portee(200), cadence:cadence(40)}},
+  broyeur:   {nom:'Broyeur gobelin', or:100000, revenu:5000, pv:100000, v:vitesse(300), ech:0.84,
+               siege:{deg:750, portee:portee(140), cadence:cadence(70)}}
 };
 
 const PROFILS = {
@@ -741,9 +833,9 @@ const DIFFICULTES = {
   normal:      {nom:'Normal',      intervalle:[95, 150],  partEnvois:0.55,
                 maze:true,  ameliore:false, branches:false, poseTous:8},
   agressif:    {nom:'Agressif',    intervalle:[62, 100],  partEnvois:0.70,
-                maze:true,  ameliore:true,  branches:true,  poseTous:6},
+                maze:true,  ameliore:true,  branches:true,  poseTous:6, siege:false},
   impitoyable: {nom:'Impitoyable', intervalle:[45, 72],   partEnvois:0.82,
-                maze:true,  ameliore:true,  branches:true,  poseTous:4}
+                maze:true,  ameliore:true,  branches:true,  poseTous:4, siege:true}
 };
 
 const CONFIG = {
@@ -929,7 +1021,7 @@ function faireApparaitre(etat, ligne, type, proprietaire){
     id: nouvelId(), type, proprietaire, pv: def.pv, pvMax: def.pv,
     x: cfg.entree.x * cfg.MILLI + cfg.MILLI / 2,
     y: cfg.entree.y * cfg.MILLI + cfg.MILLI / 2,
-    etape: 0, lent: 0, etourdi: 0, poison: 0, poisonReste: 0
+    etape: 0, lent: 0, etourdi: 0, poison: 0, poisonReste: 0, cible: null, frappe: 0
   });
 }
 
@@ -974,6 +1066,39 @@ function deplacerMonstres(etat, l){
       m.x += Math.round(dx * v / d); m.y += Math.round(dy * v / d);
       if (d <= v){ sortie(etat, l, m, k); if (l.mort) return; }
       continue;
+    }
+    /* Un briseur ne suit pas le chemin : il marche droit sur le batiment le
+       plus proche et le demolit. Quand il n'y a plus rien a casser, il se
+       comporte comme n'importe quel monstre et file vers la sortie. */
+    if (def.siege && l.batiments.length){
+      if (m.cible == null || !l.batiments.some(b => b.id === m.cible)){
+        let meilleur = null, dmin = Infinity;
+        for (const b of l.batiments){
+          const bx = b.x * cfg.MILLI + cfg.MILLI / 2, by = b.y * cfg.MILLI + cfg.MILLI / 2;
+          const d2 = (bx - m.x) * (bx - m.x) + (by - m.y) * (by - m.y);
+          /* Departage strict par identifiant : deux batiments a egale
+             distance doivent toujours donner le meme choix. */
+          if (d2 < dmin || (d2 === dmin && meilleur && b.id < meilleur.id)){ dmin = d2; meilleur = b; }
+        }
+        m.cible = meilleur ? meilleur.id : null;
+      }
+      const cible = l.batiments.find(b => b.id === m.cible);
+      if (cible){
+        const bx = cible.x * cfg.MILLI + cfg.MILLI / 2, by = cible.y * cfg.MILLI + cfg.MILLI / 2;
+        const dx = bx - m.x, dy = by - m.y;
+        const d = Math.max(1, Math.round(Math.sqrt(dx * dx + dy * dy)));
+        if (d > def.siege.portee){
+          m.x += Math.round(dx * v / d); m.y += Math.round(dy * v / d);
+        } else {
+          m.frappe = (m.frappe || 0) - 1;
+          if (m.frappe <= 0){
+            m.frappe = def.siege.cadence;
+            cible.pv -= def.siege.deg;
+            if (cible.pv <= 0){ retirerBatiment(etat, l, cible); m.cible = null; }
+          }
+        }
+        continue;
+      }
     }
     if (!l.chemin){ continue; }                     // ligne scellee : il attend
     const suiv = l.chemin[Math.min(m.etape + 1, l.chemin.length - 1)];
@@ -1122,6 +1247,14 @@ function bots(etat){
       const parPrix = [...cles].sort((a, b) => cfg.MONSTRES[b].or - cfg.MONSTRES[a].or);
       l.envoisFaits = (l.envoisFaits || 0) + 1;
       const percee = d.ameliore && l.envoisFaits % 4 === 0;   // percee ponctuelle
+      /* Les bots qui savent jouer alternent : voler des vies, puis raser la
+         defense pour que les envois suivants passent tout seuls. */
+      const siege = d.siege && l.envoisFaits % 3 === 0;
+      if (siege){
+        const briseurs = cles.filter(k => cfg.MONSTRES[k].siege && cfg.MONSTRES[k].or <= budget)
+          .sort((a, b) => cfg.MONSTRES[b].or - cfg.MONSTRES[a].or);
+        if (briseurs.length && envoyer(etat, l, briseurs[0])) budget -= cfg.MONSTRES[briseurs[0]].or;
+      }
 
       for (let n = 0; n < 6; n++){
         const abordable = k => cfg.MONSTRES[k].or <= budget && cfg.MONSTRES[k].or <= l.or;
@@ -1635,9 +1768,12 @@ function panneau(){
       `</div><p class="aide">Un appui pour prendre, un appui sur la grille pour poser. L'or n'est débité qu'à la pose.</p>`;
   } else if (menu === 'monstres'){
     d.innerHTML = `<div class="rangee">` + Object.keys(cfg.MONSTRES).map(k => { const m = cfg.MONSTRES[k];
-      return `<button class="art ${l.or < m.or ? 'off' : ''}" data-envoyer="${k}">
-        <b>${m.nom}</b><span>${m.or} or → +${m.revenu}</span><i>${(m.revenu / m.or).toFixed(3)}</i></button>`; }).join('') +
-      `</div><p class="aide">Le chiffre du bas est le revenu par pièce d'or. Les petits monstres rapportent le plus, mais ne percent pas.</p>`;
+      const marque = m.siege ? '<u>brise</u>' : (m.vol ? '<u class="air">vole</u>' : '');
+      return `<button class="art ${l.or < m.or ? 'off' : ''} ${m.siege ? 'siege' : ''}" data-envoyer="${k}">
+        <b>${m.nom}</b><span>${m.or.toLocaleString('fr')} or → +${m.revenu.toLocaleString('fr')}</span>
+        <i>${(m.revenu / m.or).toFixed(3)} ${marque}</i></button>`; }).join('') +
+      `</div><p class="aide">Le chiffre est le revenu par pièce d'or : les petits rapportent le plus mais ne percent pas.
+       <b>brise</b> = il ignore la sortie et démolit les tours. <b>vole</b> = il ignore le labyrinthe.</p>`;
   } else if (menu === 'techno'){
     d.innerHTML = `<div class="rangee">` + Object.keys(cfg.BRANCHES).map(k => { const b = cfg.BRANCHES[k];
       const pris = l.branches[k];

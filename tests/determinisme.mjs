@@ -86,6 +86,32 @@ const avant = ls.batiments.length;
 for (let i = 0; i < 900; i++) M.avancer(s);
 dire(ls.batiments.length < avant, `le Controleur a demoli (${avant} -> ${ls.batiments.length} batiments)`);
 
+console.log('\nles briseurs cassent au lieu de passer');
+const br = M.creerPartie({graine: 5, joueurs: 3});
+const cible = br.lignes[1];
+cible.or = 100000;
+for (const [x, y] of [[3,4],[5,4],[3,6],[5,6]]) M.poserBatiment(br, cible, 'guet', x, y);
+/* La ligne visee est tenue par un bot qui continue de batir : on suit donc
+   des tours PRECISES, pas un total. */
+const suivies = cible.batiments.map(b => b.id), viesAvant = cible.vies;
+br.lignes[0].or = 100000;
+M.envoyer(br, br.lignes[0], 'demolisseur');
+for (let i = 0; i < 900; i++) M.avancer(br);
+const restantes = suivies.filter(id => cible.batiments.some(b => b.id === id)).length;
+dire(restantes < suivies.length,
+  `le Demolisseur a detruit des tours suivies (${suivies.length} -> ${restantes})`);
+dire(cible.vies === viesAvant,
+  `il n'a vole aucune vie tant qu'il restait a casser (${viesAvant} -> ${cible.vies})`);
+
+console.log('\nun briseur sort quand il n\'y a plus rien a casser');
+const br2 = M.creerPartie({graine: 6, joueurs: 3});
+br2.lignes[0].or = 100000;
+M.envoyer(br2, br2.lignes[0], 'demolisseur');       // ligne 1 vide de tours
+let sorti = false;
+for (let i = 0; i < 900 && !sorti; i++){ M.avancer(br2);
+  sorti = br2.journal.some(j => j.type === 'vol' && j.de === 1); }
+dire(sorti, 'sur une ligne sans tour, il file a la sortie et vole une vie');
+
 console.log('\nles quatre difficultes tiennent la duree');
 for (const d of ['facile','normal','agressif','impitoyable']){
   let planté = null;

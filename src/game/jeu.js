@@ -200,9 +200,12 @@ function panneau(){
       `</div><p class="aide">Un appui pour prendre, un appui sur la grille pour poser. L'or n'est débité qu'à la pose.</p>`;
   } else if (menu === 'monstres'){
     d.innerHTML = `<div class="rangee">` + Object.keys(cfg.MONSTRES).map(k => { const m = cfg.MONSTRES[k];
-      return `<button class="art ${l.or < m.or ? 'off' : ''}" data-envoyer="${k}">
-        <b>${m.nom}</b><span>${m.or} or → +${m.revenu}</span><i>${(m.revenu / m.or).toFixed(3)}</i></button>`; }).join('') +
-      `</div><p class="aide">Le chiffre du bas est le revenu par pièce d'or. Les petits monstres rapportent le plus, mais ne percent pas.</p>`;
+      const marque = m.siege ? '<u>brise</u>' : (m.vol ? '<u class="air">vole</u>' : '');
+      return `<button class="art ${l.or < m.or ? 'off' : ''} ${m.siege ? 'siege' : ''}" data-envoyer="${k}">
+        <b>${m.nom}</b><span>${m.or.toLocaleString('fr')} or → +${m.revenu.toLocaleString('fr')}</span>
+        <i>${(m.revenu / m.or).toFixed(3)} ${marque}</i></button>`; }).join('') +
+      `</div><p class="aide">Le chiffre est le revenu par pièce d'or : les petits rapportent le plus mais ne percent pas.
+       <b>brise</b> = il ignore la sortie et démolit les tours. <b>vole</b> = il ignore le labyrinthe.</p>`;
   } else if (menu === 'techno'){
     d.innerHTML = `<div class="rangee">` + Object.keys(cfg.BRANCHES).map(k => { const b = cfg.BRANCHES[k];
       const pris = l.branches[k];

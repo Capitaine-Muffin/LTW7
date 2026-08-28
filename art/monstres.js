@@ -145,6 +145,71 @@ const MONSTRES_ART = {
     MCOUCHE(g, p.d, t => { MR(t, 19, 1 + (f?0:1), 4, 6, p.bois);                  // gourdin
       MR(t, 20, 6 + (f?0:1), 2, 8, p.bois2); MP(t, 19, 2 + (f?0:1), p.c3); });
   },
+  /* --- Demolisseur : chariot de siege pousse par un sapeur --- */
+  demolisseur(g, f, p){
+    MOMBRE(g, 12, 8, p);
+    MCOUCHE(g, p.d, t => {                                                      // roues
+      for (const cx of [7, 17]){
+        for (let y = -3; y <= 3; y++) for (let x = -3; x <= 3; x++){
+          const d = Math.hypot(x, y); if (d > 3.3) continue;
+          MP(t, cx + x, 17 + y, d > 2 ? p.c1 : p.d);
+        }
+        for (let k = 0; k < 4; k++){                                            // rayons tournants
+          const a = k * Math.PI / 2 + (f ? 0.8 : 0);
+          MP(t, cx + Math.cos(a) * 2, 17 + Math.sin(a) * 2, p.c3);
+        }
+        MP(t, cx, 17, p.c3);
+      } });
+    MCOUCHE(g, p.d, t => { MCORPS(t, 4, 10, 16, 6, p);                          // chassis
+      MR(t, 5, 10, 14, 1, p.c3); MR(t, 5, 15, 14, 1, p.c1);
+      for (let i = 6; i < 19; i += 4) MR(t, i, 11, 1, 4, p.c1); });
+    MCOUCHE(g, p.d, t => { MR(t, 1, 11, 5, 4, p.metal); MR(t, 1, 11, 5, 1, p.metalC);
+      MR(t, 0, 12, 2, 2, p.metalC); });                                          // belier
+    MCOUCHE(g, p.d, t => { MR(t, 19, 5 + (f?0:1), 4, 6, p.t1);                   // sapeur
+      MR(t, 20, 4 + (f?0:1), 2, 2, p.t2); MP(t, 20, 5 + (f?0:1), p.oeil); });
+  },
+  /* --- Char a vapeur : blindage, chenilles, cheminee --- */
+  char(g, f, p){
+    MOMBRE(g, 12, 10, p);
+    MCOUCHE(g, p.d, t => { MR(t, 2, 16, 20, 5, p.c1);                            // chenilles
+      for (let i = 2; i < 22; i += 3) MR(t, i + (f?1:0), 16, 2, 5, p.c2);
+      MR(t, 2, 16, 20, 1, p.c3); });
+    MCOUCHE(g, p.d, t => { MCORPS(t, 3, 7, 18, 9, p);                            // caisse
+      MR(t, 4, 7, 16, 1, p.c3);
+      MR(t, 4, 10, 16, 1, p.c1); MR(t, 4, 13, 16, 1, p.c1);
+      for (let i = 5; i < 20; i += 4){ MP(t, i, 8, p.metalC); MP(t, i, 15, p.metal); } });
+    MCOUCHE(g, p.d, t => { MR(t, 0, 9, 4, 5, p.metal); MR(t, 0, 9, 4, 1, p.metalC);
+      MR(t, 0, 11, 3, 1, p.lueur); });                                           // soc avant
+    MCOUCHE(g, p.d, t => { MR(t, 15, 2, 4, 6, p.metal); MR(t, 15, 2, 4, 1, p.metalC);
+      MR(t, 16, 0, 2, 2, p.c3); MP(t, 15, 1, p.c2); MP(t, 18, 0 + (f?1:0), p.c2); });
+    MCOUCHE(g, p.d, t => { MR(t, 6, 4, 6, 4, p.c2); MR(t, 7, 3, 4, 1, p.c3);     // tourelle
+      MR(t, 7, 5, 2, 2, p.lueur); });
+  },
+  /* --- Broyeur gobelin : la scie qui tourne --- */
+  broyeur(g, f, p){
+    MOMBRE(g, 13, 9, p);
+    MCOUCHE(g, p.d, t => { MR(t, 8, 15, 4, 6, p.c1); MR(t, 15, 15, 4, 6, p.c1);  // pattes
+      MR(t, 8, 20, 4, 1, p.d); MR(t, 15, 20, 4, 1, p.d); });
+    MCOUCHE(g, p.d, t => { MCORPS(t, 7, 6, 13, 10, p);                           // carcasse
+      MR(t, 8, 6, 11, 1, p.c3); MR(t, 8, 11, 11, 1, p.c1);
+      MR(t, 9, 8, 3, 2, p.lueur); MR(t, 14, 8, 3, 2, p.lueur); });
+    MCOUCHE(g, p.d, t => { MR(t, 18, 3, 3, 5, p.metal); MP(t, 19, 2, p.c3);      // cheminee
+      MP(t, 19, 1 - (f?1:0), p.c2); });
+    MCOUCHE(g, p.d, t => {                                                       // scie circulaire
+      const R = 6;
+      for (let y = -R; y <= R; y++) for (let x = -R; x <= R; x++){
+        const d = Math.hypot(x, y); if (d > R + .3) continue;
+        MP(t, 4 + x, 11 + y, d > R - 1.6 ? p.metalC : (d < 1.6 ? p.metal : p.d));
+      }
+      for (let k = 0; k < 8; k++){                                               // dents
+        const a = k * Math.PI / 4 + (f ? Math.PI / 8 : 0);
+        MP(t, 4 + Math.cos(a) * (R + .6), 11 + Math.sin(a) * (R + .6), p.metalC);
+      }
+      for (let k = 0; k < 4; k++){
+        const a = k * Math.PI / 2 + (f ? 0.7 : 0);
+        MP(t, 4 + Math.cos(a) * 3, 11 + Math.sin(a) * 3, p.metal);
+      } });
+  },
   /* --- Banshee : volante, voile en lambeaux, bras ouverts --- */
   banshee(g, f, p){
     MCOUCHE(g, p.d, t => {
@@ -173,6 +238,13 @@ const PAL_MONSTRES = {
   ombre:   {d:'#0c0a14', c1:'#2a2140', c2:'#3f3160', c3:'#584585', lueur:'#a678ff', lueurC:'#e0c8ff', sol:'#1a1526'},
   troll:   {d:'#0d1410', c1:'#2f5238', c2:'#437a4e', c3:'#5c9668', oeil:'#141a14', lueur:'#ffe07a',
             os:'#e8e2c8', bois:'#5c4028', bois2:'#3f2c1c', sol:'#1c2a1e'},
+  demolisseur:{d:'#140f0c', c1:'#4a3520', c2:'#6b4d2e', c3:'#8f6c44',
+               metal:'#7d7a72', metalC:'#b8b4a8', t1:'#5c6b3a', t2:'#7d8a4e',
+               oeil:'#e8d060', sol:'#2a2016'},
+  char:      {d:'#101418', c1:'#33404a', c2:'#4a5b68', c3:'#6b8090',
+               metal:'#7d8694', metalC:'#c0c8d4', lueur:'#ff9c3a', sol:'#1d262e'},
+  broyeur:   {d:'#12130c', c1:'#3f4a26', c2:'#5c6b33', c3:'#7d8f46',
+               metal:'#6b6f78', metalC:'#c8ccd6', lueur:'#ffcf3a', sol:'#232616'},
   banshee: {d:'#0a1416', c1:'#1f4a4e', c2:'#2f6f72', c3:'#4a9a9a', lueur:'#7ffff0', lueurC:'#d4fffa', sol:'#16282a'}
 };
 

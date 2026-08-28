@@ -70,8 +70,22 @@ const MONSTRES = {
   fantassin:{nom:'Fantassin',or:75, revenu:12, pv:250,   v:vitesse(370), ech:0.54},
   golem:   {nom:'Golem',    or:350, revenu:37, pv:1400,  v:vitesse(300), ech:0.72},
   ombre:   {nom:'Ombre',    or:200, revenu:22, pv:600,   v:vitesse(300), vol:true, ech:0.58},
-  troll:   {nom:'Troll',    or:5000,revenu:450,pv:5000,  v:vitesse(350), ech:0.80},
-  banshee: {nom:'Banshee',  or:20000,revenu:1700,pv:60000,v:vitesse(300), vol:true, ech:0.76}
+  troll:   {nom:'Troll berserk', or:5000, revenu:450, pv:5000, v:vitesse(350), ech:0.80,
+            siege:{deg:47, portee:portee(150), cadence:cadence(60)}},
+  banshee: {nom:'Banshee',  or:20000,revenu:1700,pv:60000,v:vitesse(300), vol:true, ech:0.76},
+
+  /* --- Les briseurs ---------------------------------------------------------
+     Ils ne cherchent pas a passer : ils viennent casser les tours. Ils ne
+     volent donc aucune vie tant qu'il reste quelque chose a demolir. C'est
+     l'autre facon de gagner une ligne — on ne perce pas la defense, on la
+     supprime. Les quatre existent dans la map d'origine, reperables a leur
+     nom qui contient « ATTAK ». */
+  demolisseur:{nom:'Démolisseur', or:500,   revenu:50,   pv:1000,   v:vitesse(270), ech:0.62,
+               siege:{deg:60,  portee:portee(120), cadence:cadence(45)}},
+  char:      {nom:'Char à vapeur', or:30000, revenu:2500, pv:100000, v:vitesse(270), ech:0.88,
+               siege:{deg:400, portee:portee(200), cadence:cadence(40)}},
+  broyeur:   {nom:'Broyeur gobelin', or:100000, revenu:5000, pv:100000, v:vitesse(300), ech:0.84,
+               siege:{deg:750, portee:portee(140), cadence:cadence(70)}}
 };
 
 const PROFILS = {
@@ -91,9 +105,9 @@ const DIFFICULTES = {
   normal:      {nom:'Normal',      intervalle:[95, 150],  partEnvois:0.55,
                 maze:true,  ameliore:false, branches:false, poseTous:8},
   agressif:    {nom:'Agressif',    intervalle:[62, 100],  partEnvois:0.70,
-                maze:true,  ameliore:true,  branches:true,  poseTous:6},
+                maze:true,  ameliore:true,  branches:true,  poseTous:6, siege:false},
   impitoyable: {nom:'Impitoyable', intervalle:[45, 72],   partEnvois:0.82,
-                maze:true,  ameliore:true,  branches:true,  poseTous:4}
+                maze:true,  ameliore:true,  branches:true,  poseTous:4, siege:true}
 };
 
 const CONFIG = {

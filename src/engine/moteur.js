@@ -104,7 +104,7 @@ function faireApparaitre(etat, ligne, type, proprietaire){
     id: nouvelId(), type, proprietaire, pv: def.pv, pvMax: def.pv,
     x: cfg.entree.x * cfg.MILLI + cfg.MILLI / 2,
     y: cfg.entree.y * cfg.MILLI + cfg.MILLI / 2,
-    etape: 0, lent: 0, etourdi: 0, poison: 0, poisonReste: 0
+    etape: 0, lent: 0, etourdi: 0, poison: 0, poisonReste: 0, cible: null, frappe: 0
   });
 }
 
@@ -149,6 +149,39 @@ function deplacerMonstres(etat, l){
       m.x += Math.round(dx * v / d); m.y += Math.round(dy * v / d);
       if (d <= v){ sortie(etat, l, m, k); if (l.mort) return; }
       continue;
+    }
+    /* Un briseur ne suit pas le chemin : il marche droit sur le batiment le
+       plus proche et le demolit. Quand il n'y a plus rien a casser, il se
+       comporte comme n'importe quel monstre et file vers la sortie. */
+    if (def.siege && l.batiments.length){
+      if (m.cible == null || !l.batiments.some(b => b.id === m.cible)){
+        let meilleur = null, dmin = Infinity;
+        for (const b of l.batiments){
+          const bx = b.x * cfg.MILLI + cfg.MILLI / 2, by = b.y * cfg.MILLI + cfg.MILLI / 2;
+          const d2 = (bx - m.x) * (bx - m.x) + (by - m.y) * (by - m.y);
+          /* Departage strict par identifiant : deux batiments a egale
+             distance doivent toujours donner le meme choix. */
+          if (d2 < dmin || (d2 === dmin && meilleur && b.id < meilleur.id)){ dmin = d2; meilleur = b; }
+        }
+        m.cible = meilleur ? meilleur.id : null;
+      }
+      const cible = l.batiments.find(b => b.id === m.cible);
+      if (cible){
+        const bx = cible.x * cfg.MILLI + cfg.MILLI / 2, by = cible.y * cfg.MILLI + cfg.MILLI / 2;
+        const dx = bx - m.x, dy = by - m.y;
+        const d = Math.max(1, Math.round(Math.sqrt(dx * dx + dy * dy)));
+        if (d > def.siege.portee){
+          m.x += Math.round(dx * v / d); m.y += Math.round(dy * v / d);
+        } else {
+          m.frappe = (m.frappe || 0) - 1;
+          if (m.frappe <= 0){
+            m.frappe = def.siege.cadence;
+            cible.pv -= def.siege.deg;
+            if (cible.pv <= 0){ retirerBatiment(etat, l, cible); m.cible = null; }
+          }
+        }
+        continue;
+      }
     }
     if (!l.chemin){ continue; }                     // ligne scellee : il attend
     const suiv = l.chemin[Math.min(m.etape + 1, l.chemin.length - 1)];
@@ -297,6 +330,14 @@ function bots(etat){
       const parPrix = [...cles].sort((a, b) => cfg.MONSTRES[b].or - cfg.MONSTRES[a].or);
       l.envoisFaits = (l.envoisFaits || 0) + 1;
       const percee = d.ameliore && l.envoisFaits % 4 === 0;   // percee ponctuelle
+      /* Les bots qui savent jouer alternent : voler des vies, puis raser la
+         defense pour que les envois suivants passent tout seuls. */
+      const siege = d.siege && l.envoisFaits % 3 === 0;
+      if (siege){
+        const briseurs = cles.filter(k => cfg.MONSTRES[k].siege && cfg.MONSTRES[k].or <= budget)
+          .sort((a, b) => cfg.MONSTRES[b].or - cfg.MONSTRES[a].or);
+        if (briseurs.length && envoyer(etat, l, briseurs[0])) budget -= cfg.MONSTRES[briseurs[0]].or;
+      }
 
       for (let n = 0; n < 6; n++){
         const abordable = k => cfg.MONSTRES[k].or <= budget && cfg.MONSTRES[k].or <= l.or;

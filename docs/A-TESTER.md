@@ -36,6 +36,28 @@ le plus cher **joue mal**, parce que les gros monstres ont le pire ratio
 revenu/or (0,054 contre 0,200). Les bots à partir de Normal farment au ratio et
 ne payent la percée que ponctuellement — comme un bon joueur.
 
+## Les briseurs
+
+Quatre monstres **ne cherchent pas à passer** : ils marchent droit sur la tour la
+plus proche et la démolissent. Ils ne volent aucune vie tant qu'il reste quelque
+chose à casser — et quand la ligne est rasée, ils filent vers la sortie comme
+n'importe qui.
+
+| Monstre | Or | Revenu | Ce qu'il fait |
+|---|---:|---:|---|
+| **Démolisseur** | 500 | +50 | 60 dégâts, courte portée. Le premier accessible. |
+| **Troll berserk** | 5 000 | +450 | 47 dégâts, rapide. |
+| **Char à vapeur** | 30 000 | +2 500 | 400 dégâts, portée moyenne. |
+| **Broyeur gobelin** | 100 000 | +5 000 | 750 dégâts. La scie qui tourne. |
+
+Ils viennent tous de la map d'origine — repérables à leur nom qui contient
+« ATTAK ». C'est l'autre façon de gagner une ligne : **on ne perce pas la
+défense, on la supprime**, et les envois suivants passent tout seuls.
+
+Dans la boutique ils portent la marque **brise**. Seuls les bots **Impitoyable**
+en achètent, un envoi sur trois — c'est ce qui rend leur gameplay différent des
+autres niveaux, et pas seulement plus rapide.
+
 ## La méthode la plus utile
 
 **Fixe la graine et change un seul réglage.** Le bouton `↻ même` rejoue la même
