@@ -243,6 +243,72 @@ offensif**, et il arrive au moment où les parties se décident.
 
 ---
 
+## 5 quinquies. Relecture complète du JASS — ce que la première lecture avait manqué
+
+Passe systématique sur les 37 triggers de la map. Quatre trouvailles, dont une
+majeure.
+
+### ⭐ Le doublement anti-tortue
+
+**La trouvaille la plus importante de toute la relecture.** Dans
+`Trig_spawn_Actions` :
+
+```jass
+if ( CountUnitsInGroup(GetUnitsOfPlayerAll(voisin)) < 12 ) then return
+if ( IsUnitType(unite, UNIT_TYPE_MECHANICAL) == false ) then
+    call CreateNUnitsAtLoc( 1, GetUnitTypeId(unite), ... )   // une DEUXIEME
+```
+
+Traduction : **si le défenseur possède douze unités ou plus — ses tours — tout
+monstre non mécanique qu'on lui envoie arrive en double.**
+
+C'est l'anti-tortue du jeu : **plus on se fortifie, plus on reçoit**. Et le
+doublon n'entre pas par la zone d'apparition, donc **il ne rapporte pas de
+revenu supplémentaire** : c'est un cadeau offensif pur.
+
+> ⚠️ **J'avais lu ce 12 à l'envers.** J'en avais fait un plafond de douze
+> monstres vivants par ligne, et j'avais bâti dessus tout un raisonnement sur
+> « la place devient la ressource rare ». Ce plafond n'existe pas. Le 12 compte
+> les **bâtiments du défenseur**, et il déclenche l'effet inverse d'un plafond.
+
+Les cinq unités **mécaniques**, exclues du doublement : Golem de pierre,
+Infernal, Bandit Lord, Char à vapeur, Broyeur gobelin. Les briseurs les plus
+lourds ne sont pas doublés — seuls les creeps ordinaires le sont.
+
+C'est ce mécanisme qui empêche la défense de gagner par accumulation, et son
+absence expliquait à elle seule les parties interminables entre bots.
+
+### Les effets de tours, lus dans le code plutôt que dans les infobulles
+
+| Tour | Ce que fait vraiment le code |
+|---|---|
+| **Condensateur** | `vie × 0,80` — multiplicatif sur la vie **courante**, donc **il ne tue jamais**. Il ramène, il n'achève pas. |
+| **La Mort** | `KillUnit()` — **tue net**, quels que soient les points de vie, puis se détruit. |
+| **Tour BOUM** | se retire 0,1 s après son tir. Usage unique confirmé. |
+| **Puits de magma** | lance `firebolt` — un étourdissement, pas des dégâts. |
+| **Tour damnée** | lance `cripple` — un **ralentissement**, pas des dégâts bonus. |
+| **Lanterne sacrée** | lance `faerie fire` — réduction d'armure, donc **dégâts subis majorés**. |
+| **Fosse septique** | `vie × 0,95` toutes les 5 s pendant 30 s — un poison **en pourcentage**, redoutable sur les gros monstres et négligeable sur les petits. |
+| **Téléporteur** | renvoie la cible au **départ de la ligne**, puis lui redonne l'ordre d'avancer. |
+
+### L'achat de branche est à usage unique, et c'est le code qui le garantit
+
+`Trig_Buy_Towers` : quand le bâtiment de branche (de type *sapper*) entre dans la
+zone d'apparition, il est déplacé hors du plateau **et son type est rendu
+indisponible au joueur** (`SetPlayerUnitAvailableBJ(..., false, ...)`). Une
+branche ne s'achète donc qu'une fois.
+
+### Deux garde-fous, pas des mécaniques
+
+- **`Wood_Protector`** met le bois du joueur à zéro pendant une seconde à chaque
+  début d'entraînement, puis le rend. C'est un correctif contre une double
+  dépense du bois pendant qu'un achat est en cours — un bricolage propre au
+  moteur Warcraft, sans intérêt pour nous.
+- **`Untitled_Trigger_001`** donne 50 bois et 100 000 or au joueur 1. C'est un
+  reste de débogage de l'auteur, pas une règle.
+
+---
+
 ## 6. Les tours
 
 55 bâtiments. Quelques repères de l'échelle basse, celle des premières minutes :

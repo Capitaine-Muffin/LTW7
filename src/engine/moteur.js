@@ -105,7 +105,6 @@ function envoyer(etat, l, type){
   if (!disponible(etat, l, type)) return false;
   const cible = etat.lignes[voisin(etat, l.i)];
   if (cible === l) return false;
-  if (cible.monstres.length >= etat.cfg.maxVivants) return false;
   l.or -= def.or; l.depenseEnvois += def.or;
   l.stock[type] -= 1;
   l.envoisParType[type] = (l.envoisParType[type] || 0) + 1;
@@ -113,6 +112,10 @@ function envoyer(etat, l, type){
     l.prochainStock[type] = etat.pas + Math.max(1, Math.round(def.stock[1] * 10 * etat.prof.temps));
   l.revenu += def.revenu;                       // definitif : c'est tout le jeu
   faireApparaitre(etat, cible, type, l.i);
+  /* L'anti-tortue : au-dela de douze batiments chez le defenseur, un monstre
+     non mecanique arrive en double. Plus il se fortifie, plus il recoit. */
+  if (!def.mecanique && cible.batiments.length >= etat.cfg.seuilDoublement)
+    faireApparaitre(etat, cible, type, l.i);
   return true;
 }
 function acheterBranche(etat, l, cle){
@@ -126,7 +129,8 @@ function faireApparaitre(etat, ligne, type, proprietaire){
     id: nouvelId(), type, proprietaire, pv: def.pv, pvMax: def.pv,
     x: cfg.entree.x * cfg.MILLI + cfg.MILLI / 2,
     y: cfg.entree.y * cfg.MILLI + cfg.MILLI / 2,
-    etape: 0, lent: 0, etourdi: 0, poison: 0, poisonReste: 0, cible: null, frappe: 0
+    etape: 0, lent: 0, etourdi: 0, poison: 0, poisonReste: 0, poisonPct: 0, poisonPas: 50,
+    vulnerable: 0, cible: null, frappe: 0
   });
 }
 
@@ -174,7 +178,13 @@ function deplacerMonstres(etat, l){
     const m = l.monstres[k];
     if (!m) continue;
     const def = cfg.MONSTRES[m.type];
-    if (m.poisonReste > 0){ m.poisonReste--; if (etat.pas % 10 === 0) m.pv -= m.poison; }
+    if (m.vulnerable > 0) m.vulnerable--;
+    if (m.poisonReste > 0){
+      m.poisonReste--;
+      if (m.poisonPct){ if (etat.pas % m.poisonPas === 0)
+        m.pv = Math.max(1, m.pv - Math.ceil(m.pv * m.poisonPct / 100)); }
+      else if (etat.pas % 10 === 0) m.pv -= m.poison;
+    }
     if (m.pv <= 0){ l.monstres.splice(k, 1); continue; }
     if (m.etourdi > 0){ m.etourdi--; continue; }
     let v = def.v;
@@ -262,8 +272,7 @@ function sortie(etat, l, m, k){
     return;
   }
   const suivante = etat.lignes[voisin(etat, l.i)];
-  if (suivante && suivante !== l && !suivante.mort &&
-      suivante.monstres.length < etat.cfg.maxVivants && m.pv > 0){
+  if (suivante && suivante !== l && !suivante.mort && m.pv > 0){
     m.etape = 0;
     m.x = etat.cfg.entree.x * etat.cfg.MILLI + etat.cfg.MILLI / 2;
     m.y = etat.cfg.entree.y * etat.cfg.MILLI + etat.cfg.MILLI / 2;
@@ -294,10 +303,20 @@ function tirer(etat, l){
           return dx * dx + dy * dy <= def.zone * def.zone;})
       : [cible];
     for (const m of touches){
-      m.pv -= def.degPct ? Math.ceil(m.pv * def.degPct / 100) : def.deg;
+      if (def.tue){ m.pv = 0; }
+      else if (def.degPct){
+        /* Multiplicatif, plancher a 1 : cette tour ne tue jamais toute seule. */
+        m.pv = Math.max(1, m.pv - Math.ceil(m.pv * def.degPct / 100));
+      } else {
+        const amp = m.vulnerable > 0 ? (100 + m.vulnerable) / 100 : 1;
+        m.pv -= Math.ceil(def.deg * amp);
+      }
       if (def.ralentit) m.lent = 20;
       if (def.etourdit) m.etourdi = def.etourdit;
-      if (def.poison){ m.poison = def.poison; m.poisonReste = 40; }
+      if (def.vulnerable){ m.vulnerable = def.vulnerable; }
+      if (def.poisonPct){ m.poisonPct = def.poisonPct; m.poisonPas = def.poisonPas;
+        m.poisonReste = def.poisonDuree; }
+      else if (def.poison){ m.poison = def.poison; m.poisonPct = 0; m.poisonReste = 40; }
     }
     l.monstres = l.monstres.filter(m => m.pv > 0);
     if (def.usageUnique) retirerBatiment(etat, l, b);

@@ -75,6 +75,19 @@ Dans la boutique ils portent la marque **brise**. Seuls les bots **Impitoyable**
 en achètent, un envoi sur trois — c'est ce qui rend leur gameplay différent des
 autres niveaux, et pas seulement plus rapide.
 
+## Le doublement anti-tortue
+
+**Dès que tu dépasses douze bâtiments, tout monstre non mécanique qu'on
+t'envoie arrive en double.** C'est la règle de la map d'origine, et c'est elle
+qui empêche la défense de gagner par accumulation.
+
+Conséquence directe sur ta façon de jouer : **construire n'est pas gratuit**.
+Une tour de plus, c'est plus de puissance de feu, mais aussi potentiellement le
+double de monstres à encaisser. Le maze doit être efficace, pas gros.
+
+Les cinq unités mécaniques échappent au doublement : Colosse, Infernal,
+Seigneur bandit, Char à vapeur, Broyeur gobelin.
+
 ## La chronologie de déblocage
 
 Les monstres **ne sont pas tous disponibles au départ**. Chacun s'ouvre à une
@@ -123,25 +136,21 @@ tombe ; « fin » = il ne reste qu'un survivant.
 
 | Rythme | Bots | 1re élimination | Fin |
 |---|---|---:|---:|
-| Éclair | Débutant | 95 s | 409 s |
-| Éclair | Normal | 42 s | 385 s |
-| Éclair | Impitoyable | 15 s | **43 s** |
-| Blitz | Débutant | 191 s | 430 s |
-| Blitz | Normal | 90 s | 434 s |
-| Blitz | Impitoyable | 20 s | 69 s |
-| Soutenu | Normal | 94 s | 489 s |
-| Classique | Débutant | 260 s | 700 s |
-| Classique | Normal | 123 s | 673 s |
-| Classique | Impitoyable | 34 s | 720 s |
+| Blitz | Normal | 90 s | 257 s |
+| Blitz | Agressif | 22 s | 113 s |
+| Blitz | Impitoyable | 20 s | 99 s |
+| Classique | Normal | 123 s | 445 s |
+| Classique | Agressif | 38 s | 241 s |
+| Classique | Impitoyable | 30 s | 341 s |
+
+Ces durées ont beaucoup baissé depuis l'ajout du doublement anti-tortue :
+Classique + Agressif passait de **plus de trente minutes** à 241 secondes. Le
+blocage que je décrivais n'était pas un défaut d'équilibrage, c'était une
+mécanique manquante.
 
 **Éclair + Impitoyable termine en 43 secondes** : c'est un mode punitif, pas une
 erreur. Pour découvrir le jeu, **Blitz + Débutant** laisse plus de trois minutes
 avant la première élimination.
-
-Il reste de la variance : sur Soutenu + Agressif, quatre graines sur cinq
-finissent entre 7 et 30 minutes, la cinquième bloque au-delà. Un duel entre deux
-défenses solides peut durer très longtemps — c'est aussi vrai dans le jeu
-d'origine.
 
 ## Ce que je sais déjà être bancal
 

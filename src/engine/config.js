@@ -40,17 +40,26 @@ const TOURS = {
   puits:     {nom:'Puits de magma', or:800, pv:1000, deg:250, p:portee(500), c:cadence(90),  zone:portee(80), etourdit:8,  vers:['boom','meteore']},
   eauBenite: {nom:'Eau bénite',     or:800, pv:1000, deg:300, p:portee(700), c:cadence(60),  vers:['eauUltime','glaceUltime']},
   canonElec: {nom:'Canon électrique',or:800,pv:1000, deg:150, p:portee(500), c:cadence(120), etourdit:5,  vers:['generateur','condensateur']},
-  damne:     {nom:'Tour damnée',    or:800, pv:1000, deg:250, p:portee(700), c:cadence(60),  vers:['mort','fosse']},
-  lanterne:  {nom:'Lanterne sacrée',or:800, pv:1000, deg:300, p:portee(600), c:cadence(60),  vers:['champignon','teleporteur']},
+  /* La Tour damnee lance « cripple » dans la map : un ralentissement, pas des
+     degats supplementaires. La Lanterne lance « faerie fire », qui reduit
+     l'armure — ici, un surcout de degats subis. */
+  damne:     {nom:'Tour damnée',    or:800, pv:1000, deg:250, p:portee(700), c:cadence(60),  ralentit:30, vers:['mort','fosse']},
+  lanterne:  {nom:'Lanterne sacrée',or:800, pv:1000, deg:300, p:portee(600), c:cadence(60),  vulnerable:25, vers:['champignon','teleporteur']},
 
   boom:        {nom:'Tour BOUM',    or:300, pv:5000, deg:1000,p:portee(150), c:cadence(60), zone:portee(220), usageUnique:true},
   meteore:     {nom:'Attracteur',   or:4000,pv:3000, deg:1000,p:portee(1000),c:cadence(20), zone:portee(200)},
   eauUltime:   {nom:'Eau ultime',   or:3000,pv:2000, deg:600, p:portee(700), c:cadence(60), zone:portee(70)},
   glaceUltime: {nom:'Glace ultime', or:4000,pv:2500, deg:200, p:portee(700), c:cadence(60), zone:portee(150), ralentit:40},
   generateur:  {nom:'Générateur',   or:4000,pv:2500, deg:250, p:portee(700), c:cadence(300)},
+  /* Le Condensateur multiplie la vie courante par 0,8 : il ne tue JAMAIS, il
+     ne fait que ramener. La Mort, elle, tue net, quels que soient les points
+     de vie — et se detruit apres son unique tir. */
   condensateur:{nom:'Condensateur', or:3000,pv:1500, degPct:20,p:portee(500),c:cadence(12)},
-  mort:        {nom:'La Mort',      or:300, pv:5000, degPct:100,p:portee(700),c:cadence(60), usageUnique:true},
-  fosse:       {nom:'Fosse septique',or:4000,pv:3000,deg:350, p:portee(700), c:cadence(30), zone:portee(70), poison:60},
+  mort:        {nom:'La Mort',      or:300, pv:5000, tue:true, p:portee(700),c:cadence(60), usageUnique:true},
+  /* La Fosse retire 5 % de la vie COURANTE toutes les 5 s pendant 30 s : un
+     poison en pourcentage, donc redoutable sur les gros monstres. */
+  fosse:       {nom:'Fosse septique',or:4000,pv:3000,deg:350, p:portee(700), c:cadence(30), zone:portee(70),
+                poisonPct:5, poisonDuree:300, poisonPas:50},
   champignon:  {nom:'Champignon',   or:4000,pv:1800, deg:500, p:portee(700), c:cadence(30), zone:portee(150)},
   teleporteur: {nom:'Téléporteur',  or:4000,pv:2500, deg:0,   p:portee(700), c:cadence(2),  teleporte:true}
 };
@@ -82,7 +91,7 @@ const MONSTRES = {
   centaure:{nom:'Centaure', or:1000, revenu:100, pv:4000,  v:vitesse(300), ech:0.74,
             dispo:250, stock:[25, 3], sprite:'loup'},
   colosse: {nom:'Colosse de pierre', or:1000, revenu:100, pv:10000, v:vitesse(270), ech:0.82,
-            dispo:300, stock:[10, 15], sprite:'golem'},
+            dispo:300, stock:[10, 15], sprite:'golem', mecanique:true},
   taureau: {nom:'Taurren', or:2000, revenu:200, pv:8000,  v:vitesse(270), ech:0.84,
             dispo:300, stock:[25, 3], sprite:'troll'},
   troll:   {nom:'Troll berserk', or:5000, revenu:450, pv:5000, v:vitesse(350), ech:0.80,
@@ -95,7 +104,7 @@ const MONSTRES = {
      imbattable en fin de partie : mes monstres plafonnaient a 60 000 PV alors
      qu'une ligne bien montee inflige plus de 180 000 degats sur un trajet. */
   infernal:{nom:'Infernal',  or:40000, revenu:3000, pv:350000, v:vitesse(270), ech:0.90,
-            dispo:450, stock:[10, 7]},
+            dispo:450, stock:[10, 7], mecanique:true},
   spectre: {nom:'Spectre de givre', or:50000, revenu:3300, pv:110000, v:vitesse(350), ech:0.78,
             dispo:450, stock:[20, 5]},
   wyrm:    {nom:'Wyrm de givre', or:60000, revenu:4000, pv:120000, v:vitesse(300), vol:true,
@@ -117,7 +126,7 @@ const MONSTRES = {
             dispo:420, stock:[15, 5],
             siege:{deg:400, portee:portee(200), cadence:cadence(40)}},
   broyeur: {nom:'Broyeur gobelin', or:100000, revenu:5000, pv:100000, v:vitesse(300), ech:0.84,
-            dispo:600, stock:[10, 10],
+            dispo:600, stock:[10, 10], mecanique:true,
             siege:{deg:750, portee:portee(140), cadence:cadence(70)}},
 
   /* --- Le sacrifice ---------------------------------------------------------
@@ -127,7 +136,7 @@ const MONSTRES = {
      l'economie que la meme somme aurait rapportee. Disponible seulement a
      800 secondes, avec un stock de trois : le plus rare du jeu. */
   seigneur:{nom:'Seigneur bandit', or:100000, revenu:3, pv:150000, v:vitesse(250), ech:0.92,
-            dispo:800, stock:[3, 15], sacrifice:true,
+            dispo:800, stock:[3, 15], sacrifice:true, mecanique:true,
             siege:{deg:900, portee:portee(300), cadence:cadence(30), zone:portee(180)}}
 };
 
@@ -185,7 +194,11 @@ const CONFIG = {
   CASE, PAS_MS, MILLI, LARGEUR:9, HAUTEUR:13,
   entree:{x:4,y:0}, exit:{x:4,y:12},
   remboursement:70,          // % rendu a la vente ; une demolition ne rend rien
-  maxVivants:12,             // plafond d'unites par ligne, valeur de la map
+  /* Le fameux « 12 » de la map ne plafonne PAS les monstres : il compte les
+     BATIMENTS du defenseur. A partir de douze tours, tout monstre non mecanique
+     envoye chez lui arrive EN DOUBLE. C'est l'anti-tortue du jeu d'origine :
+     plus on se fortifie, plus on recoit. (war3map.j, Trig_spawn_Actions) */
+  seuilDoublement:12,
   boisParKill:1,
   controleur:{ periode:400, deg:1000, zone:portee(200), v:vitesse(522) },
   TOURS, MONSTRES, BRANCHES, PROFILS, DIFFICULTES,
