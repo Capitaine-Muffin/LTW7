@@ -615,6 +615,40 @@ function MOMBRE(g, cx, larg, p){
 
 const MONSTRES_ART = {
 
+  /* --- Le Controleur anti-mur. Une machine neutre, pas une creature : socle a
+     chenilles, bras vaporisateur, oeil-lampe qui balaie. Il ne vole aucune vie,
+     il efface des batiments — d'ou la lampe d'alerte plutot qu'un regard. --- */
+  controleur(g, f, p){
+    MOMBRE(g, 12, 9, p);
+    MCOUCHE(g, p.d, t => {                                                        // chenilles
+      for (const x of [2, 16]){
+        MR(t, x, 15, 6, 5, p.c1); MR(t, x, 15, 6, 1, p.c2);
+        for (let i = 0; i < 6; i += 2) MP(t, x + i + (f?1:0), 17, p.metal);
+        MR(t, x, 19, 6, 1, p.d); } });
+    MCOUCHE(g, p.d, t => {                                                        // chassis
+      MR(t, 4, 10, 16, 6, p.c2); MR(t, 4, 10, 16, 1, p.c3);
+      MR(t, 4, 15, 16, 1, p.c1);
+      for (let i = 6; i < 19; i += 4){ MP(t, i, 12, p.metal); MP(t, i, 14, p.metal); }
+      /* Bande d'avertissement : deux teintes alternees, comme un engin de
+         chantier. C'est ce qui dit « ne te mets pas devant ». */
+      for (let i = 0; i < 14; i++)
+        MP(t, 5 + i, 13, (i + (f?1:0)) % 4 < 2 ? p.lampe : p.d); });
+    MCOUCHE(g, p.d, t => {                                                        // bras vaporisateur
+      MR(t, 20, 6, 3, 6, p.c1); MR(t, 20, 6, 1, 6, p.c2);
+      MR(t, 19, 4, 5, 3, p.metal); MR(t, 20, 4, 3, 1, p.metalC);
+      if (f){ MP(t, 21, 2, p.danger); MP(t, 22, 1, p.danger); } });
+    MCOUCHE(g, p.d, t => {                                                        // tourelle et lampe
+      MR(t, 7, 4, 9, 7, p.c2); MR(t, 8, 3, 7, 1, p.c3);
+      MR(t, 8, 6, 7, 3, p.d);
+      MR(t, 9, 7, 5, 2, f ? p.lampeC : p.lampe);
+      MP(t, 9, 7, p.lampeC);
+      MR(t, 6, 5, 1, 4, p.c1); MR(t, 16, 5, 1, 4, p.c1); });
+    MCOUCHE(g, p.d, t => {                                                        // gyrophare
+      MR(t, 10, 0, 3, 3, f ? p.danger : p.lampe);
+      MP(t, 11, 0, p.lampeC);
+      if (f){ MP(t, 8, 1, p.danger); MP(t, 14, 1, p.danger); } });
+  },
+
   /* --- Squelette : os secs, cage thoracique ouverte, feu vert dans le crane.
      Il marche en cliquetant : une image sur deux, la machoire tombe. --- */
   squelette(g, f, p){
@@ -1063,6 +1097,11 @@ const MONSTRES_ART = {
 };
 
 const PAL_MONSTRES = {
+  /* Le Controleur n'appartient a personne : ni camp, ni couleur de joueur.
+     Fer noir et lampe d'alerte — on doit le reconnaitre en une image. */
+  controleur:{d:'#08080c', c1:'#2a2c34', c2:'#3f434e', c3:'#5c626f',
+              metal:'#7d8494', metalC:'#c2c8d6', lampe:'#ffcf3a', lampeC:'#fff3c0',
+              danger:'#e05a5a', sol:'#16161e'},
   squelette:{d:'#101014', c1:'#8f8b7a', c2:'#c2bda6', c3:'#e6e2cc', oeil:'#7dff86',
             lueur:'#7dff86', metal:'#6b6f78', sol:'#1e1e26'},
   grognard:{d:'#0f1410', c1:'#3d5c2e', c2:'#5c8442', c3:'#7ba659', oeil:'#ffd76a',
@@ -1443,7 +1482,11 @@ function creerPartie({graine = 12345, profil = 'BLITZ', joueurs = 4,
     /* Trace des tirs du pas courant. Le moteur ne dessine rien : il note juste
        « cette tour a tire sur ce point », l'affichage en fait des projectiles.
        Vide a chaque pas, donc sans effet sur la simulation ni sur la rejouabilite. */
-    tirs: []
+    tirs: [],
+    /* Meme principe que `tirs` : ce qui vient de mourir ou de sortir pendant
+       ce pas, pour que l'affichage puisse en faire une bouffee. Vide a chaque
+       pas, donc sans effet sur la simulation. */
+    evenements: []
   };
   for (let i = 0; i < joueurs; i++){
     const l = creerLigne(cfg, prof, i, i === 0);
@@ -1577,6 +1620,7 @@ function avancer(etat){
   const cfg = etat.cfg;
   etat.pas++;
   etat.tirs.length = 0;
+  etat.evenements.length = 0;
   /* Versement. Trois details repris du JASS de la map :
        - le premier tombe un intervalle complet apres le debut, pas au pas 0 ;
        - les elimines ne touchent rien (ils sortent de la force ThePlayers) ;
@@ -1624,7 +1668,7 @@ function deplacerMonstres(etat, l){
         m.pv = Math.max(1, m.pv - Math.ceil(m.pv * m.poisonPct / 100)); }
       else if (etat.pas % 10 === 0) m.pv -= m.poison;
     }
-    if (m.pv <= 0){ l.monstres.splice(k, 1); continue; }
+    if (m.pv <= 0){ mourir(etat, l, m); l.monstres.splice(k, 1); continue; }
     if (m.etourdi > 0){ m.etourdi--; continue; }
     let v = def.v;
     if (m.lent > 0){ m.lent--; v = Math.round(v * (100 - 40) / 100); }
@@ -1696,6 +1740,11 @@ function deplacerMonstres(etat, l){
   }
 }
 
+function mourir(etat, l, m){
+  etat.evenements.push({t: 'mort', ligne: l.i, x: m.x, y: m.y,
+                        ech: etat.cfg.MONSTRES[m.type].ech || 0.55, de: m.proprietaire});
+}
+
 /* Un monstre qui sort vole une vie ET repart sur la ligne suivante. */
 function sortie(etat, l, m, k){
   const envoyeur = etat.lignes[m.proprietaire];
@@ -1705,6 +1754,7 @@ function sortie(etat, l, m, k){
     l.vies -= 1;
     if (envoyeur && !envoyeur.mort) envoyeur.vies += 1;
     noter(etat, {type: 'vol', de: l.i, vers: m.proprietaire});
+    etat.evenements.push({t: 'vol', ligne: l.i, de: m.proprietaire});
   }
   if (l.vies <= 0 && !l.mort){
     l.mort = true; l.monstres = [];
@@ -1771,6 +1821,7 @@ function tirer(etat, l){
         m.poisonReste = def.poisonDuree; }
       else if (def.poison){ m.poison = def.poison; m.poisonPct = 0; m.poisonReste = 40; }
     }
+    for (const m of l.monstres) if (m.pv <= 0) mourir(etat, l, m);
     l.monstres = l.monstres.filter(m => m.pv > 0);
     if (def.usageUnique) retirerBatiment(etat, l, b);
   }
@@ -1961,6 +2012,8 @@ function controleur(etat){
       }
     }
     noter(etat, {type: 'controleur', ligne: l.i});
+    etat.evenements.push({t: 'vaporise', ligne: l.i, x: cx, y: cy,
+                          zone: cfg.controleur.zone});
     c.chemin = null;
     return;
   }
@@ -2393,6 +2446,107 @@ function impact(c, t, x, y, u, u2p, s){
 }
 
 
+/* ===== src/game/effets.js ===== */
+/* Les retours du plateau. Rien ici ne touche a la simulation : ce sont des
+   particules qui vivent le temps qu'elles vivent. Sans elles, un monstre qui
+   meurt disparait simplement, une vie perdue ne se voit pas, et une tour posee
+   apparait sans bruit — le plateau ne repond jamais. */
+
+let particules = [];
+
+/* Chaque type porte sa duree et sa facon de se dessiner. */
+const VIE = {bouffee: 420, vol: 700, vapeur: 600, poussiere: 340, vente: 340};
+
+function effet(type, x, y, opts){                  // x, y en milli-cases
+  particules.push({type, x, y, age: 0, ...opts});
+  if (particules.length > 160) particules.shift();
+}
+
+/* Ramasse ce que le moteur a note pendant le pas qui vient d'etre simule. */
+function collecterEffets(etat, ligne){
+  for (const e of etat.evenements){
+    if (e.ligne !== ligne) continue;
+    if (e.t === 'mort')      effet('bouffee', e.x, e.y, {ech: e.ech, c: couleurJoueur(e.de)});
+    else if (e.t === 'vol')  effet('vol', 0, 0, {c: couleurJoueur(e.de)});
+    else if (e.t === 'vaporise') effet('vapeur', e.x, e.y, {zone: e.zone});
+  }
+}
+
+function avancerEffets(dt){
+  for (let i = particules.length - 1; i >= 0; i--){
+    const p = particules[i];
+    p.age += dt;
+    if (p.age > VIE[p.type]) particules.splice(i, 1);
+  }
+}
+
+function dessinerEffets(c, cfg, T, ox, oy){
+  const u2p = v => v * T / cfg.MILLI;
+  for (const p of particules){
+    const u = Math.min(1, p.age / VIE[p.type]);
+    const x = ox + u2p(p.x), y = oy + u2p(p.y);
+
+    if (p.type === 'bouffee'){
+      /* Huit eclats qui s'ecartent et s'effacent, plus un anneau aux couleurs
+         de l'expediteur : on voit ce qui meurt ET a qui ca coutait de l'or. */
+      const r = T * (p.ech || .55);
+      c.globalAlpha = 1 - u;
+      c.strokeStyle = p.c; c.lineWidth = 2;
+      c.beginPath(); c.arc(x, y, r * (.25 + u * .75), 0, 7); c.stroke();
+      c.fillStyle = p.c;
+      for (let k = 0; k < 8; k++){
+        const a = k * Math.PI / 4, d = r * (.2 + u * .95);
+        const s = Math.max(2, r * .16 * (1 - u));
+        c.fillRect(Math.round(x + Math.cos(a) * d - s / 2),
+                   Math.round(y + Math.sin(a) * d * .8 - s / 2), s, s);
+      }
+      c.globalAlpha = 1;
+      continue;
+    }
+
+    if (p.type === 'vapeur'){
+      /* Le Controleur ne perce pas, il vaporise : un anneau blanc qui s'ouvre
+         sur toute la zone d'effet, pour qu'on comprenne ce qui vient de
+         disparaitre. */
+      c.globalAlpha = (1 - u) * .9;
+      c.strokeStyle = '#fff3c0'; c.lineWidth = 3;
+      c.beginPath(); c.arc(x, y, u2p(p.zone) * (.2 + u), 0, 7); c.stroke();
+      c.strokeStyle = '#ffcf3a'; c.lineWidth = 1;
+      c.beginPath(); c.arc(x, y, u2p(p.zone) * (.2 + u) * .7, 0, 7); c.stroke();
+      c.globalAlpha = 1;
+      continue;
+    }
+
+    if (p.type === 'poussiere' || p.type === 'vente'){
+      c.globalAlpha = 1 - u;
+      c.fillStyle = p.type === 'vente' ? '#f0c451' : '#cbb99a';
+      for (let k = 0; k < 6; k++){
+        const a = k * Math.PI / 3 + .4, d = T * (.15 + u * .45);
+        const s = Math.max(2, T * .09 * (1 - u));
+        c.fillRect(Math.round(x + Math.cos(a) * d - s / 2),
+                   Math.round(y + Math.sin(a) * d * .5 + T * .25 - s / 2), s, s);
+      }
+      c.globalAlpha = 1;
+    }
+  }
+}
+
+/* Le vol de vie ne se dessine pas sur le plateau mais sur tout l'ecran : c'est
+   la seule chose qui doit interrompre le regard. */
+function voileDeVol(c, larg, haut){
+  const p = particules.find(x => x.type === 'vol');
+  if (!p) return;
+  const u = Math.min(1, p.age / VIE.vol);
+  c.globalAlpha = (1 - u) * .45;
+  const d = c.createLinearGradient(0, haut, 0, haut * .55);
+  d.addColorStop(0, p.c); d.addColorStop(1, 'rgba(0,0,0,0)');
+  c.fillStyle = d; c.fillRect(0, 0, larg, haut);
+  c.globalAlpha = 1;
+}
+
+function viderEffets(){ particules = []; }
+
+
 /* ===== src/game/jeu.js ===== */
 /* Rendu et entrees. Tout ce qui touche au DOM vit ici — le moteur, lui, n'en
    sait rien. */
@@ -2584,6 +2738,24 @@ function dessinerJeu(){
       c.fillStyle = '#000';    c.fillRect(x - w / 2, y - taille * .72 + vol, w, 3);
       c.fillStyle = '#e05a5a'; c.fillRect(x - w / 2, y - taille * .72 + vol, w * m.pv / m.pvMax, 3);
     }
+    /* Les etats. Le moteur applique quatre effets — ralentissement, poison,
+       etourdissement, vulnerabilite — qui n'apparaissaient nulle part : on
+       voyait une tour tirer sans jamais savoir ce qu'elle faisait. */
+    const etats = [];
+    if (m.etourdi > 0)   etats.push('#ffe14a');
+    if (m.lent > 0)      etats.push('#9fe4ff');
+    if (m.poisonReste>0) etats.push('#8fd06a');
+    if (m.vulnerable>0)  etats.push('#ff9a4a');
+    if (etats.length){
+      const s = Math.max(3, Math.round(taille * .16));
+      let px = x - (etats.length * (s + 1) - 1) / 2;
+      const py = y - taille * .72 + vol - s - 3;
+      for (const col of etats){
+        c.fillStyle = '#000'; c.fillRect(Math.round(px) - 1, Math.round(py) - 1, s + 2, s + 2);
+        c.fillStyle = col;    c.fillRect(Math.round(px), Math.round(py), s, s);
+        px += s + 1;
+      }
+    }
   }
 
   dessinerTirs(c, cfg, T, ox, oy, tirs);   // au-dessus des monstres qu'ils frappent
@@ -2591,12 +2763,17 @@ function dessinerJeu(){
 
   if (etat.controleur && etat.controleur.ligne === ligneVue){
     const k = etat.controleur;
-    const x = ox + k.x * T / cfg.MILLI, y = oy + k.y * T / cfg.MILLI, r = T * .34;
-    c.fillStyle = '#ffcf3a'; c.fillRect(x - r, y - r, r * 2, r * 2);
-    c.fillStyle = '#0d0b10'; c.fillRect(x - r, y - r, r * 2, 2); c.fillRect(x - r, y + r - 2, r * 2, 2);
-    c.fillRect(x - r, y - r, 2, r * 2); c.fillRect(x + r - 2, y - r, 2, r * 2);
-    c.fillRect(x - r * .5, y - r * .3, r, r * .25);
+    const x = ox + k.x * T / cfg.MILLI, y = oy + k.y * T / cfg.MILLI;
+    const taille = Math.round(T * 0.95);
+    const im = cache['m:controleur:' + (((etat.pas / 2) | 0) % 2)];
+    /* Halo d'alerte : il n'appartient a personne et il efface des batiments,
+       il faut qu'on le reconnaisse avant qu'il n'arrive. */
+    c.strokeStyle = 'rgba(255,207,58,.45)'; c.lineWidth = 2;
+    c.beginPath(); c.arc(x, y, T * (.42 + .06 * Math.sin(etat.pas / 3)), 0, 7); c.stroke();
+    if (im) c.drawImage(im, Math.round(x - taille / 2), Math.round(y - taille * .62), taille, taille);
   }
+
+  dessinerEffets(c, cfg, T, ox, oy);
 
   if (enMain && !transi){                           // apercu de pose
     const p = survol;
@@ -2612,6 +2789,7 @@ function dessinerJeu(){
   if (transi && photo){
     c.drawImage(photo, dxN - transi.sens * larg, 0, larg, haut);
   }
+  voileDeVol(c, larg, haut);
   return {T, ox, oy};
 }
 let survol = null, geo = {T:1, ox:0, oy:0}, terrain = null, sentier = null;
@@ -2814,9 +2992,11 @@ function boucle(t){
     while (accum >= etat.cfg.PAS_MS){
       avancer(etat); accum -= etat.cfg.PAS_MS;
       collecterTirs(etat, ligneVue, tirs);
+      collecterEffets(etat, ligneVue);
     }
   }
   avancerTirs(tirs, dt * acceleration);
+  avancerEffets(dt * acceleration);
   if (transi){                                      // en temps reel, pas en temps de jeu
     transi.u += dt / DUREE_TRANSI;
     if (transi.u >= 1) transi = null;
@@ -2860,7 +3040,7 @@ function allerLigne(i, sens){
   photographier();
   transi = {sens, u: 0};
   ligneVue = cible;
-  selection = null; enMain = null; sentier = null; tirs.length = 0;
+  selection = null; enMain = null; sentier = null; tirs.length = 0; viderEffets();
   panneau();
 }
 
@@ -2912,6 +3092,7 @@ function brancher(){
     const l = etat.lignes[etat.moi];
     if (enMain){
       if (poserBatiment(etat, l, enMain, p.x, p.y)){
+        effet('poussiere', (p.x + .5) * etat.cfg.MILLI, (p.y + .5) * etat.cfg.MILLI, {});
         if (l.or < etat.cfg.TOURS[enMain].or) enMain = null;   // plus les moyens : on lache
       }
       panneau(); return;
@@ -2944,6 +3125,7 @@ function brancher(){
     const u = e.target.closest('[data-up]');
     if (u && selection){ ameliorer(etat, l, selection, u.dataset.up); panneau(); return; }
     if (e.target.closest('[data-vendre]') && selection){
+      effet('vente', (selection.x + .5) * etat.cfg.MILLI, (selection.y + .5) * etat.cfg.MILLI, {});
       vendre(etat, l, selection); selection = null; panneau(); }
   });
   document.getElementById('lignes').addEventListener('click', e => {
@@ -2986,6 +3168,7 @@ function demarrer(memeGraine){
   etat = creerPartie({graine, profil, joueurs, difficulte});
   ligneVue = etat.moi; selection = null; enMain = null; menu = 'batiments'; acceleration = 1;
   tirs.length = 0; transi = null; dernierVu = 0; lignesFil = []; filSignature = '';
+  viderEffets();
   document.getElementById('fil').innerHTML = '';
   document.querySelectorAll('[data-menu]').forEach(x =>
     x.setAttribute('aria-pressed', String(x.dataset.menu === 'batiments')));

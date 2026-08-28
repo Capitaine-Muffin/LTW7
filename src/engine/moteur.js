@@ -32,7 +32,11 @@ function creerPartie({graine = 12345, profil = 'BLITZ', joueurs = 4,
     /* Trace des tirs du pas courant. Le moteur ne dessine rien : il note juste
        « cette tour a tire sur ce point », l'affichage en fait des projectiles.
        Vide a chaque pas, donc sans effet sur la simulation ni sur la rejouabilite. */
-    tirs: []
+    tirs: [],
+    /* Meme principe que `tirs` : ce qui vient de mourir ou de sortir pendant
+       ce pas, pour que l'affichage puisse en faire une bouffee. Vide a chaque
+       pas, donc sans effet sur la simulation. */
+    evenements: []
   };
   for (let i = 0; i < joueurs; i++){
     const l = creerLigne(cfg, prof, i, i === 0);
@@ -166,6 +170,7 @@ function avancer(etat){
   const cfg = etat.cfg;
   etat.pas++;
   etat.tirs.length = 0;
+  etat.evenements.length = 0;
   /* Versement. Trois details repris du JASS de la map :
        - le premier tombe un intervalle complet apres le debut, pas au pas 0 ;
        - les elimines ne touchent rien (ils sortent de la force ThePlayers) ;
@@ -213,7 +218,7 @@ function deplacerMonstres(etat, l){
         m.pv = Math.max(1, m.pv - Math.ceil(m.pv * m.poisonPct / 100)); }
       else if (etat.pas % 10 === 0) m.pv -= m.poison;
     }
-    if (m.pv <= 0){ l.monstres.splice(k, 1); continue; }
+    if (m.pv <= 0){ mourir(etat, l, m); l.monstres.splice(k, 1); continue; }
     if (m.etourdi > 0){ m.etourdi--; continue; }
     let v = def.v;
     if (m.lent > 0){ m.lent--; v = Math.round(v * (100 - 40) / 100); }
@@ -285,6 +290,11 @@ function deplacerMonstres(etat, l){
   }
 }
 
+function mourir(etat, l, m){
+  etat.evenements.push({t: 'mort', ligne: l.i, x: m.x, y: m.y,
+                        ech: etat.cfg.MONSTRES[m.type].ech || 0.55, de: m.proprietaire});
+}
+
 /* Un monstre qui sort vole une vie ET repart sur la ligne suivante. */
 function sortie(etat, l, m, k){
   const envoyeur = etat.lignes[m.proprietaire];
@@ -294,6 +304,7 @@ function sortie(etat, l, m, k){
     l.vies -= 1;
     if (envoyeur && !envoyeur.mort) envoyeur.vies += 1;
     noter(etat, {type: 'vol', de: l.i, vers: m.proprietaire});
+    etat.evenements.push({t: 'vol', ligne: l.i, de: m.proprietaire});
   }
   if (l.vies <= 0 && !l.mort){
     l.mort = true; l.monstres = [];
@@ -360,6 +371,7 @@ function tirer(etat, l){
         m.poisonReste = def.poisonDuree; }
       else if (def.poison){ m.poison = def.poison; m.poisonPct = 0; m.poisonReste = 40; }
     }
+    for (const m of l.monstres) if (m.pv <= 0) mourir(etat, l, m);
     l.monstres = l.monstres.filter(m => m.pv > 0);
     if (def.usageUnique) retirerBatiment(etat, l, b);
   }
@@ -550,6 +562,8 @@ function controleur(etat){
       }
     }
     noter(etat, {type: 'controleur', ligne: l.i});
+    etat.evenements.push({t: 'vaporise', ligne: l.i, x: cx, y: cy,
+                          zone: cfg.controleur.zone});
     c.chemin = null;
     return;
   }

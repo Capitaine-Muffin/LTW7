@@ -32,6 +32,40 @@ function MOMBRE(g, cx, larg, p){
 
 const MONSTRES_ART = {
 
+  /* --- Le Controleur anti-mur. Une machine neutre, pas une creature : socle a
+     chenilles, bras vaporisateur, oeil-lampe qui balaie. Il ne vole aucune vie,
+     il efface des batiments — d'ou la lampe d'alerte plutot qu'un regard. --- */
+  controleur(g, f, p){
+    MOMBRE(g, 12, 9, p);
+    MCOUCHE(g, p.d, t => {                                                        // chenilles
+      for (const x of [2, 16]){
+        MR(t, x, 15, 6, 5, p.c1); MR(t, x, 15, 6, 1, p.c2);
+        for (let i = 0; i < 6; i += 2) MP(t, x + i + (f?1:0), 17, p.metal);
+        MR(t, x, 19, 6, 1, p.d); } });
+    MCOUCHE(g, p.d, t => {                                                        // chassis
+      MR(t, 4, 10, 16, 6, p.c2); MR(t, 4, 10, 16, 1, p.c3);
+      MR(t, 4, 15, 16, 1, p.c1);
+      for (let i = 6; i < 19; i += 4){ MP(t, i, 12, p.metal); MP(t, i, 14, p.metal); }
+      /* Bande d'avertissement : deux teintes alternees, comme un engin de
+         chantier. C'est ce qui dit « ne te mets pas devant ». */
+      for (let i = 0; i < 14; i++)
+        MP(t, 5 + i, 13, (i + (f?1:0)) % 4 < 2 ? p.lampe : p.d); });
+    MCOUCHE(g, p.d, t => {                                                        // bras vaporisateur
+      MR(t, 20, 6, 3, 6, p.c1); MR(t, 20, 6, 1, 6, p.c2);
+      MR(t, 19, 4, 5, 3, p.metal); MR(t, 20, 4, 3, 1, p.metalC);
+      if (f){ MP(t, 21, 2, p.danger); MP(t, 22, 1, p.danger); } });
+    MCOUCHE(g, p.d, t => {                                                        // tourelle et lampe
+      MR(t, 7, 4, 9, 7, p.c2); MR(t, 8, 3, 7, 1, p.c3);
+      MR(t, 8, 6, 7, 3, p.d);
+      MR(t, 9, 7, 5, 2, f ? p.lampeC : p.lampe);
+      MP(t, 9, 7, p.lampeC);
+      MR(t, 6, 5, 1, 4, p.c1); MR(t, 16, 5, 1, 4, p.c1); });
+    MCOUCHE(g, p.d, t => {                                                        // gyrophare
+      MR(t, 10, 0, 3, 3, f ? p.danger : p.lampe);
+      MP(t, 11, 0, p.lampeC);
+      if (f){ MP(t, 8, 1, p.danger); MP(t, 14, 1, p.danger); } });
+  },
+
   /* --- Squelette : os secs, cage thoracique ouverte, feu vert dans le crane.
      Il marche en cliquetant : une image sur deux, la machoire tombe. --- */
   squelette(g, f, p){
@@ -480,6 +514,11 @@ const MONSTRES_ART = {
 };
 
 const PAL_MONSTRES = {
+  /* Le Controleur n'appartient a personne : ni camp, ni couleur de joueur.
+     Fer noir et lampe d'alerte — on doit le reconnaitre en une image. */
+  controleur:{d:'#08080c', c1:'#2a2c34', c2:'#3f434e', c3:'#5c626f',
+              metal:'#7d8494', metalC:'#c2c8d6', lampe:'#ffcf3a', lampeC:'#fff3c0',
+              danger:'#e05a5a', sol:'#16161e'},
   squelette:{d:'#101014', c1:'#8f8b7a', c2:'#c2bda6', c3:'#e6e2cc', oeil:'#7dff86',
             lueur:'#7dff86', metal:'#6b6f78', sol:'#1e1e26'},
   grognard:{d:'#0f1410', c1:'#3d5c2e', c2:'#5c8442', c3:'#7ba659', oeil:'#ffd76a',

@@ -188,6 +188,24 @@ function dessinerJeu(){
       c.fillStyle = '#000';    c.fillRect(x - w / 2, y - taille * .72 + vol, w, 3);
       c.fillStyle = '#e05a5a'; c.fillRect(x - w / 2, y - taille * .72 + vol, w * m.pv / m.pvMax, 3);
     }
+    /* Les etats. Le moteur applique quatre effets — ralentissement, poison,
+       etourdissement, vulnerabilite — qui n'apparaissaient nulle part : on
+       voyait une tour tirer sans jamais savoir ce qu'elle faisait. */
+    const etats = [];
+    if (m.etourdi > 0)   etats.push('#ffe14a');
+    if (m.lent > 0)      etats.push('#9fe4ff');
+    if (m.poisonReste>0) etats.push('#8fd06a');
+    if (m.vulnerable>0)  etats.push('#ff9a4a');
+    if (etats.length){
+      const s = Math.max(3, Math.round(taille * .16));
+      let px = x - (etats.length * (s + 1) - 1) / 2;
+      const py = y - taille * .72 + vol - s - 3;
+      for (const col of etats){
+        c.fillStyle = '#000'; c.fillRect(Math.round(px) - 1, Math.round(py) - 1, s + 2, s + 2);
+        c.fillStyle = col;    c.fillRect(Math.round(px), Math.round(py), s, s);
+        px += s + 1;
+      }
+    }
   }
 
   dessinerTirs(c, cfg, T, ox, oy, tirs);   // au-dessus des monstres qu'ils frappent
@@ -195,12 +213,17 @@ function dessinerJeu(){
 
   if (etat.controleur && etat.controleur.ligne === ligneVue){
     const k = etat.controleur;
-    const x = ox + k.x * T / cfg.MILLI, y = oy + k.y * T / cfg.MILLI, r = T * .34;
-    c.fillStyle = '#ffcf3a'; c.fillRect(x - r, y - r, r * 2, r * 2);
-    c.fillStyle = '#0d0b10'; c.fillRect(x - r, y - r, r * 2, 2); c.fillRect(x - r, y + r - 2, r * 2, 2);
-    c.fillRect(x - r, y - r, 2, r * 2); c.fillRect(x + r - 2, y - r, 2, r * 2);
-    c.fillRect(x - r * .5, y - r * .3, r, r * .25);
+    const x = ox + k.x * T / cfg.MILLI, y = oy + k.y * T / cfg.MILLI;
+    const taille = Math.round(T * 0.95);
+    const im = cache['m:controleur:' + (((etat.pas / 2) | 0) % 2)];
+    /* Halo d'alerte : il n'appartient a personne et il efface des batiments,
+       il faut qu'on le reconnaisse avant qu'il n'arrive. */
+    c.strokeStyle = 'rgba(255,207,58,.45)'; c.lineWidth = 2;
+    c.beginPath(); c.arc(x, y, T * (.42 + .06 * Math.sin(etat.pas / 3)), 0, 7); c.stroke();
+    if (im) c.drawImage(im, Math.round(x - taille / 2), Math.round(y - taille * .62), taille, taille);
   }
+
+  dessinerEffets(c, cfg, T, ox, oy);
 
   if (enMain && !transi){                           // apercu de pose
     const p = survol;
@@ -216,6 +239,7 @@ function dessinerJeu(){
   if (transi && photo){
     c.drawImage(photo, dxN - transi.sens * larg, 0, larg, haut);
   }
+  voileDeVol(c, larg, haut);
   return {T, ox, oy};
 }
 let survol = null, geo = {T:1, ox:0, oy:0}, terrain = null, sentier = null;
@@ -418,9 +442,11 @@ function boucle(t){
     while (accum >= etat.cfg.PAS_MS){
       avancer(etat); accum -= etat.cfg.PAS_MS;
       collecterTirs(etat, ligneVue, tirs);
+      collecterEffets(etat, ligneVue);
     }
   }
   avancerTirs(tirs, dt * acceleration);
+  avancerEffets(dt * acceleration);
   if (transi){                                      // en temps reel, pas en temps de jeu
     transi.u += dt / DUREE_TRANSI;
     if (transi.u >= 1) transi = null;
@@ -464,7 +490,7 @@ function allerLigne(i, sens){
   photographier();
   transi = {sens, u: 0};
   ligneVue = cible;
-  selection = null; enMain = null; sentier = null; tirs.length = 0;
+  selection = null; enMain = null; sentier = null; tirs.length = 0; viderEffets();
   panneau();
 }
 
@@ -516,6 +542,7 @@ function brancher(){
     const l = etat.lignes[etat.moi];
     if (enMain){
       if (poserBatiment(etat, l, enMain, p.x, p.y)){
+        effet('poussiere', (p.x + .5) * etat.cfg.MILLI, (p.y + .5) * etat.cfg.MILLI, {});
         if (l.or < etat.cfg.TOURS[enMain].or) enMain = null;   // plus les moyens : on lache
       }
       panneau(); return;
@@ -548,6 +575,7 @@ function brancher(){
     const u = e.target.closest('[data-up]');
     if (u && selection){ ameliorer(etat, l, selection, u.dataset.up); panneau(); return; }
     if (e.target.closest('[data-vendre]') && selection){
+      effet('vente', (selection.x + .5) * etat.cfg.MILLI, (selection.y + .5) * etat.cfg.MILLI, {});
       vendre(etat, l, selection); selection = null; panneau(); }
   });
   document.getElementById('lignes').addEventListener('click', e => {
@@ -590,6 +618,7 @@ function demarrer(memeGraine){
   etat = creerPartie({graine, profil, joueurs, difficulte});
   ligneVue = etat.moi; selection = null; enMain = null; menu = 'batiments'; acceleration = 1;
   tirs.length = 0; transi = null; dernierVu = 0; lignesFil = []; filSignature = '';
+  viderEffets();
   document.getElementById('fil').innerHTML = '';
   document.querySelectorAll('[data-menu]').forEach(x =>
     x.setAttribute('aria-pressed', String(x.dataset.menu === 'batiments')));
