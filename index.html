@@ -1495,35 +1495,35 @@ const MONSTRES = {
   fantassin:{nom:'Fantassin',or:75, revenu:12, pv:250,   v:vitesse(370), ech:0.54, dispo:80,  stock:[10, 5]},
   grognard:{nom:'Grognard', or:100, revenu:14, pv:400,   v:vitesse(270), ech:0.60, dispo:100, stock:[6, 5]},
   ombre:   {nom:'Ombre',    or:200, revenu:22, pv:600,   v:vitesse(300), vol:true, ech:0.58, dispo:120, stock:[20, 7]},
-  golem:   {nom:'Golem',    or:350, revenu:37, pv:1400,  v:vitesse(300), ech:0.72, dispo:140, stock:[10, 5]},
+  golem:   {nom:'Golem',    or:350, revenu:37, pv:1400,  v:vitesse(300), ech:0.76, dispo:140, stock:[10, 5]},
   /* Les barreaux intermediaires. Ils manquaient, et c'est ce qui creait douze
      minutes d'immobilite : entre le Demolisseur a 500 or et le Troll a 5 000,
      rien ne devenait abordable, donc l'attaque n'avancait plus pendant que la
      defense, elle, continuait de monter. Ils viennent tous de la map. */
-  centaure:{nom:'Centaure', or:1000, revenu:100, pv:4000,  v:vitesse(300), ech:0.74,
+  centaure:{nom:'Centaure', or:1000, revenu:100, pv:4000,  v:vitesse(300), ech:0.76,
             dispo:250, stock:[25, 3]},
-  colosse: {nom:'Colosse de pierre', or:1000, revenu:100, pv:10000, v:vitesse(270), ech:0.82,
+  colosse: {nom:'Colosse de pierre', or:1000, revenu:100, pv:10000, v:vitesse(270), ech:0.92,
             dispo:300, stock:[10, 15], mecanique:true},
-  taureau: {nom:'Taurren', or:2000, revenu:200, pv:8000,  v:vitesse(270), ech:0.84,
+  taureau: {nom:'Taurren', or:2000, revenu:200, pv:8000,  v:vitesse(270), ech:0.86,
             dispo:300, stock:[25, 3]},
-  troll:   {nom:'Troll berserk', or:5000, revenu:450, pv:5000, v:vitesse(350), ech:0.80,
+  troll:   {nom:'Troll berserk', or:5000, revenu:450, pv:5000, v:vitesse(350), ech:0.82,
             dispo:330, stock:[15, 5], siege:{deg:47, portee:portee(150), cadence:cadence(60)}},
-  wendigo: {nom:'Wendigo', or:10000, revenu:900, pv:40000, v:vitesse(350), ech:0.86,
+  wendigo: {nom:'Wendigo', or:10000, revenu:900, pv:40000, v:vitesse(350), ech:0.90,
             dispo:360, stock:[25, 3]},
-  banshee: {nom:'Banshee',  or:20000,revenu:1700,pv:60000,v:vitesse(300), vol:true, ech:0.76,
+  banshee: {nom:'Banshee',  or:20000,revenu:1700,pv:60000,v:vitesse(300), vol:true, ech:0.78,
             dispo:390, stock:[20, 5]},
   /* Le haut du catalogue. Il manquait, et c'est ce qui rendait la defense
      imbattable en fin de partie : mes monstres plafonnaient a 60 000 PV alors
      qu'une ligne bien montee inflige plus de 180 000 degats sur un trajet. */
-  infernal:{nom:'Infernal',  or:40000, revenu:3000, pv:350000, v:vitesse(270), ech:0.90,
+  infernal:{nom:'Infernal',  or:40000, revenu:3000, pv:350000, v:vitesse(270), ech:1.10,
             dispo:450, stock:[10, 7], mecanique:true},
-  spectre: {nom:'Spectre de givre', or:50000, revenu:3300, pv:110000, v:vitesse(350), ech:0.78,
+  spectre: {nom:'Spectre de givre', or:50000, revenu:3300, pv:110000, v:vitesse(350), ech:0.82,
             dispo:450, stock:[20, 5]},
   wyrm:    {nom:'Wyrm de givre', or:60000, revenu:4000, pv:120000, v:vitesse(300), vol:true,
-            ech:0.86, dispo:480, stock:[10, 10]},
+            ech:0.94, dispo:480, stock:[10, 10]},
   elementaire:{nom:'Élémentaire d\'eau', or:80000, revenu:4300, pv:150000, v:vitesse(270),
-            ech:0.94, dispo:510, stock:[10, 10]},
-  loupOmbre:{nom:'Loup d\'ombre', or:100000, revenu:6000, pv:200000, v:vitesse(300), ech:0.88,
+            ech:1.12, dispo:510, stock:[10, 10]},
+  loupOmbre:{nom:'Loup d\'ombre', or:100000, revenu:6000, pv:200000, v:vitesse(300), ech:0.96,
             dispo:700, stock:[10, 10]},
 
   /* --- Les briseurs ---------------------------------------------------------
@@ -1531,13 +1531,13 @@ const MONSTRES = {
      volent donc aucune vie tant qu'il reste quelque chose a demolir. C'est
      l'autre facon de gagner une ligne — on ne perce pas la defense, on la
      supprime. Reperables dans la map a leur nom qui contient « ATTAK ». */
-  demolisseur:{nom:'Démolisseur', or:500, revenu:50, pv:1000, v:vitesse(270), ech:0.62,
+  demolisseur:{nom:'Démolisseur', or:500, revenu:50, pv:1000, v:vitesse(270), ech:1.15,
                dispo:160, stock:[15, 7],
                siege:{deg:60,  portee:portee(120), cadence:cadence(45)}},
-  char:    {nom:'Char à vapeur', or:30000, revenu:2500, pv:100000, v:vitesse(270), ech:0.88,
+  char:    {nom:'Char à vapeur', or:30000, revenu:2500, pv:100000, v:vitesse(270), ech:1.20,
             dispo:420, stock:[15, 5],
             siege:{deg:400, portee:portee(200), cadence:cadence(40)}},
-  broyeur: {nom:'Broyeur gobelin', or:100000, revenu:5000, pv:100000, v:vitesse(300), ech:0.84,
+  broyeur: {nom:'Broyeur gobelin', or:100000, revenu:5000, pv:100000, v:vitesse(300), ech:1.24,
             dispo:600, stock:[10, 10], mecanique:true,
             siege:{deg:750, portee:portee(140), cadence:cadence(70)}},
 
@@ -1547,7 +1547,7 @@ const MONSTRES = {
      pour s'enrichir, on l'envoie pour effacer une ligne — et on renonce a toute
      l'economie que la meme somme aurait rapportee. Disponible seulement a
      800 secondes, avec un stock de trois : le plus rare du jeu. */
-  seigneur:{nom:'Seigneur bandit', or:100000, revenu:3, pv:150000, v:vitesse(250), ech:0.92,
+  seigneur:{nom:'Seigneur bandit', or:100000, revenu:3, pv:150000, v:vitesse(250), ech:1.32,
             dispo:800, stock:[3, 15], sacrifice:true, mecanique:true,
             siege:{deg:900, portee:portee(300), cadence:cadence(30), zone:portee(180)}}
 };
@@ -1620,6 +1620,14 @@ const CONFIG = {
   /* Ce qui est constructible d'emblee : trois entrees, tout le reste est
      une amelioration sur place. */
   boutique:['guet','epine','elementaire'],
+  /* Grossissement des monstres a l'ecran. Purement visuel : la simulation ne
+     connait pas cette valeur. Les `ech`, eux, sont cales sur les echelles de
+     modele de la map (`usca`) la ou elle en donne — Machine de demolition 1,8
+     posee sur un fantassin, Elementaire d'eau et Seigneur bandit 1,5, Centaure
+     1,0, Taurren 0,9, Wyrm de givre 0,7, Loup 0,5. Les briseurs y sont plus
+     GROS qu'une tour : c'est voulu par l'auteur, et c'est ce dont on se
+     souvient de la map. */
+  echelleMonstre: 1.35,
   /* Grossissement des monstres a l'ecran. Les `ech` gardent le rapport de la
      map entre eux — un mouton reste minuscule a cote d'un elementaire d'eau —
      mais l'ensemble etait dessine trop petit pour qu'on voie les sprites.

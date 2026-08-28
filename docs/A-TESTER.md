@@ -51,7 +51,13 @@ de référence pour l'instant.
 
 ## Deux couches de dessin
 
-Les monstres sont dessinés **1,35 fois plus grands** qu'avant : les proportions
+Les tailles de monstres viennent maintenant des échelles de modèle de la map
+(`usca`), pas de mon estimation. Les **briseurs sont plus gros qu'une tour** —
+c'est voulu par l'auteur : la Machine de démolition est un fantassin grossi
+1,8 fois. À l'écran, une tour fait 1,50 case ; le Seigneur bandit en fait 1,78,
+le Broyeur gobelin 1,67, le Char à vapeur 1,62, le Démolisseur 1,55.
+
+Les monstres sont par ailleurs dessinés **1,35 fois plus grands** qu'avant : les proportions
 entre eux restent celles de la map — un mouton reste minuscule à côté d'un
 élémentaire d'eau — mais l'ensemble était trop petit pour qu'on voie les
 sprites. C'est purement visuel, la simulation ne connaît pas cette valeur

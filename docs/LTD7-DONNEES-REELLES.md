@@ -171,16 +171,22 @@ plutôt qu'en bouchon.
 > le **dessin** les décale — voir `ecartVisuel` — sinon une vague de vingt
 > ressemble à un seul monstre un peu plus opaque que les autres.
 
-| | Emprise au sol | Échelle du modèle |
+| | Emprise au sol | Échelle du modèle (`usca`) |
 |---|---|---|
-| **Tours** | 1 case pleine (128 × 128) | **1,3 à 2,0** — Épine 1,5 · Sang 1,8 · Lame 2,0 · BOOM 2,0 |
-| **Creeps** | collision 1.0 = un point | **0,5 à 1,5** — Loup de givre 0,5 · Centaure 1,0 · Élémentaire d'eau 1,5 |
+| **Tours** | 1 case pleine (128 × 128) | **0,4 à 2,0** — Eau bénite 0,4 · Puits de magma 0,5 · Lanterne 0,6 · Crusher 1,3 · Épine 1,5 · Sang 1,8 · Lame 2,0 · BOOM 2,0 |
+| **Creeps** | collision 1.0 = un point | **0,5 à 1,8** — Loup 0,5 · Wyrm 0,7 · Taurren 0,9 · Centaure 1,0 · Élémentaire d'eau 1,5 · Seigneur bandit 1,5 · **Machine de démolition 1,8** |
 
-> **La conclusion pour le rendu :** ce n'est pas la grille qu'il faut changer,
-> c'est le rapport de taille à l'écran. Dans l'original **une tour est environ
-> trois fois plus grosse qu'un creep**, et son modèle déborde de sa case. Un
-> creep dessiné presque aussi gros qu'une tour est une erreur de rendu, pas une
-> erreur de grille.
+> ⚠️ **Correction d'une erreur que j'avais écrite ici.** J'avais conclu qu'« une
+> tour est environ trois fois plus grosse qu'un creep » et qu'un creep dessiné
+> presque aussi gros qu'une tour était une erreur de rendu. Le relevé complet
+> des `usca` dit l'inverse : les deux gammes se chevauchent largement, et **la
+> Machine de démolition (1,8, posée sur un modèle de fantassin) est plus grosse
+> que la plupart des tours** — plus grosse que le Crusher, que la Lanterne, que
+> le Puits de magma. L'auteur a délibérément grossi ses briseurs.
+>
+> Ce qui reste vrai : l'emprise au sol d'une tour est une case pleine, celle
+> d'un creep est un point. C'est la **collision** qui diffère d'un facteur
+> énorme, pas la taille du dessin.
 
 Et passer les tours à 2 × 2 serait **moins** fidèle, pas plus : ça diviserait par
 quatre la finesse du labyrinthe (9 × 13 = 117 cases deviendraient 4 × 6
