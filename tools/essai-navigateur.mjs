@@ -12,6 +12,7 @@ page.on('console', m => { if (m.type()==='error') erreurs.push(m.text()); });
 page.on('pageerror', e => erreurs.push('PAGE: '+e.message));
 await page.goto('file:///home/user/ltw7/index.html');
 await page.waitForTimeout(900);
+await page.click('#jouer'); await page.waitForTimeout(400);
 // on pose quelques tours comme un joueur
 const g = await page.$('#scene'); const b = await g.boundingBox();
 const T = Math.floor(Math.min(b.width/9, b.height/13));

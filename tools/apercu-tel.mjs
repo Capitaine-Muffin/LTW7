@@ -12,6 +12,8 @@ const erreurs = [];
 page.on('pageerror', e => erreurs.push('PAGE: '+e.message));
 await page.goto('file:///home/user/ltw7/index.html');
 await page.waitForTimeout(900);
+await page.click('#jouer');                     // l'ecran d'accueil ouvre la partie
+await page.waitForTimeout(500);
 console.log('largeur de mise en page :', await page.evaluate(() => document.documentElement.clientWidth),
             '(doit valoir 393)');
 await page.screenshot({path:`${OUT}-1.png`});

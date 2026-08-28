@@ -7,6 +7,7 @@ __pycache__/
 *.w3x
 extrait/
 *.png
+!icone-*.png            # sauf les icones d'application, elles font partie du jeu
 
 node_modules/
 package-lock.json

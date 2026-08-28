@@ -1,5 +1,9 @@
 # Ce qu'il y a à tester
 
+**Installer le jeu sur le téléphone** : ouvre
+`https://capitaine-muffin.github.io/ltw7/`, puis « Ajouter à l'écran d'accueil ».
+Il s'ouvre alors en plein écran, sans barre d'adresse, avec son icône.
+
 Le prototype expose ses réglages derrière le **⚙**. L'écran de fin récapitule la
 configuration exacte de la partie — **c'est ce récapitulatif qu'il faut me
 recopier**, sinon « c'est trop dur » n'est pas exploitable.

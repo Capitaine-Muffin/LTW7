@@ -433,7 +433,7 @@ function boucle(t){
   requestAnimationFrame(boucle);
   if (!dernier) dernier = t;
   let dt = Math.min(120, t - dernier); dernier = t;
-  if (!etat.fini){
+  if (!etat.fini && !enPause()){
     /* On plafonne le retard AVANT de le rattraper. Sans ca, une image longue
        (changement de menu, onglet en arriere-plan) faisait avancer la partie
        de plusieurs secondes d'un coup : les monstres semblaient se teleporter.
@@ -461,11 +461,28 @@ function finir(){
   if (!d.hidden) return;
   d.hidden = false;
   const gagne = etat.vainqueur === etat.moi;
+  const cfg = etat.cfg, prof = cfg.PROFILS[etat.profil], diff = cfg.DIFFICULTES[etat.difficulte];
+  const mort = etat.journal.filter(e => e.type === 'mort');
+  const premiere = mort.length ? Math.floor(mort[0].pas / 10) + ' s' : '—';
+  /* Le recapitulatif est ce qu'on recopie pour un retour d'equilibrage : sans
+     lui, « c'est trop dur » n'est pas exploitable. */
   d.innerHTML = `<div><h2>${gagne ? 'Gagné' : 'Éliminé'}</h2>
-    <p>${gagne ? 'Dernier debout.' : 'Le dernier debout est ' + (etat.lignes[etat.vainqueur] || {nom:'personne'}).nom + '.'}
-    Revenu final : +${etat.lignes[etat.moi].revenu} · ${Math.floor(etat.pas / 10)} s de partie.</p>
-    <button id="rejouer">Rejouer</button></div>`;
-  document.getElementById('rejouer').onclick = () => demarrer();
+    <p>${gagne ? 'Dernier debout.'
+               : 'Le dernier debout est ' + (etat.lignes[etat.vainqueur] || {nom:'personne'}).nom + '.'}</p>
+    <div class="cfg">
+      <b>${etat.lignes.length}</b> joueurs · bots <b>${diff.nom || etat.difficulte}</b> · rythme <b>${prof.nom}</b><br>
+      graine <b>${etat.graine}</b> · camp <b>${camp.nom}</b><br>
+      durée <b>${Math.floor(etat.pas / 10)} s</b> · 1<sup>re</sup> élimination <b>${premiere}</b><br>
+      ton revenu final <b>+${etat.lignes[etat.moi].revenu}</b> ·
+      tes tours <b>${etat.lignes[etat.moi].batiments.length}</b>
+    </div>
+    <div class="duo">
+      <button id="rejouer">Rejouer</button>
+      <button id="versMenu">Réglages</button>
+    </div></div>`;
+  document.getElementById('rejouer').onclick = () => { demarrer(true); fermerAccueil(); };
+  document.getElementById('versMenu').onclick = () => {
+    document.getElementById('fin').hidden = true; ouvrirAccueil(false); };
 }
 
 /* ---- entrees ------------------------------------------------------------- */
@@ -627,19 +644,32 @@ function demarrer(memeGraine){
   panneau();
 }
 
+/* L'ecran d'accueil met la partie en pause plutot que de la laisser courir
+   derriere : regler la difficulte pendant qu'on se fait envahir n'a pas de
+   sens, et le plateau sert de decor vivant sous le voile. */
+function ouvrirAccueil(reprenable){
+  document.getElementById('reprendre').hidden = !reprenable;
+  document.getElementById('jouer').textContent = reprenable ? 'Nouvelle partie' : 'Jouer';
+  document.getElementById('accueil').hidden = false;
+}
+function fermerAccueil(){
+  document.getElementById('accueil').hidden = true;
+  dernier = 0; accum = 0;                     // sinon la pause se rattrape d'un coup
+}
+const enPause = () => !document.getElementById('accueil').hidden;
+
 window.addEventListener('DOMContentLoaded', () => {
   preparerSprites();
   brancher();
   lireReglages();
-  document.getElementById('rejouerHaut').onclick = () => {
-    document.getElementById('reglages').dataset.ouvert = '0'; demarrer(false); };
-  document.getElementById('memeGraine').onclick = () => {
-    document.getElementById('reglages').dataset.ouvert = '0'; demarrer(true); };
-  document.getElementById('ouvrirReglages').onclick = () => {
-    const r = document.getElementById('reglages');
-    r.dataset.ouvert = r.dataset.ouvert === '1' ? '0' : '1'; };
+  document.getElementById('jouer').onclick = () => { demarrer(false); fermerAccueil(); };
+  document.getElementById('memeGraine').onclick = () => { demarrer(true); fermerAccueil(); };
+  document.getElementById('reprendre').onclick = fermerAccueil;
+  document.getElementById('ouvrirReglages').onclick = () =>
+    enPause() ? fermerAccueil() : ouvrirAccueil(!etat.fini);
   document.getElementById('camp').onchange = e => {
     camp = CAMPS[+e.target.value]; terrain = null; sentier = null; };
-  demarrer(false);
+  demarrer(false);                            // une partie tourne sous le voile
+  ouvrirAccueil(false);
   requestAnimationFrame(boucle);
 });

@@ -1,4 +1,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#141220">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LTW 7">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icone-192.png">
+<link rel="apple-touch-icon" href="icone-192.png">
 <title>LTW 7 Warnet — prototype</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@600;800&family=Source+Sans+3:wght@400;600&display=swap">
 <style>
@@ -13,13 +20,11 @@ body{background:var(--fond);color:var(--encre);font-family:"Source Sans 3",syste
 h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
 #haut{display:flex;align-items:center;gap:11px;padding:7px 9px;background:var(--panneau);
   border-bottom:1px solid var(--bord)}
-#reglages{display:none;gap:8px;padding:2px 9px 8px;background:var(--panneau);
-  border-bottom:1px solid var(--bord);align-items:flex-end;flex-wrap:wrap}
+#reglages{display:flex;gap:9px;align-items:flex-end;flex-wrap:wrap}
 #reglages label{display:flex;flex-direction:column;gap:2px;font-family:Oxanium,sans-serif;
   font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--doux)}
 #reglages input{background:var(--bord);color:var(--encre);border:1px solid #3b3552;
-  border-radius:7px;padding:8px;font-size:14px;font-family:Oxanium;font-weight:600;width:74px}
-#reglages[data-ouvert="1"]{display:flex}
+  border-radius:7px;padding:8px;font-size:14px;font-family:Oxanium;font-weight:600;width:88px}
 .stat{display:flex;flex-direction:column;line-height:1.05;min-width:0}
 .stat b{font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .stat span{font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:var(--doux)}
@@ -96,6 +101,25 @@ h1,h2,b,button{font-family:Oxanium,system-ui,sans-serif}
 #barre button[aria-pressed="true"]{background:var(--or);color:#1a1408;border-color:var(--or)}
 select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border-radius:7px;
   padding:8px;font-size:14px;font-family:Oxanium;font-weight:600}
+/* L'ecran d'accueil. Il tient les reglages, ce qui evite au passage de
+   redimensionner le plateau quand on les ouvre en cours de partie. */
+#accueil{position:fixed;inset:0;background:rgba(10,9,16,.90);z-index:12;
+  display:flex;align-items:center;justify-content:center;padding:18px;
+  overflow-y:auto;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+#accueil[hidden]{display:none}
+#accueil .carte{background:var(--panneau);border:1px solid var(--bord);border-radius:16px;
+  padding:20px 18px;max-width:420px;width:100%;box-shadow:0 18px 60px rgba(0,0,0,.55)}
+#accueil h1{font-family:Oxanium;font-weight:800;font-size:31px;margin:0;letter-spacing:.02em;
+  line-height:1}
+#accueil h1 em{font-style:normal;color:var(--or)}
+#accueil .sous{color:var(--doux);font-size:13.5px;margin:7px 0 16px;line-height:1.4}
+#accueil .duo{display:flex;gap:8px;margin-top:16px}
+#accueil button{flex:1;background:var(--or);color:#1a1408;border:0;border-radius:11px;
+  padding:14px;font-size:17px;font-weight:800;font-family:Oxanium;cursor:pointer}
+#accueil button.doux{background:var(--bord);color:var(--encre);font-size:15px;flex:0 0 auto;
+  padding:14px 16px}
+#accueil .note{color:var(--doux);font-size:11.5px;line-height:1.45;margin:14px 0 0}
+#accueil .note b{color:var(--encre)}
 #fin{position:fixed;inset:0;background:rgba(10,9,16,.88);display:flex;align-items:center;
   justify-content:center;z-index:9;padding:24px;text-align:center}
 /* hidden pose display:none, mais display:flex le supplante : il faut le dire. */
@@ -124,6 +148,11 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   <button id="vitesse">×1</button>
   <button id="ouvrirReglages" title="Réglages">⚙</button>
 </div>
+<div id="accueil">
+  <div class="carte">
+    <h1>LTW 7 <em>Warnet</em></h1>
+    <p class="sous">Ta ligne, celles des adversaires, et une chaîne de monstres qui
+      tourne. Tu ne tues personne : tu lui envoies de quoi le faire.</p>
 <div id="reglages">
   <label>Joueurs<select id="nbJoueurs">
     <option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option>
@@ -139,8 +168,16 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   <label>Camp<select id="camp"><option value="0">Humain</option><option value="1">Orc</option>
     <option value="2">Mort-vivant</option><option value="3">Elfe</option></select></label>
   <label>Graine<input id="graine" type="number" min="1" max="999999" value="1"></label>
-  <button id="memeGraine" title="Rejouer exactement la même partie">↻ même</button>
-  <button id="rejouerHaut">Nouvelle partie</button>
+  </div>
+    <div class="duo">
+      <button id="jouer">Jouer</button>
+      <button id="memeGraine" class="doux" title="Rejouer exactement la même partie">↻</button>
+      <button id="reprendre" class="doux" hidden>Reprendre</button>
+    </div>
+    <p class="note"><b>Un appui</b> pour prendre une tour, <b>un appui</b> sur la grille
+      pour la poser. <b>Glisse sur le côté</b> pour voir la ligne d'à côté.
+      La <b>graine</b> rejoue exactement la même partie.</p>
+  </div>
 </div>
 <div id="lignes"></div>
 <div id="zone"><canvas id="scene"></canvas><div id="lecture" hidden>Lecture seule</div>
@@ -2983,7 +3020,7 @@ function boucle(t){
   requestAnimationFrame(boucle);
   if (!dernier) dernier = t;
   let dt = Math.min(120, t - dernier); dernier = t;
-  if (!etat.fini){
+  if (!etat.fini && !enPause()){
     /* On plafonne le retard AVANT de le rattraper. Sans ca, une image longue
        (changement de menu, onglet en arriere-plan) faisait avancer la partie
        de plusieurs secondes d'un coup : les monstres semblaient se teleporter.
@@ -3011,11 +3048,28 @@ function finir(){
   if (!d.hidden) return;
   d.hidden = false;
   const gagne = etat.vainqueur === etat.moi;
+  const cfg = etat.cfg, prof = cfg.PROFILS[etat.profil], diff = cfg.DIFFICULTES[etat.difficulte];
+  const mort = etat.journal.filter(e => e.type === 'mort');
+  const premiere = mort.length ? Math.floor(mort[0].pas / 10) + ' s' : '—';
+  /* Le recapitulatif est ce qu'on recopie pour un retour d'equilibrage : sans
+     lui, « c'est trop dur » n'est pas exploitable. */
   d.innerHTML = `<div><h2>${gagne ? 'Gagné' : 'Éliminé'}</h2>
-    <p>${gagne ? 'Dernier debout.' : 'Le dernier debout est ' + (etat.lignes[etat.vainqueur] || {nom:'personne'}).nom + '.'}
-    Revenu final : +${etat.lignes[etat.moi].revenu} · ${Math.floor(etat.pas / 10)} s de partie.</p>
-    <button id="rejouer">Rejouer</button></div>`;
-  document.getElementById('rejouer').onclick = () => demarrer();
+    <p>${gagne ? 'Dernier debout.'
+               : 'Le dernier debout est ' + (etat.lignes[etat.vainqueur] || {nom:'personne'}).nom + '.'}</p>
+    <div class="cfg">
+      <b>${etat.lignes.length}</b> joueurs · bots <b>${diff.nom || etat.difficulte}</b> · rythme <b>${prof.nom}</b><br>
+      graine <b>${etat.graine}</b> · camp <b>${camp.nom}</b><br>
+      durée <b>${Math.floor(etat.pas / 10)} s</b> · 1<sup>re</sup> élimination <b>${premiere}</b><br>
+      ton revenu final <b>+${etat.lignes[etat.moi].revenu}</b> ·
+      tes tours <b>${etat.lignes[etat.moi].batiments.length}</b>
+    </div>
+    <div class="duo">
+      <button id="rejouer">Rejouer</button>
+      <button id="versMenu">Réglages</button>
+    </div></div>`;
+  document.getElementById('rejouer').onclick = () => { demarrer(true); fermerAccueil(); };
+  document.getElementById('versMenu').onclick = () => {
+    document.getElementById('fin').hidden = true; ouvrirAccueil(false); };
 }
 
 /* ---- entrees ------------------------------------------------------------- */
@@ -3177,20 +3231,33 @@ function demarrer(memeGraine){
   panneau();
 }
 
+/* L'ecran d'accueil met la partie en pause plutot que de la laisser courir
+   derriere : regler la difficulte pendant qu'on se fait envahir n'a pas de
+   sens, et le plateau sert de decor vivant sous le voile. */
+function ouvrirAccueil(reprenable){
+  document.getElementById('reprendre').hidden = !reprenable;
+  document.getElementById('jouer').textContent = reprenable ? 'Nouvelle partie' : 'Jouer';
+  document.getElementById('accueil').hidden = false;
+}
+function fermerAccueil(){
+  document.getElementById('accueil').hidden = true;
+  dernier = 0; accum = 0;                     // sinon la pause se rattrape d'un coup
+}
+const enPause = () => !document.getElementById('accueil').hidden;
+
 window.addEventListener('DOMContentLoaded', () => {
   preparerSprites();
   brancher();
   lireReglages();
-  document.getElementById('rejouerHaut').onclick = () => {
-    document.getElementById('reglages').dataset.ouvert = '0'; demarrer(false); };
-  document.getElementById('memeGraine').onclick = () => {
-    document.getElementById('reglages').dataset.ouvert = '0'; demarrer(true); };
-  document.getElementById('ouvrirReglages').onclick = () => {
-    const r = document.getElementById('reglages');
-    r.dataset.ouvert = r.dataset.ouvert === '1' ? '0' : '1'; };
+  document.getElementById('jouer').onclick = () => { demarrer(false); fermerAccueil(); };
+  document.getElementById('memeGraine').onclick = () => { demarrer(true); fermerAccueil(); };
+  document.getElementById('reprendre').onclick = fermerAccueil;
+  document.getElementById('ouvrirReglages').onclick = () =>
+    enPause() ? fermerAccueil() : ouvrirAccueil(!etat.fini);
   document.getElementById('camp').onchange = e => {
     camp = CAMPS[+e.target.value]; terrain = null; sentier = null; };
-  demarrer(false);
+  demarrer(false);                            // une partie tourne sous le voile
+  ouvrirAccueil(false);
   requestAnimationFrame(boucle);
 });
 

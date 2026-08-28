@@ -8,6 +8,7 @@ const page = await nav.newPage({viewport:{width:900,height:820},deviceScaleFacto
 page.on('pageerror', e => console.log('PAGE: '+e.message));
 await page.goto('file:///home/user/ltw7/index.html');
 await page.waitForTimeout(700);
+await page.click('#jouer'); await page.waitForTimeout(300);
 
 await page.evaluate(() => {
   const genres = ['fleche','perce','mortier','braise','givre','foudre','prisme','siege'];

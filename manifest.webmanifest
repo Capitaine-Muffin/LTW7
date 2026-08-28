@@ -1,0 +1,16 @@
+{
+  "name": "LTW 7 Warnet",
+  "short_name": "LTW 7",
+  "description": "Tower wars : ta ligne, celles des adversaires, et une chaîne de monstres qui tourne.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#141220",
+  "theme_color": "#141220",
+  "lang": "fr",
+  "icons": [
+    {"src": "icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}
+  ]
+}

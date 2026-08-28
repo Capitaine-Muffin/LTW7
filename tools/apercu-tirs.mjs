@@ -11,6 +11,7 @@ page.on('console', m => { if (m.type()==='error') erreurs.push(m.text()); });
 page.on('pageerror', e => erreurs.push('PAGE: '+e.message));
 await page.goto('file:///home/user/ltw7/index.html');
 await page.waitForTimeout(900);
+await page.click('#jouer'); await page.waitForTimeout(300);
 
 await page.evaluate(() => {
   const l = etat.lignes[0];
