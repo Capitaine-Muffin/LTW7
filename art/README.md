@@ -117,3 +117,32 @@ aussi gros qu'une tour est une erreur de rendu, pas une erreur de grille.
 ```sh
 node tools/apercu-monstres.mjs planche.png   # les 8, deux images chacune
 ```
+
+
+---
+
+# Le terrain (`src/game/decor.js`)
+
+Généré, jamais chargé. Deux couches, deux durées de vie :
+
+- **L'herbe et son décor** sont cuits une fois dans un canvas hors écran — ils ne
+  changent jamais de la partie.
+- **Le sentier de terre battue** est recuit seulement quand la grille bouge,
+  c'est-à-dire quand une tour est posée, vendue ou démolie.
+
+Chaque case tire son décor d'un **hachage déterministe** de ses coordonnées : le
+même terrain à chaque partie, sans consommer une seule valeur du RNG semé — que
+le moteur réserve au gameplay.
+
+## Deux règles apprises en le dessinant
+
+**Les taches de teinte ne suivent pas la grille.** Une couleur par case, même
+avec des verts très proches, et l'œil lit un damier au lieu d'une prairie. Le
+fond est donc pavé par blocs de 0,7 case, décalés aléatoirement.
+
+**Le décor reste sous les valeurs moyennes.** Pas de contraste fort, pas de
+saturation : tout ce qui brille doit être un sprite ou une information. Les
+cailloux ont une ombre portée pour se poser au sol, sinon ils flottent.
+
+Le **sentier n'est pas de la décoration** : c'est de l'information. Il dit au
+joueur où passe le flux, et il se redessine sous ses yeux quand il pose un mur.

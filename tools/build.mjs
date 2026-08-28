@@ -5,7 +5,7 @@ import {readFileSync, writeFileSync} from 'fs';
 const morceaux = [
   'art/sprites.js', 'art/monstres.js',
   'src/engine/rng.js', 'src/engine/config.js', 'src/engine/grille.js', 'src/engine/moteur.js',
-  'src/game/jeu.js'
+  'src/game/decor.js', 'src/game/jeu.js'
 ];
 const html = readFileSync('src/game/coquille.html', 'utf8')
   + morceaux.map(f => `\n/* ===== ${f} ===== */\n` + readFileSync(f, 'utf8')).join('\n')

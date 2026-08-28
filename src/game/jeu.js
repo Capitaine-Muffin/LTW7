@@ -56,26 +56,31 @@ function dessinerJeu(){
   const oy = Math.floor((haut - T * cfg.HAUTEUR) / 2);
   c.clearRect(0, 0, larg, haut);
 
-  c.fillStyle = '#4a7c42'; c.fillRect(ox, oy, T * cfg.LARGEUR, T * cfg.HAUTEUR);
-  c.strokeStyle = 'rgba(0,0,0,.13)'; c.lineWidth = 1;
-  for (let x = 0; x <= cfg.LARGEUR; x++){ c.beginPath();
+  /* Terrain cuit une fois ; sentier recuit seulement quand la grille bouge. */
+  if (!terrain || terrain.T !== T)
+    terrain = {T, img: cuireTerrain(cfg, T)};
+  const sig = ligneVue + ':' + (l.chemin ? l.chemin.join(',') : 'scelle');
+  if (!sentier || sentier.T !== T || sentier.sig !== sig)
+    sentier = {T, sig, img: cuireSentier(cfg, T, l.chemin)};
+  c.drawImage(terrain.img, ox, oy);
+  c.drawImage(sentier.img, ox, oy);
+
+  c.strokeStyle = 'rgba(0,0,0,.10)'; c.lineWidth = 1;
+  for (let x = 1; x < cfg.LARGEUR; x++){ c.beginPath();
     c.moveTo(ox + x * T + .5, oy); c.lineTo(ox + x * T + .5, oy + T * cfg.HAUTEUR); c.stroke(); }
-  for (let y = 0; y <= cfg.HAUTEUR; y++){ c.beginPath();
+  for (let y = 1; y < cfg.HAUTEUR; y++){ c.beginPath();
     c.moveTo(ox, oy + y * T + .5); c.lineTo(ox + T * cfg.LARGEUR, oy + y * T + .5); c.stroke(); }
 
-  c.fillStyle = 'rgba(255,255,255,.18)';
-  c.fillRect(ox + cfg.entree.x * T, oy + cfg.entree.y * T, T, T);
-  c.fillStyle = 'rgba(220,60,60,.30)';
-  c.fillRect(ox + cfg.exit.x * T, oy + cfg.exit.y * T, T, T);
+  c.save();                                          // rien ne deborde du plateau
+  c.beginPath(); c.rect(ox, oy, T * cfg.LARGEUR, T * cfg.HAUTEUR); c.clip();
+  dessinerEntree(c, cfg, T, ox, oy);
+  dessinerSortie(c, cfg, T, ox, oy);
+  c.restore();
+  c.strokeStyle = 'rgba(10,9,16,.55)'; c.lineWidth = 2;   // cadre du plateau
+  c.strokeRect(ox + 1, oy + 1, T * cfg.LARGEUR - 2, T * cfg.HAUTEUR - 2);
 
-  if (l.chemin){                                    // le trajet, en clair
-    c.fillStyle = 'rgba(255,255,255,.13)';
-    for (const i of l.chemin){
-      const x = i % cfg.LARGEUR, y = (i / cfg.LARGEUR) | 0;
-      c.fillRect(ox + x * T + T * .3, oy + y * T + T * .3, T * .4, T * .4);
-    }
-  } else {
-    c.fillStyle = 'rgba(230,70,60,.22)'; c.fillRect(ox, oy, T * cfg.LARGEUR, T * cfg.HAUTEUR);
+  if (!l.chemin){                                   // couloir scelle : on le dit
+    c.fillStyle = 'rgba(230,70,60,.18)'; c.fillRect(ox, oy, T * cfg.LARGEUR, T * cfg.HAUTEUR);
   }
 
   const tailleSprite = Math.round(T * 1.5);   // la tour deborde sa case, comme dans l'original
@@ -138,7 +143,7 @@ function dessinerJeu(){
   }
   return {T, ox, oy};
 }
-let survol = null, geo = {T:1, ox:0, oy:0};
+let survol = null, geo = {T:1, ox:0, oy:0}, terrain = null, sentier = null;
 
 /* ---- bandeaux ------------------------------------------------------------ */
 function majBandeau(){
@@ -281,7 +286,7 @@ function brancher(){
   });
   document.getElementById('lignes').addEventListener('click', e => {
     const b = e.target.closest('[data-ligne]'); if (!b) return;
-    ligneVue = +b.dataset.ligne; selection = null; enMain = null; panneau();
+    ligneVue = +b.dataset.ligne; selection = null; enMain = null; sentier = null; panneau();
   });
   document.getElementById('vitesse').addEventListener('click', e => {
     acceleration = acceleration === 1 ? 2 : acceleration === 2 ? 4 : 1;
