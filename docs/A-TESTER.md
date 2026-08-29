@@ -55,27 +55,49 @@ chacun-pour-soi, pas un réglage.
 les rapports. Mon joueur simulé est fruste — c'est ton retour qui tranche.
 
 
-## Les bots font maintenant un vrai labyrinthe
+## Les bots font maintenant un vrai labyrinthe, et pas le même
 
 Ils construisaient « n'importe comment » pour une raison bête : leur gabarit se
 remplissait **rangée par rangée**, et un mur ne dévie rien tant qu'il n'est pas
 fini. Avec le budget de défense qu'ils avaient (120 à 200 or), ils n'en
-terminaient jamais une seule. Deux corrections :
+terminaient jamais une seule. Trois corrections :
 
-- le budget est réparé (voir plus haut), ils montent donc 55 à 60 tours ;
+- le budget est réparé (voir plus haut), ils montent 60 à 75 tours ;
+- **dix gabarits** différents, tirés au sort par ligne — quatre lignes voisines
+  ne se ressemblent plus ;
 - une fois le squelette posé, chaque tour suivante est **choisie** : on essaie
   chaque case libre, on recalcule le trajet, et on garde celles qui
-  l'**allongent** le plus — en écartant toute case qui scellerait la ligne.
+  l'**allongent** le plus, en écartant toute case qui scellerait la ligne.
 
-Résultat : le trajet passe de 13 cases à **55**. Et comme le choix est tiré
-parmi les cinq meilleures cases plutôt que systématiquement la première, deux
-bots de même niveau ne bâtissent pas le même labyrinthe.
+Le trajet passe de 13 cases à **33 à 57 selon la ligne**.
 
-> À noter : une tour isolée n'allonge **jamais** le trajet sur une grille
-> ouverte — le monstre la contourne pour le même prix. Il faut bâtir des murs,
-> et les cases du milieu ne rapportent rien sur le coup. C'est pour ça qu'un
-> bot purement glouton ne posait plus rien du tout, et pourquoi le gabarit
-> reste nécessaire comme squelette.
+> **Ce que la géométrie impose.** On entre par le haut et on sort par le bas :
+> un mur **vertical** ne dévie donc presque rien, le monstre le longe pour le
+> même prix. Mesuré : un gabarit en colonnes donnait un trajet de 13 cases,
+> exactement le trajet à vide ; une spirale et des murs brisés plafonnaient à
+> 21. Les dix gabarits sont donc tous faits de murs horizontaux — ce qui varie,
+> c'est **où sont les brèches** (bord, rentrée d'une case, position libre),
+> **l'écart entre les murs** (2 ou 3 cases) et le côté de départ. L'affinage
+> glouton fait le reste, et produit régulièrement des tracés verticaux ou en
+> crochet qu'aucun gabarit ne contenait.
+>
+> Autre chose apprise en le codant : une tour **isolée** n'allonge jamais le
+> trajet. Un algorithme purement glouton ne posait donc plus rien après la
+> première tour — il faut bâtir des murs, et les cases du milieu ne rapportent
+> rien sur le coup. C'est pourquoi le gabarit reste nécessaire comme squelette.
+
+L'échelle mesurée sur **huit** graines, avec la stratégie du rapport de partie
+(treize tours de guet, aucune amélioration, spam du meilleur rapport) :
+
+| Bots | Le spam gagne | Vies restantes |
+|---|---:|---:|
+| Débutant | 8/8 | 40 |
+| Normal | 6/8 | 30 |
+| Agressif | 3/8 | 15 |
+| Impitoyable | 2/8 | 10 |
+
+Monotone sur les deux colonnes, et c'est le test qui le vérifie — pas un nombre
+de victoires figé, mais **l'échelle elle-même**.
 
 ## Durées mesurées
 

@@ -20,6 +20,7 @@ function creerLigne(cfg, prof, i, estJoueur){
        fin ne racontent pas la partie : il faut savoir ce qui a ete bati, monte,
        vendu et surtout DETRUIT. */
     construits: {}, montees: {}, vendues: 0, detruites: 0,
+    style: 0, poseGabarit: 0,            // quel gabarit de labyrinthe, et ou on en est
     occupe: new Int32Array(cfg.LARGEUR * cfg.HAUTEUR).fill(-1),
     chemin: null, scellee: false, mort: false,
     prochainBot: 60 + i * 17          // decale les bots pour qu'ils ne jouent pas a l'unisson
@@ -53,6 +54,9 @@ function creerPartie({graine = 12345, profil = 'BLITZ', joueurs = 4,
     }
     etat.lignes.push(l);
   }
+  /* Chaque ligne tire son gabarit : sept lignes qui alignent les memes rangees
+     horizontales, ca ne ressemble pas a une partie. */
+  for (const l of etat.lignes) l.style = etat.rng.entre(0, PLANS.length - 1);
   etat.lignes.forEach(l => recalculerChemin(etat, l));
   return etat;
 }
@@ -458,23 +462,58 @@ function posesUtiles(etat, l){
   return cands;
 }
 
-/* Le squelette du labyrinthe : cinq murs pleins, la breche alternant d'un
-   cote a l'autre. Une tour isolee n'allonge JAMAIS le trajet sur une grille
-   ouverte — le monstre la contourne pour le meme prix — donc un bot purement
-   glouton ne pose jamais rien. Il faut batir des MURS, et les cases du milieu
-   ne rapportent rien sur le coup. D'ou ce gabarit, monte rangee par rangee,
-   avant tout affinage. */
-function planMaze(cfg){
+/* Les squelettes de labyrinthe. Une tour ISOLEE n'allonge jamais le trajet sur
+   une grille ouverte — le monstre la contourne pour le meme prix — donc il faut
+   batir des MURS, et les cases du milieu ne rapportent rien sur le coup. D'ou
+   ces gabarits, montes case par case avant tout affinage glouton.
+     Il en faut plusieurs : avec un seul, les sept lignes se ressemblaient et
+   tout le monde alignait les memes rangees horizontales. Chaque joueur en tire
+   un au sort au debut de la partie, et le glouton le deforme ensuite. */
+/* Un mur VERTICAL ne devie presque rien ici : on entre par le haut, on sort par
+   le bas, donc le monstre le longe pour le meme prix. Mesure : un gabarit en
+   colonnes donnait un trajet de treize cases — exactement le trajet a vide. Une
+   spirale et des murs brises faisaient a peine mieux (21), parce qu'ils
+   laissaient tous un couloir droit sur un bord.
+     La seule structure fiable est le mur horizontal perce d'une breche, en
+   alternance. On la PARAMETRE donc plutot que d'inventer des formes qui ne
+   devient rien : cote de depart, ecart entre les murs, breche sur le bord ou
+   rentree d'une case. Huit combinaisons, toutes efficaces, toutes differentes
+   a l'oeil — et le glouton les deforme ensuite. */
+function planSerpentin(cfg, {depart = 0, ecart = 2, rentre = 0} = {}){
   const plan = [];
-  for (let r = 0; r < 5; r++){
-    const y = 2 + r * 2, gauche = r % 2 === 0;
-    for (let x = 0; x < cfg.LARGEUR; x++){
-      if (gauche ? x === cfg.LARGEUR - 1 : x === 0) continue;   // la breche
-      plan.push({x, y});
-    }
+  for (let y = 2, r = 0; y <= cfg.HAUTEUR - 3; y += ecart, r++){
+    const gauche = (r + depart) % 2 === 0;
+    const trou = gauche ? cfg.LARGEUR - 1 - rentre : rentre;
+    for (let x = 0; x < cfg.LARGEUR; x++) if (x !== trou) plan.push({x, y});
   }
   return plan;
 }
+/* Breches ni sur un bord ni en alternance reguliere : le trace part dans tous
+   les sens au lieu de balayer. */
+function planDecale(cfg){
+  const plan = [];
+  const breches = [2, 6, 1, 7, 3];
+  for (let r = 0; r < 5; r++){
+    const y = 2 + r * 2, trou = breches[r];
+    for (let x = 0; x < cfg.LARGEUR; x++) if (x !== trou) plan.push({x, y});
+  }
+  return plan;
+}
+/* Dents courtes : beaucoup d'air autour, un trace plus lache. */
+function planPeigne(cfg){
+  const plan = [];
+  for (let r = 0; r < 6; r++){
+    const y = 2 + r * 2, gauche = r % 2 === 0;
+    const n = Math.floor(cfg.LARGEUR * 0.7);
+    for (let k = 0; k < n; k++)
+      plan.push({x: gauche ? k : cfg.LARGEUR - 1 - k, y});
+  }
+  return plan;
+}
+const PLANS = [];
+for (const depart of [0, 1]) for (const ecart of [2, 3]) for (const rentre of [0, 1])
+  PLANS.push(cfg => planSerpentin(cfg, {depart, ecart, rentre}));
+PLANS.push(planDecale, planPeigne);
 
 /* Sans maze : un bloc compact, mauvais et lisible comme tel. */
 function planBloc(cfg){
@@ -482,11 +521,11 @@ function planBloc(cfg){
   for (let y = 4; y <= 8; y++) for (let x = 2; x <= 6; x++) plan.push({x, y});
   return plan;
 }
-let PLAN_MAZE = null, PLAN_BLOC = null;
+let PLANS_CUITS = null, PLAN_BLOC = null;
 
 function bots(etat){
   const cfg = etat.cfg, d = etat.diff;
-  if (!PLAN_MAZE){ PLAN_MAZE = planMaze(cfg); PLAN_BLOC = planBloc(cfg); }
+  if (!PLANS_CUITS){ PLANS_CUITS = PLANS.map(f => f(cfg)); PLAN_BLOC = planBloc(cfg); }
   for (const l of etat.lignes){
     if (l.estJoueur || l.mort) continue;
 
@@ -508,8 +547,18 @@ function bots(etat){
       if (d.maze){
         /* Le squelette d'abord — un mur ne devie rien tant qu'il n'est pas
            fini — puis l'affinage case par case. */
-        const p = PLAN_MAZE[l.batiments.length];
-        if (p && l.occupe[p.y * cfg.LARGEUR + p.x] < 0) place = p;
+        const gabarit = PLANS_CUITS[l.style % PLANS_CUITS.length];
+        const p = gabarit[l.poseGabarit];
+        /* Une case du gabarit qui scellerait la ligne est SAUTEE, pas posee :
+           le Controleur viendrait la raser et le bot aurait paye pour rien. */
+        if (p && l.occupe[p.y * cfg.LARGEUR + p.x] < 0){
+          const j = p.y * cfg.LARGEUR + p.x;
+          l.occupe[j] = 0x3fffffff;
+          const libre = calculerChemin(cfg, l.occupe, null) !== null;
+          l.occupe[j] = -1;
+          if (libre) place = p;
+        }
+        if (p) l.poseGabarit++;
         else {
           /* On tire parmi les meilleures poses, pas systematiquement la
              premiere : deux bots de meme niveau ne doivent pas batir le meme

@@ -209,7 +209,7 @@ const DIFFICULTES = {
   agressif:    {nom:'Agressif',    intervalle:[26, 40],  partEnvois:0.62, partDefense:0.34,
                 maze:true,  ameliore:true,  branches:true,  poseTous:6, siege:true,
                 biais:0.45, saute:8,  partRatio:72},
-  impitoyable: {nom:'Impitoyable', intervalle:[16, 26],  partEnvois:0.66, partDefense:0.32,
+  impitoyable: {nom:'Impitoyable', intervalle:[16, 26],  partEnvois:0.62, partDefense:0.38,
                 maze:true,  ameliore:true,  branches:true,  poseTous:4, siege:true,
                 biais:0.33, saute:3,  partRatio:88}
 };

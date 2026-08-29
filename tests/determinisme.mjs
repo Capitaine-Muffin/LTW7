@@ -406,13 +406,23 @@ function romain(graine, diff){
    les bots sont durs, moins cette strategie doit passer. Avant correction elle
    gagnait cinq fois sur cinq partout, et « agressif » etait plus facile que
    « normal ». */
-const graines5 = [142521, 698652, 17693, 4242, 999];
-const gagnees = d => graines5.map(g => romain(g, d)).filter(x => x.gagne).length;
-const echelle = ['facile', 'normal', 'agressif', 'impitoyable'].map(gagnees);
-dire(echelle[0] === 5, `debutant : le spam passe encore (${echelle[0]}/5), c'est le but`);
-dire(echelle[3] === 0, `impitoyable : le spam ne passe plus (${echelle[3]}/5)`);
-dire(echelle[0] > echelle[1] && echelle[1] >= echelle[2] && echelle[2] > echelle[3],
-  `l'echelle decroit : ${echelle.join(' > ')}`);
+/* Huit graines plutot que cinq : a quatre joueurs en chacun-pour-soi, une
+   partie sur cinq se decide sur un coup de des, et une assertion sur cinq
+   tirages bougerait a chaque reglage. */
+const graines8 = [142521, 698652, 17693, 4242, 999, 31337, 777, 5150];
+const bilan = d => {
+  const r = graines8.map(g => romain(g, d));
+  return {gagnees: r.filter(x => x.gagne).length,
+          vies: Math.round(r.reduce((a, x) => a + x.vies, 0) / r.length)};
+};
+const ech = ['facile','normal','agressif','impitoyable'].map(bilan);
+const dit = i => `${ech[i].gagnees}/8 (${ech[i].vies} vies)`;
+dire(ech[0].gagnees >= 7, `debutant : le spam passe encore ${dit(0)}, c'est le but`);
+dire(ech[1].gagnees < ech[0].gagnees, `normal est plus dur que debutant : ${dit(1)}`);
+dire(ech[2].gagnees < ech[1].gagnees, `agressif est plus dur que normal : ${dit(2)}`);
+dire(ech[3].gagnees <= ech[2].gagnees, `impitoyable n'est pas plus facile : ${dit(3)}`);
+dire(ech[3].vies <= ech[1].vies,
+  `et il fait plus mal : ${ech[3].vies} vies contre ${ech[1].vies} en normal`);
 
 console.log(echecs ? `\n${echecs} echec(s)\n` : '\ntout passe\n');
 process.exit(echecs ? 1 : 0);
