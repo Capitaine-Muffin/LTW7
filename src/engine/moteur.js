@@ -414,6 +414,56 @@ function tirerPondere(rng, liste, biais){
 
 /* Serpentin : on laisse une case libre en bout de rangee, alternee, ce qui
    allonge le trajet sans jamais sceller le couloir. */
+/* Ou poser la prochaine tour ? Le plan fixe qui remplissait la grille rangee
+   par rangee ne produisait un labyrinthe qu'une fois DEUX rangees entieres
+   posees — seize tours. Un bot en a rarement plus de treize : il finissait avec
+   un mur perce d'un trou et rien d'autre, ce qui se voit et se dit « ils
+   construisent n'importe comment ».
+     On evalue donc chaque case libre : on l'occupe pour de faux, on recalcule
+   le trajet, et on garde celles qui l'ALLONGENT le plus. C'est exactement le
+   geste d'un joueur qui maze, et il produit naturellement les traces bizarres
+   qu'on voyait dans la map — des crochets, des peignes, des spirales — plutot
+   que des couloirs reguliers. Une case qui SCELLE la ligne est ecartee : le
+   Controleur viendrait la raser, et le bot le sait. */
+function voisinDuChemin(cfg, surChemin, i){
+  const x = i % cfg.LARGEUR, y = (i / cfg.LARGEUR) | 0;
+  let n = 0;
+  for (const [dx, dy] of VOISINS){
+    const a = x + dx, b = y + dy;
+    if (a < 0 || b < 0 || a >= cfg.LARGEUR || b >= cfg.HAUTEUR) continue;
+    if (surChemin.has(b * cfg.LARGEUR + a)) n++;
+  }
+  return n;
+}
+function posesUtiles(etat, l){
+  const cfg = etat.cfg;
+  const base = l.chemin ? l.chemin.length : 0;
+  const surChemin = new Set(l.chemin || []);
+  const cands = [];
+  for (let i = 0; i < l.occupe.length; i++){
+    if (l.occupe[i] >= 0) continue;
+    const x = i % cfg.LARGEUR, y = (i / cfg.LARGEUR) | 0;
+    if (x === cfg.entree.x && y === cfg.entree.y) continue;
+    if (x === cfg.exit.x && y === cfg.exit.y) continue;
+    l.occupe[i] = 0x3fffffff;                       // occupation d'essai
+    const ch = calculerChemin(cfg, l.occupe, null);
+    l.occupe[i] = -1;
+    if (!ch) continue;                              // scellerait la ligne
+    cands.push({x, y, i, gain: ch.length - base, colle: surChemin.has(i) ? 0 : voisinDuChemin(cfg, surChemin, i)});
+  }
+  /* Tri strictement determine : d'abord ce qui allonge le trajet, ensuite ce
+     qui le borde — une tour collee au couloir tire plus longtemps qu'une tour
+     posee au fond du terrain. */
+  cands.sort((a, b) => b.gain - a.gain || b.colle - a.colle || a.i - b.i);
+  return cands;
+}
+
+/* Le squelette du labyrinthe : cinq murs pleins, la breche alternant d'un
+   cote a l'autre. Une tour isolee n'allonge JAMAIS le trajet sur une grille
+   ouverte — le monstre la contourne pour le meme prix — donc un bot purement
+   glouton ne pose jamais rien. Il faut batir des MURS, et les cases du milieu
+   ne rapportent rien sur le coup. D'ou ce gabarit, monte rangee par rangee,
+   avant tout affinage. */
 function planMaze(cfg){
   const plan = [];
   for (let r = 0; r < 5; r++){
@@ -425,6 +475,7 @@ function planMaze(cfg){
   }
   return plan;
 }
+
 /* Sans maze : un bloc compact, mauvais et lisible comme tel. */
 function planBloc(cfg){
   const plan = [];
@@ -452,12 +503,25 @@ function bots(etat){
     const plafondTours = Math.max(plancherTours,
       (l.depenseEnvois + 90) * (1 - d.partEnvois) / d.partEnvois);
     if (etat.pas % d.poseTous === 0 && l.depenseTours < plafondTours){
-      const plan = d.maze ? PLAN_MAZE : PLAN_BLOC;
-      const place = plan[l.batiments.length];
-      if (place && l.occupe[place.y * cfg.LARGEUR + place.x] < 0){
-        const type = (l.batiments.length % 3 === 0) ? 'epine' : 'guet';
-        poserBatiment(etat, l, type, place.x, place.y);
+      const type = (l.batiments.length % 3 === 0) ? 'epine' : 'guet';
+      let place = null;
+      if (d.maze){
+        /* Le squelette d'abord — un mur ne devie rien tant qu'il n'est pas
+           fini — puis l'affinage case par case. */
+        const p = PLAN_MAZE[l.batiments.length];
+        if (p && l.occupe[p.y * cfg.LARGEUR + p.x] < 0) place = p;
+        else {
+          /* On tire parmi les meilleures poses, pas systematiquement la
+             premiere : deux bots de meme niveau ne doivent pas batir le meme
+             labyrinthe, et un joueur humain ne trouve pas toujours l'optimum. */
+          const cands = posesUtiles(etat, l);
+          if (cands.length) place = tirerPondere(etat.rng, cands.slice(0, 5), d.biais);
+        }
+      } else {
+        const p = PLAN_BLOC[l.batiments.length];
+        if (p && l.occupe[p.y * cfg.LARGEUR + p.x] < 0) place = p;
       }
+      if (place) poserBatiment(etat, l, type, place.x, place.y);
       /* Monter les tours, et les monter LOIN. Une tour de guet a 100 points de
          vie ne survit pas une seconde a un briseur de fin de partie : un bot
          riche qui continue de poser des tours a 10 or n'a plus de defense du

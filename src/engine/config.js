@@ -199,17 +199,17 @@ const DIFFICULTES = {
   facile:      {nom:'Débutant',    intervalle:[150, 230], partEnvois:0.34, partDefense:0.45,
                 maze:false, ameliore:false, branches:false, poseTous:11,
                 biais:0.92, saute:30, partRatio:20},
-  normal:      {nom:'Normal',      intervalle:[70, 110],  partEnvois:0.50, partDefense:0.38,
+  normal:      {nom:'Normal',      intervalle:[55, 85],  partEnvois:0.50, partDefense:0.38,
                 maze:true,  ameliore:false, branches:false, poseTous:8,
                 biais:0.62, saute:16, partRatio:42},
   /* 0,80 et non 0,70 : en dessous, un bot Agressif construit assez pour rendre
      sa ligne imprenable sans envoyer assez pour prendre celle des autres, et
      deux d'entre eux se bloquent au-dela de trente minutes. Le creux
      « defense forte, offense moyenne » est le pire endroit ou se placer. */
-  agressif:    {nom:'Agressif',    intervalle:[34, 54],  partEnvois:0.62, partDefense:0.34,
+  agressif:    {nom:'Agressif',    intervalle:[26, 40],  partEnvois:0.62, partDefense:0.34,
                 maze:true,  ameliore:true,  branches:true,  poseTous:6, siege:true,
                 biais:0.45, saute:8,  partRatio:72},
-  impitoyable: {nom:'Impitoyable', intervalle:[22, 36],  partEnvois:0.66, partDefense:0.32,
+  impitoyable: {nom:'Impitoyable', intervalle:[16, 26],  partEnvois:0.66, partDefense:0.32,
                 maze:true,  ameliore:true,  branches:true,  poseTous:4, siege:true,
                 biais:0.33, saute:3,  partRatio:88}
 };

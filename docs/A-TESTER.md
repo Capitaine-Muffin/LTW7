@@ -42,9 +42,9 @@ Résultat, sur cinq graines :
 | Bots | Spam pur | Construire + améliorer + envoyer |
 |---|---:|---:|
 | Débutant | gagne 5/5 | gagne 5/5 |
-| Normal | **0/5** | 4/5 |
-| Agressif | **1/5** | 3/5 |
-| Impitoyable | 4/5 * | 0/5 |
+| Normal | 3/5 | 5/5 |
+| Agressif | 2/5 | 2/5 |
+| Impitoyable | **0/5** | 0/5 |
 
 \* En Impitoyable les bots s'entretuent si vite qu'un joueur qui ne fait que
 spammer survit par accident, sur les vies qu'il vole. Pour un joueur qui joue
@@ -54,6 +54,28 @@ chacun-pour-soi, pas un réglage.
 **Ce qu'il me faut de toi** : rejoue en Normal puis en Agressif et envoie-moi
 les rapports. Mon joueur simulé est fruste — c'est ton retour qui tranche.
 
+
+## Les bots font maintenant un vrai labyrinthe
+
+Ils construisaient « n'importe comment » pour une raison bête : leur gabarit se
+remplissait **rangée par rangée**, et un mur ne dévie rien tant qu'il n'est pas
+fini. Avec le budget de défense qu'ils avaient (120 à 200 or), ils n'en
+terminaient jamais une seule. Deux corrections :
+
+- le budget est réparé (voir plus haut), ils montent donc 55 à 60 tours ;
+- une fois le squelette posé, chaque tour suivante est **choisie** : on essaie
+  chaque case libre, on recalcule le trajet, et on garde celles qui
+  l'**allongent** le plus — en écartant toute case qui scellerait la ligne.
+
+Résultat : le trajet passe de 13 cases à **55**. Et comme le choix est tiré
+parmi les cinq meilleures cases plutôt que systématiquement la première, deux
+bots de même niveau ne bâtissent pas le même labyrinthe.
+
+> À noter : une tour isolée n'allonge **jamais** le trajet sur une grille
+> ouverte — le monstre la contourne pour le même prix. Il faut bâtir des murs,
+> et les cases du milieu ne rapportent rien sur le coup. C'est pour ça qu'un
+> bot purement glouton ne posait plus rien du tout, et pourquoi le gabarit
+> reste nécessaire comme squelette.
 
 ## Durées mesurées
 
