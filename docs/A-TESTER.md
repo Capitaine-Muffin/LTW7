@@ -19,24 +19,41 @@ recopier**, sinon « c'est trop dur » n'est pas exploitable.
 
 ## Le spam n'est plus une stratégie
 
-Retour de partie : « j'ai juste spam les mobs et ça a tué tout le monde ». Ça
-marchait parce que les bots agressifs ne construisaient presque rien à
-l'ouverture — corrigé. Trois façons de jouer, mesurées à armes égales sur cinq
-graines, en Blitz :
+Calé sur une vraie partie : **graine 142521, Blitz, bots Agressif** — treize
+tours de guet, aucune amélioration, aucune technologie, et du spam du meilleur
+rapport. Gagnée en 80 s avec 37 vies sur 39. Trois défauts en sortaient :
 
-| Stratégie du joueur | Bots normaux | Bots agressifs | Bots impitoyables |
-|---|---:|---:|---:|
-| **Spam seul** (aucune tour) | 53 s | 38 s | 37 s |
-| **Tours seules** (aucun envoi) | 163 s | 131 s | 118 s |
-| **Les deux** (poser, améliorer, envoyer) | **221 s** | **170 s** | **153 s** |
+1. **Les bots n'investissaient que 120 à 200 or dans leur défense** sur toute la
+   partie. Leur budget de tours était plafonné par le temps ; il est désormais
+   indexé sur ce qu'ils ont réellement gagné — un tiers de leurs revenus leur
+   revient toujours de droit.
+2. **Un bot agressif envoyait un monstre toutes les 6 à 10 secondes**, contre
+   trois par seconde pour un joueur. Son économie ne pouvait pas suivre. Les
+   cadences sont resserrées, sauf en Débutant.
+3. **L'échelle de difficulté était inversée.** « Agressif » mettait 80 % de son
+   or en envois : ce n'était pas de la force, c'était de l'imprudence — il
+   mourait de la main de ses voisins et laissait le joueur gagner par forfait.
+   Un bot plus fort est maintenant un bot mieux **équilibré**, et la difficulté
+   passe par la cadence et par la qualité des achats (`partRatio` : combien
+   d'envois sont choisis au meilleur rapport plutôt qu'au plus gros revenu).
 
-L'ordre est désormais le bon : envoyer sans se défendre est la **pire** façon
-de jouer. Un test bloque tout retour en arrière là-dessus.
+Résultat, sur cinq graines :
 
-⚠️ Aucune de ces trois stratégies ne **gagne** dans le banc de mesure — mais mon
-joueur simulé est fruste (labyrinthe fixe, améliore toujours la tour la moins
-chère, une seule branche). C'est à toi de me dire si les bots sont devenus trop
-durs.
+| Bots | Spam pur | Construire + améliorer + envoyer |
+|---|---:|---:|
+| Débutant | gagne 5/5 | gagne 5/5 |
+| Normal | **0/5** | 4/5 |
+| Agressif | **1/5** | 3/5 |
+| Impitoyable | 4/5 * | 0/5 |
+
+\* En Impitoyable les bots s'entretuent si vite qu'un joueur qui ne fait que
+spammer survit par accident, sur les vies qu'il vole. Pour un joueur qui joue
+vraiment, c'est bien la difficulté la plus dure (0/5). C'est un effet du
+chacun-pour-soi, pas un réglage.
+
+**Ce qu'il me faut de toi** : rejoue en Normal puis en Agressif et envoie-moi
+les rapports. Mon joueur simulé est fruste — c'est ton retour qui tranche.
+
 
 ## Durées mesurées
 

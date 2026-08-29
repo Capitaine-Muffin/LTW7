@@ -373,5 +373,39 @@ for (const d of ['normal', 'agressif', 'impitoyable']){
   dire(s < t, `${d} : spam ${(s/10).toFixed(0)} s contre defense ${(t/10).toFixed(0)} s`);
 }
 
+/* Verrou pose sur une VRAIE partie : rapport du 2026-08-28, graine 142521,
+   Blitz, bots agressifs. Treize tours de guet, aucune amelioration, aucune
+   technologie, et du spam du meilleur rapport — gagne en 80 s avec 37 vies
+   sur 39. Cette strategie ne doit plus passer. */
+console.log('\nle spam pur ne bat plus les bots');
+function romain(graine, diff){
+  const e = M.creerPartie({graine, profil: 'BLITZ', joueurs: 4, difficulte: diff});
+  const l = e.lignes[0], cfg = e.cfg;
+  const ratio = Object.keys(cfg.MONSTRES).sort((a, z) =>
+    cfg.MONSTRES[z].revenu / cfg.MONSTRES[z].or - cfg.MONSTRES[a].revenu / cfg.MONSTRES[a].or);
+  const plan = [];
+  for (let y = 3; y <= 9; y += 3) for (let x = 1; x < 8; x++) plan.push({x, y});
+  for (let i = 0; i < 9000; i++){
+    M.avancer(e);
+    if (l.batiments.length < 13 && plan[l.batiments.length]){
+      const p = plan[l.batiments.length];
+      M.poserBatiment(e, l, 'guet', p.x, p.y);
+    }
+    for (let k = 0; k < 3; k++){
+      let fait = false;
+      for (const t of ratio) if (M.envoyer(e, l, t)){ fait = true; break; }
+      if (!fait) break;
+    }
+    if (e.fini || l.mort) break;
+  }
+  return {gagne: e.vainqueur === 0, vies: l.vies};
+}
+for (const d of ['normal', 'agressif']){
+  const r = [142521, 698652, 17693, 4242, 999].map(g => romain(g, d));
+  const g = r.filter(x => x.gagne).length;
+  dire(g <= 1, `${d} : le spam gagne ${g} fois sur 5 (il en gagnait 5)`);
+}
+dire(romain(142521, 'facile').gagne, 'debutant : le spam passe encore, c\'est le but');
+
 console.log(echecs ? `\n${echecs} echec(s)\n` : '\ntout passe\n');
 process.exit(echecs ? 1 : 0);

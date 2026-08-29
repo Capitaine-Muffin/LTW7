@@ -10,6 +10,7 @@ function creerLigne(cfg, prof, i, estJoueur){
   return {
     i, estJoueur, nom: estJoueur ? 'Toi' : 'Bot ' + i,
     or: prof.or, revenu: prof.revenu, vies: prof.vies, bois: prof.bois,
+    gagne: prof.or,                      // tout l'or touche depuis le debut
     branches: {}, feuilles: {}, batiments: [], monstres: [],
     depenseTours: 0, depenseEnvois: 0,   // sert au partage or/envois des bots
     stock: {}, prochainStock: {},        // chronologie de deblocage (voir config)
@@ -189,7 +190,7 @@ function avancer(etat){
        - les elimines ne touchent rien (ils sortent de la force ThePlayers) ;
        - le versement s'arrete des qu'il ne reste qu'un joueur. */
   if (etat.pas % etat.prof.tickRevenu === 0 && etat.lignes.filter(l => !l.mort).length > 1)
-    for (const l of etat.lignes) if (!l.mort) l.or += l.revenu;
+    for (const l of etat.lignes) if (!l.mort){ l.or += l.revenu; l.gagne += l.revenu; }
 
   /* Rechargement des stocks. */
   for (const l of etat.lignes){
@@ -438,22 +439,16 @@ function bots(etat){
   for (const l of etat.lignes){
     if (l.estJoueur || l.mort) continue;
 
-    /* Construire — mais pas au point d'etouffer l'economie. La communaute LTW
-       s'accorde sur environ 60 % de l'or en envois : un bot qui met tout dans
-       ses tours meurt etrangle vingt secondes plus tard. On borne donc la
-       depense en tours par rapport a la depense en envois.
-         MAIS ce rapport vaut sur toute la partie, pas des la premiere seconde.
-       Tel quel, un bot agressif n'avait droit qu'a vingt-deux pieces d'or de
-       tours au depart — deux tours de guet — et tenait sa ligne avec ca pendant
-       trente secondes. Le premier joueur qui envoyait serieusement le pliait en
-       dix secondes, et la partie etait finie avant d'avoir commence.
-         D'ou un PLANCHER qui monte avec le temps : quoi qu'il ait envoye, un
-       bot a toujours le droit de tenir debout. */
-    /* Le plancher ne protege que l'ouverture : passe quarante secondes, les
-       envois ont assez grossi pour que le rapport reprenne la main. Sans ce
-       plafond au plancher, quatre bots egaux se blindaient a l'infini et une
-       partie Classique agressive durait vingt-trois minutes. */
-    const plancherTours = 45 + Math.min(etat.pas, 400) * 0.30;
+    /* Construire. Le rapport 60/33 de la communaute LTW borne la depense en
+       tours par la depense en envois — mais tel quel il etranglait la defense :
+       un bot agressif finissait une partie de 80 s avec 200 pieces d'or de
+       tours, soit cinq tours de guet ameliorees une fois. Un joueur qui envoie
+       quatre-vingt-dix monstres passe au travers sans ralentir.
+         Le plancher est donc indexe sur ce que le bot a REELLEMENT TOUCHE
+       depuis le debut : il a toujours le droit d'avoir mis un tiers de ses
+       gains dans sa defense. Cela monte tout seul avec l'economie, au debut
+       comme a la fin, sans constante de temps a regler. */
+    const plancherTours = l.gagne * d.partDefense;
     const plafondTours = Math.max(plancherTours,
       (l.depenseEnvois + 90) * (1 - d.partEnvois) / d.partEnvois);
     if (etat.pas % d.poseTous === 0 && l.depenseTours < plafondTours){
@@ -508,6 +503,7 @@ function bots(etat){
          or pour la fenetre suivante. */
       if (etat.rng.entre(1, 100) <= d.saute) continue;
       let budget = Math.floor(l.or * d.partEnvois);
+      const cible = etat.lignes[voisin(etat, l.i)];
       const cles = Object.keys(cfg.MONSTRES);
       /* Ce qui est rare change au fil de la partie. Au debut c'est l'or, donc
          le bon critere est le revenu par piece. Plus tard l'or ne manque plus
@@ -521,10 +517,18 @@ function bots(etat){
         (cfg.MONSTRES[b].revenu / cfg.MONSTRES[b].or) - (cfg.MONSTRES[a].revenu / cfg.MONSTRES[a].or));
       const parPrix = [...cles].sort((a, b) => cfg.MONSTRES[b].or - cfg.MONSTRES[a].or);
       l.envoisFaits = (l.envoisFaits || 0) + 1;
-      const percee = d.ameliore && l.envoisFaits % 4 === 0;   // percee ponctuelle
-      /* Les bots qui savent jouer alternent : voler des vies, puis raser la
-         defense pour que les envois suivants passent tout seuls. */
-      const siege = d.siege && l.envoisFaits % 3 === 0;
+      /* Briseurs et percees etaient declenches a cadence fixe, sans regarder la
+         cible. Contre un adversaire qui n'a que treize tours de guet, raser sa
+         defense coute cher et ne vole aucune vie : les bots durs se ruinaient
+         a cela pendant qu'un joueur leur volait la partie. L'echelle de
+         difficulte s'en trouvait inversee — « agressif » perdait la ou
+         « normal » gagnait.
+           Desormais les deux sont CONDITIONNES a l'etat de la cible : on ne
+         casse une defense que s'il y en a une, et on ne paye la percee que
+         lorsqu'on est reellement riche. */
+      const defenseAdverse = cible ? cible.batiments.length : 0;
+      const siege = d.siege && defenseAdverse >= 9 && l.envoisFaits % 3 === 0;
+      const percee = d.ameliore && defenseAdverse >= 6 && l.or > budget * 2.5;
       if (siege){
         const briseurs = cles.filter(k => cfg.MONSTRES[k].siege && cfg.MONSTRES[k].or <= budget
             && !cfg.MONSTRES[k].sacrifice && disponible(etat, l, k))
@@ -542,10 +546,13 @@ function bots(etat){
         if (percee && n === 0){
           cle = tirerPondere(etat.rng, parPrix.filter(abordable), d.biais);
         } else {
-          /* Le classement melange les deux criteres — revenu par envoi et
-             revenu par piece — puis on tire dedans. Le bot va souvent vers le
-             bon choix, rarement vers l'excellent, parfois a cote. */
-          const ordre = etat.rng.entre(0, 2) === 0 ? parRatio : parRevenu;
+          /* Le classement melange les deux criteres — revenu par piece et
+             revenu par envoi — puis on tire dedans. Le bot va souvent vers le
+             bon choix, rarement vers l'excellent, parfois a cote.
+               La proportion depend de la difficulte : un bon joueur farme au
+             rapport, un debutant claque son or sur le plus gros monstre
+             disponible. */
+          const ordre = etat.rng.entre(1, 100) <= d.partRatio ? parRatio : parRevenu;
           cle = tirerPondere(etat.rng, ordre.filter(abordable), d.biais);
         }
         if (!cle || !envoyer(etat, l, cle)) break;

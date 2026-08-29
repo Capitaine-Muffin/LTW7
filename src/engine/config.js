@@ -177,29 +177,41 @@ const PROFILS = {
    mal et envoie peu ; un bot impitoyable maze, ameliore, achete ses branches
    et reinvestit la quasi-totalite de son or. */
 const DIFFICULTES = {
-  /* `biais` : a quel point le bot choisit VRAIMENT le meilleur envoi.
+  /* `partEnvois` : la part de l'or qui part en envois. Ce n'etait pas une
+     echelle de difficulte mais une echelle d'IMPRUDENCE : a 0,80, un bot
+     « agressif » ne se defendait plus et mourait de la main de ses voisins,
+     ce qui laissait le joueur gagner par forfait. Un bot plus fort est un bot
+     mieux EQUILIBRE — la difficulte est portee par la cadence et par la
+     qualite des choix, pas par le desequilibre.
+     `partRatio` : sur cent envois, combien sont choisis au meilleur RAPPORT
+     revenu/or plutot qu'au plus gros revenu brut. C'est la difference entre un
+     joueur qui farme et un joueur qui claque son or. Elle monte avec la
+     difficulte — sans elle, un bot « impitoyable » achetait plus souvent que
+     les autres les monstres au plus mauvais rapport, et finissait plus pauvre
+     qu'un bot « normal ». L'echelle de difficulte etait inversee.
+     `biais` : a quel point le bot choisit VRAIMENT le meilleur envoi.
      1,0 = il tire au hasard parmi ce qu'il peut s'offrir. Plus on descend, plus
      il privilegie le bon choix — mais jamais au point d'etre previsible. Un bot
      qui joue toujours l'optimum se lit en une partie et devient ennuyeux bien
      avant d'etre difficile.
      `saute` : probabilite sur 100 de laisser passer une fenetre d'envoi, comme
      un joueur qui hesite ou qui garde son or. */
-  facile:      {nom:'Débutant',    intervalle:[150, 230], partEnvois:0.30,
+  facile:      {nom:'Débutant',    intervalle:[150, 230], partEnvois:0.34, partDefense:0.45,
                 maze:false, ameliore:false, branches:false, poseTous:11,
-                biais:0.92, saute:30},
-  normal:      {nom:'Normal',      intervalle:[95, 150],  partEnvois:0.55,
+                biais:0.92, saute:30, partRatio:20},
+  normal:      {nom:'Normal',      intervalle:[70, 110],  partEnvois:0.50, partDefense:0.38,
                 maze:true,  ameliore:false, branches:false, poseTous:8,
-                biais:0.62, saute:16},
+                biais:0.62, saute:16, partRatio:42},
   /* 0,80 et non 0,70 : en dessous, un bot Agressif construit assez pour rendre
      sa ligne imprenable sans envoyer assez pour prendre celle des autres, et
      deux d'entre eux se bloquent au-dela de trente minutes. Le creux
      « defense forte, offense moyenne » est le pire endroit ou se placer. */
-  agressif:    {nom:'Agressif',    intervalle:[62, 100],  partEnvois:0.80,
+  agressif:    {nom:'Agressif',    intervalle:[34, 54],  partEnvois:0.62, partDefense:0.34,
                 maze:true,  ameliore:true,  branches:true,  poseTous:6, siege:true,
-                biais:0.45, saute:8},
-  impitoyable: {nom:'Impitoyable', intervalle:[45, 72],   partEnvois:0.82,
+                biais:0.45, saute:8,  partRatio:72},
+  impitoyable: {nom:'Impitoyable', intervalle:[22, 36],  partEnvois:0.66, partDefense:0.32,
                 maze:true,  ameliore:true,  branches:true,  poseTous:4, siege:true,
-                biais:0.33, saute:3}
+                biais:0.33, saute:3,  partRatio:88}
 };
 
 const CONFIG = {
