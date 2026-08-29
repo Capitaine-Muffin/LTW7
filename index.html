@@ -309,7 +309,7 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
 <script>
 
 /* ===== version ===== */
-const VERSION = "2026-08-29 09h37 facf2f2";
+const VERSION = "2026-08-29 12h34 f782c62";
 
 /* ===== art/sprites.js ===== */
 const N=48;
@@ -2273,6 +2273,11 @@ function bots(etat){
        depuis le debut : il a toujours le droit d'avoir mis un tiers de ses
        gains dans sa defense. Cela monte tout seul avec l'economie, au debut
        comme a la fin, sans constante de temps a regler. */
+    /* Le plancher part de l'or de DEPART, pas d'une fraction de celui-ci : dans
+       les quinze premieres secondes, un tiers des gains ne fait que deux tours
+       de guet, et un joueur qui envoie des la premiere seconde passe au
+       travers. Un humain, lui, met presque toute sa mise de depart dans sa
+       defense avant de penser a attaquer. */
     const plancherTours = l.gagne * d.partDefense;
     const plafondTours = Math.max(plancherTours,
       (l.depenseEnvois + 90) * (1 - d.partEnvois) / d.partEnvois);
@@ -2350,7 +2355,13 @@ function bots(etat){
       /* Il arrive qu'on laisse passer son tour : un joueur hesite, ou garde son
          or pour la fenetre suivante. */
       if (etat.rng.entre(1, 100) <= d.saute) continue;
-      let budget = Math.floor(l.or * d.partEnvois);
+      /* On met de cote ce qui manque encore a la defense AVANT de calculer le
+         budget d'envoi. Sans cette reserve, le bot depensait son or en
+         monstres entre deux poses et n'avait que trois tours a la quinzieme
+         seconde — un joueur qui envoie des la premiere seconde le pliait avant
+         qu'il n'ait rien bati. Un humain construit d'abord, attaque ensuite. */
+      const dette = Math.max(0, plancherTours - l.depenseTours);
+      let budget = Math.floor(Math.max(0, l.or - dette) * d.partEnvois);
       const cible = etat.lignes[voisin(etat, l.i)];
       const cles = Object.keys(cfg.MONSTRES);
       /* Ce qui est rare change au fil de la partie. Au debut c'est l'or, donc

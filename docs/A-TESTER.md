@@ -91,15 +91,25 @@ Le trajet passe de 13 cases à **33 à 57 selon la ligne**.
 > première tour — il faut bâtir des murs, et les cases du milieu ne rapportent
 > rien sur le coup. C'est pourquoi le gabarit reste nécessaire comme squelette.
 
+**Le bot met son or de côté avant d'attaquer.** Défaut trouvé sur la partie
+`441930` : les bots posaient bien leurs tours, mais dépensaient leur or en
+monstres *entre deux poses* — trois tours à la quinzième seconde, et le voisin
+qui envoie dès la première seconde les pliait avant qu'ils n'aient rien bâti.
+Ce qui manque encore à leur quota de défense est maintenant **réservé** avant
+le calcul du budget d'envoi. Un humain construit d'abord et attaque ensuite.
+
+Sur quatre parties réelles rejouées, la première élimination passe de **15 s à
+95–144 s**.
+
 L'échelle mesurée sur **huit** graines, avec la stratégie du rapport de partie
 (treize tours de guet, aucune amélioration, spam du meilleur rapport) :
 
 | Bots | Le spam gagne | Vies restantes |
 |---|---:|---:|
 | Débutant | 8/8 | 40 |
-| Normal | 6/8 | 30 |
+| Normal | 7/8 | 35 |
 | Agressif | 3/8 | 15 |
-| Impitoyable | 2/8 | 10 |
+| Impitoyable | 3/8 | 15 |
 
 Monotone sur les deux colonnes, et c'est le test qui le vérifie — pas un nombre
 de victoires figé, mais **l'échelle elle-même**.
