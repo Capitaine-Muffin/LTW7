@@ -812,6 +812,25 @@ function demarrer(memeGraine){
   panneau();
 }
 
+/* Un telephone garde la page en cache et on rejoue sans le savoir une version
+   deja corrigee — c'est arrive deux fois. La page va donc lire sa propre
+   adresse sans passer par le cache, comparer le tampon de version, et proposer
+   de recharger si le serveur en a une plus recente. Silencieux si on est hors
+   ligne ou en local. */
+async function guetterVersion(){
+  if (location.protocol === 'file:') return;
+  try {
+    const r = await fetch(location.href.split('?')[0], {cache: 'no-store'});
+    const t = await r.text();
+    const m = t.match(/const VERSION = "([^"]+)"/);
+    if (!m || m[1] === VERSION) return;
+    const d = document.getElementById('version');
+    d.innerHTML = `<button id="recharger">⟳ Nouvelle version (${m[1]}) — recharger</button>`;
+    document.getElementById('recharger').onclick = () =>
+      location.replace(location.pathname + '?v=' + Date.now());
+  } catch (e){ /* hors ligne : on ne dit rien */ }
+}
+
 /* L'ecran d'accueil met la partie en pause plutot que de la laisser courir
    derriere : regler la difficulte pendant qu'on se fait envahir n'a pas de
    sens, et le plateau sert de decor vivant sous le voile. */
@@ -844,6 +863,7 @@ window.addEventListener('DOMContentLoaded', () => {
   champSon.onchange = e => majSon(reglerSon(e.target.value === '1'));
   document.getElementById('version').textContent =
     'version ' + (typeof VERSION === 'string' ? VERSION : 'inconnue');
+  guetterVersion();
   document.getElementById('jouer').onclick = () => { reveillerSon(); demarrer(false); fermerAccueil(); };
   document.getElementById('memeGraine').onclick = () => { demarrer(true); fermerAccueil(); };
   document.getElementById('reprendre').onclick = fermerAccueil;

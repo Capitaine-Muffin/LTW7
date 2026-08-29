@@ -182,6 +182,12 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   padding:14px 16px}
 #accueil .version{color:var(--doux);opacity:.55;font-size:10px;margin:12px 0 0;
   text-align:center;font-family:"IBM Plex Mono",ui-monospace,monospace}
+/* Quand une version plus recente existe, la ligne discrete devient un bouton
+   qu'on ne peut pas manquer. */
+#accueil .version:has(#recharger){opacity:1}
+#accueil #recharger{width:100%;background:linear-gradient(180deg,#e0645a,#b8382f);
+  color:#fff;border:0;border-radius:11px;padding:11px;font-size:13.5px;font-weight:800;
+  font-family:Oxanium;cursor:pointer;box-shadow:0 4px 14px rgba(224,90,90,.3)}
 #accueil .note{color:var(--doux);font-size:11.5px;line-height:1.45;margin:8px 0 0}
 #accueil .note b{color:var(--encre)}
 #fin{position:fixed;inset:0;background:rgba(10,9,16,.88);display:flex;align-items:center;

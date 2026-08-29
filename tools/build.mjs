@@ -11,7 +11,12 @@ import {createHash} from 'crypto';
      Il est tire du CONTENU, pas du dernier commit : un sha de commit serait
    toujours celui d'avant, puisque la page est construite avant d'etre
    commitee. Deux pages identiques portent donc le meme tampon. */
-const jour = new Date().toISOString().slice(0, 10);
+/* Date ET heure : deux versions du meme jour doivent se comparer d'un coup
+   d'oeil, sinon le tampon ne sert a rien. */
+const d = new Date();
+const jour = d.toISOString().slice(0, 10) + ' ' +
+  String(d.getUTCHours()).padStart(2, '0') + 'h' +
+  String(d.getUTCMinutes()).padStart(2, '0');
 
 const morceaux = [
   'art/sprites.js', 'art/monstres.js',

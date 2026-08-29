@@ -5,9 +5,14 @@
 monté, envoyé, reçu, et qui a éliminé qui, avec la chronologie. **C'est ça qu'il
 faut me coller** — une capture d'écran ne montre que le score final.
 
-**La version.** L'écran-titre et le rapport affichent la date et le numéro de
-build. Si tu me signales un défaut, ce numéro me dit tout de suite si tu jouais
-la version corrigée ou une page restée en cache.
+**La version.** L'écran-titre et la première ligne du rapport affichent la date,
+**l'heure** et l'empreinte du build. Si tu me signales un défaut, ça me dit tout
+de suite si tu jouais la version corrigée ou une page restée en cache.
+
+Et la page se surveille elle-même : au chargement de l'écran-titre, elle relit
+sa propre adresse **sans passer par le cache** et compare l'empreinte. Si le
+serveur en a une plus récente, la ligne discrète devient un gros bouton rouge
+**« ⟳ Nouvelle version — recharger »**. Plus besoin d'y penser.
 
 **Installer le jeu sur le téléphone** : ouvre
 `https://capitaine-muffin.github.io/ltw7/`, puis « Ajouter à l'écran d'accueil ».

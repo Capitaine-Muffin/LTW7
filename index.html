@@ -182,6 +182,12 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
   padding:14px 16px}
 #accueil .version{color:var(--doux);opacity:.55;font-size:10px;margin:12px 0 0;
   text-align:center;font-family:"IBM Plex Mono",ui-monospace,monospace}
+/* Quand une version plus recente existe, la ligne discrete devient un bouton
+   qu'on ne peut pas manquer. */
+#accueil .version:has(#recharger){opacity:1}
+#accueil #recharger{width:100%;background:linear-gradient(180deg,#e0645a,#b8382f);
+  color:#fff;border:0;border-radius:11px;padding:11px;font-size:13.5px;font-weight:800;
+  font-family:Oxanium;cursor:pointer;box-shadow:0 4px 14px rgba(224,90,90,.3)}
 #accueil .note{color:var(--doux);font-size:11.5px;line-height:1.45;margin:8px 0 0}
 #accueil .note b{color:var(--encre)}
 #fin{position:fixed;inset:0;background:rgba(10,9,16,.88);display:flex;align-items:center;
@@ -303,7 +309,7 @@ select{background:var(--bord);color:var(--encre);border:1px solid #3b3552;border
 <script>
 
 /* ===== version ===== */
-const VERSION = "2026-08-29 209c9cf";
+const VERSION = "2026-08-29 09h37 facf2f2";
 
 /* ===== art/sprites.js ===== */
 const N=48;
@@ -4182,6 +4188,25 @@ function demarrer(memeGraine){
   panneau();
 }
 
+/* Un telephone garde la page en cache et on rejoue sans le savoir une version
+   deja corrigee — c'est arrive deux fois. La page va donc lire sa propre
+   adresse sans passer par le cache, comparer le tampon de version, et proposer
+   de recharger si le serveur en a une plus recente. Silencieux si on est hors
+   ligne ou en local. */
+async function guetterVersion(){
+  if (location.protocol === 'file:') return;
+  try {
+    const r = await fetch(location.href.split('?')[0], {cache: 'no-store'});
+    const t = await r.text();
+    const m = t.match(/const VERSION = "([^"]+)"/);
+    if (!m || m[1] === VERSION) return;
+    const d = document.getElementById('version');
+    d.innerHTML = `<button id="recharger">⟳ Nouvelle version (${m[1]}) — recharger</button>`;
+    document.getElementById('recharger').onclick = () =>
+      location.replace(location.pathname + '?v=' + Date.now());
+  } catch (e){ /* hors ligne : on ne dit rien */ }
+}
+
 /* L'ecran d'accueil met la partie en pause plutot que de la laisser courir
    derriere : regler la difficulte pendant qu'on se fait envahir n'a pas de
    sens, et le plateau sert de decor vivant sous le voile. */
@@ -4214,6 +4239,7 @@ window.addEventListener('DOMContentLoaded', () => {
   champSon.onchange = e => majSon(reglerSon(e.target.value === '1'));
   document.getElementById('version').textContent =
     'version ' + (typeof VERSION === 'string' ? VERSION : 'inconnue');
+  guetterVersion();
   document.getElementById('jouer').onclick = () => { reveillerSon(); demarrer(false); fermerAccueil(); };
   document.getElementById('memeGraine').onclick = () => { demarrer(true); fermerAccueil(); };
   document.getElementById('reprendre').onclick = fermerAccueil;
